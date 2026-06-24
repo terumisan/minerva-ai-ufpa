@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  ufpa_rag_db:
+    image: ankane/pgvector:latest
+    container_name: ufpa_rag_db
+    environment:
+      POSTGRES_DB: ufpa_rag
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ufpa_senha_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_rag:/var/lib/postgresql/data
+
+  ufpa_rag_ui:
+    build: ./app
+    container_name: ufpa_rag_ui
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app
+      - ./documentos:/documentos
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - ufpa_rag_db
+
+volumes:
+  pgdata_rag:
