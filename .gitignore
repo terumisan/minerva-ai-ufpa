@@ -9,3 +9,16 @@ documentos/
 *.docx
 pgdata/
 .env
+**/.env
+.streamlit/secrets.toml
+**/.streamlit/secrets.toml
+**/__pycache__/
+**/*.pyc
+*.pyo
+**/*.pyo
+app/main.py.bkp_*
+**/*.bkp_*
+.pytest_cache/
+**/.pytest_cache/
+**/.venv/
+**/venv/

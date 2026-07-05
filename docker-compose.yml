@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ufpa_rag_db:
     image: ankane/pgvector:latest

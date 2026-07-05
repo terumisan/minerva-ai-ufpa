@@ -1,6 +1,5 @@
 streamlit
-psycopg2-binary
-pgvector
 requests
-pypdf
-langchain-text-splitters
+psycopg2-binary
+python-docx
+beautifulsoup4
