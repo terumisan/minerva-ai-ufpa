@@ -22,3 +22,4 @@ app/main.py.bkp_*
 **/.pytest_cache/
 **/.venv/
 **/venv/
+app/.streamlit/secrets.toml
