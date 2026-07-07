@@ -1,0 +1,666 @@
+{
+  "version": 1,
+  "project": "Minerva AI FCT/UFPA",
+  "source_policy": {
+    "primary_domain": "fct.ufpa.br",
+    "official_domain_rule": "Aceitar somente ufpa.br ou subdomínios terminados em .ufpa.br",
+    "priority_order": [
+      "fct.ufpa.br",
+      "documentacao_rag_existente",
+      "*.ufpa.br",
+      "fallback_sem_inventar"
+    ],
+    "never_use_as_institutional_evidence": [
+      "wikipedia.org",
+      "facebook.com",
+      "instagram.com",
+      "linkedin.com",
+      "blogs não oficiais",
+      "sites externos não pertencentes à UFPA"
+    ]
+  },
+  "intents": [
+    {
+      "intent": "fct_identity",
+      "mode": "official_live_first",
+      "expected_answer_type": "factual_definition",
+      "keywords": [
+        "fct",
+        "faculdade",
+        "significa",
+        "nome completo",
+        "o que é"
+      ],
+      "examples": [
+        "O que significa FCT?",
+        "O que é a FCT?",
+        "Qual é o nome completo da FCT?",
+        "A FCT pertence à UFPA?",
+        "O que faz a FCT?",
+        "Qual é a Faculdade de Computação e Telecomunicações?",
+        "FCT é uma faculdade da UFPA?",
+        "Qual unidade da UFPA é chamada FCT?",
+        "Me explique o que é a FCT",
+        "FCT significa o quê?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/sobre-a-faculdade",
+        "https://fct.ufpa.br/"
+      ],
+      "response_rules": [
+        "Responder a identidade institucional solicitada.",
+        "Não desviar para informações não pedidas.",
+        "Não confundir FCT/UFPA com instituições externas."
+      ]
+    },
+    {
+      "intent": "fct_history",
+      "mode": "official_live_first",
+      "expected_answer_type": "institutional_history",
+      "keywords": [
+        "história",
+        "histórico",
+        "criada",
+        "surgiu",
+        "origem",
+        "fundação"
+      ],
+      "examples": [
+        "Qual é a história da FCT?",
+        "Quando a FCT foi criada?",
+        "Como surgiu a FCT?",
+        "Qual é o histórico da faculdade?",
+        "Conte a história da FCT",
+        "Qual a origem da FCT?",
+        "Quando surgiu a Faculdade de Computação e Telecomunicações?",
+        "A FCT existe desde quando?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/historico",
+        "https://fct.ufpa.br/index.php/sobre-a-faculdade"
+      ],
+      "response_rules": [
+        "Responder somente com datas e fatos encontrados em evidência oficial.",
+        "Não inventar datas históricas."
+      ]
+    },
+    {
+      "intent": "leadership",
+      "mode": "official_live_first",
+      "expected_answer_type": "person_or_role",
+      "keywords": [
+        "diretor",
+        "diretora",
+        "vice-diretor",
+        "vice diretor",
+        "direção",
+        "gestão"
+      ],
+      "examples": [
+        "Quem é o Diretor?",
+        "Quem é o diretor da FCT?",
+        "Quem dirige a FCT?",
+        "Quem é o atual diretor da faculdade?",
+        "Quem é o vice-diretor?",
+        "Quem compõe a direção da FCT?",
+        "Qual professor é diretor da FCT?",
+        "Quem está na direção da faculdade?",
+        "Quem responde pela direção?",
+        "Quem é o responsável pela FCT?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/contato",
+        "https://fct.ufpa.br/index.php/sobre-a-faculdade"
+      ],
+      "response_rules": [
+        "A resposta deve mencionar uma pessoa associada explicitamente ao cargo.",
+        "Não responder apenas o significado da sigla FCT.",
+        "Não inferir cargo por conhecimento geral.",
+        "Para cargo atual, priorizar a evidência mais recente disponível."
+      ]
+    },
+    {
+      "intent": "faculty",
+      "mode": "official_live_first",
+      "expected_answer_type": "person_list",
+      "keywords": [
+        "professor",
+        "professores",
+        "docente",
+        "docentes",
+        "corpo docente",
+        "titulação"
+      ],
+      "examples": [
+        "Quais professores?",
+        "Quais são os professores da FCT?",
+        "Quem são os docentes?",
+        "Liste os professores da FCT",
+        "Quem faz parte do corpo docente?",
+        "Quais docentes trabalham na FCT?",
+        "Mostre a lista de professores",
+        "Quem dá aula na FCT?",
+        "O professor X faz parte da FCT?",
+        "X é professor da FCT?",
+        "Qual é a titulação do professor X?",
+        "Quais docentes são doutores?",
+        "Quais docentes são mestres?",
+        "Existe um professor chamado X na FCT?",
+        "Quem compõe o corpo docente?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/corpo-docente"
+      ],
+      "response_rules": [
+        "Para pergunta plural, retornar lista de pessoas encontradas.",
+        "Para pergunta sobre pessoa específica, verificar presença na evidência.",
+        "Não responder apenas o significado de FCT.",
+        "Não inventar professor que não apareça nas fontes disponíveis."
+      ]
+    },
+    {
+      "intent": "contact_secretariat",
+      "mode": "official_live_first",
+      "expected_answer_type": "contact_data",
+      "keywords": [
+        "contato",
+        "telefone",
+        "email",
+        "e-mail",
+        "secretaria",
+        "endereço",
+        "localização"
+      ],
+      "examples": [
+        "Qual é o telefone da FCT?",
+        "Qual é o e-mail da FCT?",
+        "Como falar com a FCT?",
+        "Qual é o contato da secretaria?",
+        "Onde fica a secretaria?",
+        "Qual é a localização da FCT?",
+        "Onde fica a FCT?",
+        "Como entrar em contato com a faculdade?",
+        "Existe telefone de atendimento?",
+        "Qual e-mail devo usar?",
+        "Qual é o endereço da FCT?",
+        "Quem trabalha na secretaria?",
+        "Quem é o secretário da FCT?",
+        "Como falar com a coordenação?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/contato",
+        "https://fct.ufpa.br/"
+      ],
+      "response_rules": [
+        "Não inventar telefone, e-mail, sala ou endereço.",
+        "Apresentar somente contatos encontrados em fonte oficial."
+      ]
+    },
+    {
+      "intent": "courses",
+      "mode": "official_live_first",
+      "expected_answer_type": "course_list",
+      "keywords": [
+        "curso",
+        "cursos",
+        "graduação",
+        "computação",
+        "telecomunicações"
+      ],
+      "examples": [
+        "Quais cursos a FCT oferece?",
+        "Quais cursos existem na FCT?",
+        "A FCT oferece Engenharia da Computação?",
+        "A FCT oferece Engenharia de Telecomunicações?",
+        "Quais são as graduações da FCT?",
+        "Existe curso de Computação na FCT?",
+        "Existe curso de Telecomunicações?",
+        "Qual curso da FCT é relacionado à computação?",
+        "Quais engenharias existem na FCT?",
+        "Onde encontro informações sobre os cursos?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/sobre-a-faculdade",
+        "https://fct.ufpa.br/",
+        "https://proeg.ufpa.br/"
+      ],
+      "response_rules": [
+        "Para pergunta plural, listar cursos encontrados.",
+        "Não inventar curso não documentado."
+      ]
+    },
+    {
+      "intent": "curriculum_disciplines",
+      "mode": "hybrid_official_rag",
+      "expected_answer_type": "academic_information",
+      "keywords": [
+        "disciplina",
+        "disciplinas",
+        "ementa",
+        "plano",
+        "pré-requisito",
+        "carga horária",
+        "oferta",
+        "matriz curricular"
+      ],
+      "examples": [
+        "Onde encontro o plano de uma disciplina?",
+        "Qual é a ementa da disciplina X?",
+        "Quais disciplinas são ofertadas?",
+        "Onde vejo a lista de ofertas?",
+        "A disciplina X será ofertada?",
+        "Quem ministra a disciplina X?",
+        "Qual é a carga horária da disciplina X?",
+        "A disciplina X possui pré-requisito?",
+        "Quais são os pré-requisitos?",
+        "Onde encontro o plano de ensino?",
+        "Quais são os componentes curriculares?",
+        "Existe disciplina de estágio?",
+        "Existe disciplina de TCC?",
+        "Como consultar as turmas?",
+        "Onde vejo os horários das disciplinas?",
+        "Onde encontro a matriz curricular?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/plano-da-disciplina",
+        "https://fct.ufpa.br/",
+        "https://proeg.ufpa.br/"
+      ],
+      "response_rules": [
+        "Para oferta de disciplina, exigir evidência do período solicitado.",
+        "Não assumir oferta atual usando documento antigo.",
+        "Usar documentação RAG quando houver conteúdo curricular mais detalhado."
+      ]
+    },
+    {
+      "intent": "enrollment_sigaa",
+      "mode": "hybrid_official_rag",
+      "expected_answer_type": "academic_procedure",
+      "keywords": [
+        "matrícula",
+        "matricular",
+        "sigaa",
+        "ajuste",
+        "turma",
+        "período"
+      ],
+      "examples": [
+        "Como me matricular?",
+        "Como faço matrícula?",
+        "Como me matricular em uma disciplina?",
+        "Onde faço a matrícula?",
+        "A matrícula é pelo SIGAA?",
+        "Como acessar o SIGAA?",
+        "Quando começa a matrícula?",
+        "Qual é o período de matrícula?",
+        "Quando ocorre o ajuste de matrícula?",
+        "Como adicionar uma disciplina?",
+        "Como excluir uma disciplina?",
+        "O que é ajuste de matrícula?",
+        "Perdi o prazo de matrícula, o que faço?",
+        "Como consultar minha turma?",
+        "Onde vejo minhas disciplinas?",
+        "Existe matrícula para TCC?",
+        "Existe matrícula para estágio?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://proeg.ufpa.br/",
+        "https://sigaa.ufpa.br/"
+      ],
+      "response_rules": [
+        "Para datas, exigir período e ano compatíveis.",
+        "Não usar automaticamente prazo antigo.",
+        "Procedimento geral pode usar PROEG/SIGAA após verificar a FCT."
+      ]
+    },
+    {
+      "intent": "internship",
+      "mode": "hybrid_official_rag",
+      "expected_answer_type": "academic_procedure",
+      "keywords": [
+        "estágio",
+        "estagio",
+        "termo de estágio",
+        "integralização",
+        "supervisor"
+      ],
+      "examples": [
+        "Como funciona o estágio na FCT?",
+        "O estágio é obrigatório?",
+        "Existe estágio não obrigatório?",
+        "Como iniciar um estágio?",
+        "Quais documentos são necessários para estágio?",
+        "Como integralizar o estágio?",
+        "Onde encontro as regras de estágio?",
+        "Quem assina meu termo de estágio?",
+        "Como entregar documentação de estágio?",
+        "Onde encontro oportunidades de estágio?",
+        "Posso fazer estágio não obrigatório?",
+        "Existe carga horária mínima de estágio?",
+        "Como registrar o estágio?",
+        "Preciso estar matriculado para fazer estágio?",
+        "Existe uma central de estágios da UFPA?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/estagio",
+        "https://fct.ufpa.br/"
+      ],
+      "response_rules": [
+        "Priorizar procedimento específico da FCT.",
+        "Usar documentação RAG para normas detalhadas.",
+        "Não inventar assinaturas, prazos ou carga horária."
+      ]
+    },
+    {
+      "intent": "tcc",
+      "mode": "hybrid_official_rag",
+      "expected_answer_type": "academic_procedure",
+      "keywords": [
+        "tcc",
+        "trabalho de conclusão",
+        "overleaf",
+        "orientador",
+        "banca",
+        "template",
+        "modelo"
+      ],
+      "examples": [
+        "Como funciona o TCC?",
+        "A FCT exige TCC?",
+        "Onde encontro o modelo de TCC?",
+        "Existe modelo no Overleaf?",
+        "Como fazer o TCC em LaTeX?",
+        "Qual é o formato do TCC?",
+        "Onde encontro o template?",
+        "Quem pode orientar TCC?",
+        "Como escolher orientador?",
+        "Como matricular TCC?",
+        "Quais documentos são necessários?",
+        "Existe banca de TCC?",
+        "Como entregar a versão final?",
+        "Onde encontro as normas do TCC?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://fct.ufpa.br/index.php/documentacao"
+      ],
+      "response_rules": [
+        "Usar documentação RAG para regras específicas.",
+        "Não inventar prazo, banca ou documentação."
+      ]
+    },
+    {
+      "intent": "documentation",
+      "mode": "hybrid_official_rag",
+      "expected_answer_type": "document_or_procedure",
+      "keywords": [
+        "documento",
+        "documentos",
+        "documentação",
+        "formulário",
+        "formulários",
+        "requerimento"
+      ],
+      "examples": [
+        "Quais documentos estão disponíveis?",
+        "Onde encontro formulários?",
+        "Existe formulário para aproveitamento?",
+        "Como solicitar determinado serviço?",
+        "Onde baixo documentos da FCT?",
+        "Existe requerimento acadêmico?",
+        "Onde encontro normas do curso?",
+        "Onde encontro resoluções?",
+        "Existe documentação para estágio?",
+        "Existe documentação para TCC?",
+        "Onde encontro documentos oficiais?",
+        "Qual documento devo preencher?",
+        "Existe formulário para aluno?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/index.php/documentacao",
+        "https://fct.ufpa.br/"
+      ],
+      "response_rules": [
+        "Priorizar documento oficial específico.",
+        "Não afirmar existência de formulário sem evidência."
+      ]
+    },
+    {
+      "intent": "academic_calendar",
+      "mode": "official_live_first",
+      "expected_answer_type": "dated_academic_information",
+      "keywords": [
+        "calendário",
+        "aulas",
+        "semestre",
+        "período letivo",
+        "prazo",
+        "férias",
+        "trancamento"
+      ],
+      "examples": [
+        "Quando começam as aulas?",
+        "Quando termina o período letivo?",
+        "Qual é o calendário acadêmico?",
+        "Qual é o calendário acadêmico de 2026?",
+        "Quando ocorre a matrícula?",
+        "Quando ocorre o ajuste de matrícula?",
+        "Qual é o período de férias?",
+        "Quando posso trancar matrícula?",
+        "Qual é o prazo para TCC?",
+        "Qual é o prazo para estágio?",
+        "Existem feriados acadêmicos?",
+        "Quando começa o próximo semestre?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://proeg.ufpa.br/",
+        "https://ufpa.br/"
+      ],
+      "response_rules": [
+        "Para data atual, priorizar documento vigente.",
+        "Informar ano ou período usado.",
+        "Não responder prazo atual com calendário antigo."
+      ]
+    },
+    {
+      "intent": "academic_records",
+      "mode": "hybrid_official_rag",
+      "expected_answer_type": "administrative_procedure",
+      "keywords": [
+        "diploma",
+        "histórico",
+        "certificado",
+        "segunda via",
+        "registro acadêmico",
+        "gru"
+      ],
+      "examples": [
+        "Como solicitar diploma?",
+        "Como solicitar segunda via do diploma?",
+        "Como consultar meu diploma?",
+        "Como verificar a autenticidade de um diploma?",
+        "Como solicitar segunda via do histórico?",
+        "Quais documentos preciso para segunda via?",
+        "Como alterar meus dados cadastrais?",
+        "Como solicitar desistência do curso?",
+        "Como consultar um processo acadêmico?",
+        "Onde solicito serviços acadêmicos?",
+        "Como fazer apostilamento de diploma?",
+        "Como emitir GRU para serviço acadêmico?",
+        "Como solicitar certificado?",
+        "Quem registra os diplomas da UFPA?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://ciac.ufpa.br/"
+      ],
+      "response_rules": [
+        "Priorizar instrução local da FCT quando existir.",
+        "Usar CIAC para procedimento institucional geral.",
+        "Não inventar taxa, documento ou prazo."
+      ]
+    },
+    {
+      "intent": "news_opportunities",
+      "mode": "official_live_first",
+      "expected_answer_type": "current_information",
+      "keywords": [
+        "notícia",
+        "notícias",
+        "concurso",
+        "seleção",
+        "vaga",
+        "bolsa",
+        "oportunidade",
+        "inscrição"
+      ],
+      "examples": [
+        "Existem notícias recentes da FCT?",
+        "Há concurso aberto na FCT?",
+        "Existe seleção para professor?",
+        "Há vaga de estágio?",
+        "Existe oportunidade para bolsista?",
+        "Há projeto selecionando alunos?",
+        "Existem inscrições abertas?",
+        "Qual é o prazo da seleção?",
+        "Como participar da seleção?",
+        "Existe resultado publicado?",
+        "Onde acompanho concursos?",
+        "Há oportunidades para Engenharia da Computação?",
+        "Há oportunidades para Telecomunicações?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://ufpa.br/"
+      ],
+      "response_rules": [
+        "Informação atual deve vir de evidência atual.",
+        "Não apresentar edital encerrado como aberto.",
+        "Informar data da evidência quando disponível."
+      ]
+    },
+    {
+      "intent": "research_extension",
+      "mode": "hybrid_official_rag",
+      "expected_answer_type": "institutional_information",
+      "keywords": [
+        "pesquisa",
+        "extensão",
+        "projeto",
+        "laboratório",
+        "grupo de pesquisa",
+        "iniciação científica"
+      ],
+      "examples": [
+        "Quais projetos de pesquisa existem na FCT?",
+        "Existem projetos de extensão?",
+        "Quais laboratórios existem?",
+        "Como participar de pesquisa?",
+        "Existe iniciação científica?",
+        "Há vagas em projetos?",
+        "Quais grupos de pesquisa existem?",
+        "Como participar de um projeto da FCT?",
+        "Existe bolsa de pesquisa?",
+        "Quais laboratórios atendem Engenharia da Computação?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://ufpa.br/"
+      ],
+      "response_rules": [
+        "Não inventar laboratório ou projeto.",
+        "Usar documentação RAG quando houver projeto institucional indexado."
+      ]
+    },
+    {
+      "intent": "systems_services",
+      "mode": "official_live_first",
+      "expected_answer_type": "service_guidance",
+      "keywords": [
+        "sigaa",
+        "sagitta",
+        "sistema",
+        "portal",
+        "acessar",
+        "login"
+      ],
+      "examples": [
+        "Como acessar o SIGAA?",
+        "O que é o SIGAA?",
+        "Como acessar o Sagitta?",
+        "Para que serve o Sagitta?",
+        "Onde consulto minhas disciplinas?",
+        "Qual sistema uso para matrícula?",
+        "Onde abro uma solicitação?",
+        "Como acessar os sistemas da UFPA?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://sigaa.ufpa.br/",
+        "https://sagitta.ufpa.br/"
+      ],
+      "response_rules": [
+        "Não solicitar ou expor senha do usuário.",
+        "Fornecer somente orientação encontrada em fonte oficial."
+      ]
+    },
+    {
+      "intent": "ru_menu",
+      "mode": "existing_special_route",
+      "expected_answer_type": "daily_menu",
+      "keywords": [
+        "ru",
+        "cardápio",
+        "restaurante universitário",
+        "bandejão",
+        "almoço",
+        "jantar"
+      ],
+      "examples": [
+        "Qual é o cardápio do RU hoje?",
+        "O que tem no almoço?",
+        "O que tem no jantar?",
+        "Qual é a opção vegetariana?",
+        "Tem sobremesa hoje?",
+        "Qual é o cardápio desta semana?",
+        "Onde consultar o RU?",
+        "O cardápio contém glúten?"
+      ],
+      "priority_sources": [
+        "https://proaes.ufpa.br/"
+      ],
+      "response_rules": [
+        "Não interceptar a rota PROAES já existente.",
+        "Preservar responder_cardapio_proaes."
+      ]
+    },
+    {
+      "intent": "general_ufpa",
+      "mode": "official_live_first",
+      "expected_answer_type": "institutional_information",
+      "keywords": [
+        "ufpa",
+        "universidade",
+        "serviço",
+        "procedimento"
+      ],
+      "examples": [
+        "Onde encontro informações oficiais da UFPA?",
+        "Qual portal oficial devo consultar?",
+        "Como encontrar um serviço da UFPA?",
+        "Onde consultar informações institucionais?",
+        "Qual setor da UFPA trata deste assunto?"
+      ],
+      "priority_sources": [
+        "https://fct.ufpa.br/",
+        "https://ufpa.br/"
+      ],
+      "response_rules": [
+        "FCT deve ser consultada primeiro para assunto acadêmico local.",
+        "Demais portais UFPA são fallback."
+      ]
+    }
+  ]
+}

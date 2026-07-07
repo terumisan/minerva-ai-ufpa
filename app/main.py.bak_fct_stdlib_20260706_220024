@@ -1,11 +1,5 @@
 
 from __future__ import annotations
-# MINERVA_PRIORITY_ROUTER_IMPORT_BEGIN
-try:
-    from .minerva_priority_router import priority_answer
-except (ImportError, ValueError):
-    from minerva_priority_router import priority_answer
-# MINERVA_PRIORITY_ROUTER_IMPORT_END
 
 from minerva_hybrid import responder_minerva
 import os
@@ -420,7 +414,7 @@ DB_HOST = get_config("DB_HOST", "ufpa_rag_db")
 DB_PORT = int(get_config("DB_PORT", "5432"))
 DB_NAME = get_config("DB_NAME", "ufpa_rag")
 DB_USER = get_config("DB_USER", "admin")
-DB_PASSWORD = get_config("DB_PASSWORD", "")
+DB_PASSWORD = get_config("DB_PASSWORD", "ufpa_senha_123")
 
 DB_POOL_MIN = int(get_config("DB_POOL_MIN", "1"))
 DB_POOL_MAX = int(get_config("DB_POOL_MAX", "10"))
@@ -1455,11 +1449,6 @@ def filtrar_cardapio_por_pergunta(
     query: str,
 ) -> list[dict[str, Any]]:
     """Filtra o cardápio por hoje ou por dia da semana, quando solicitado."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
     if not cardapio:
         return []
 
@@ -1495,11 +1484,6 @@ def filtrar_refeicoes_por_pergunta(
     query: str,
 ) -> list[dict[str, Any]]:
     """Filtra almoço ou jantar quando o usuário especifica uma refeição."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
     query_lc = normalizar_cardapio_texto(query)
 
     if "almoco" in query_lc:
@@ -1513,11 +1497,6 @@ def filtrar_refeicoes_por_pergunta(
 
 def formatar_cardapio_resposta(cardapio: list[dict[str, Any]], query: str) -> str:
     """Formata a resposta do cardápio para o chat."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
     if not cardapio:
         return "Não há cardápio disponível no momento no site da PROAES."
 
@@ -1745,11 +1724,6 @@ def usuario_pediu_formato(query: str) -> bool:
 
 def montar_resposta_documento(nome_arquivo: str, query: str) -> str:
     """Monta resposta institucional para o documento encontrado."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
     query_lc = query.lower()
 
     if "calendario" in query_lc or "calendário" in query_lc or "cronograma" in query_lc:
@@ -2348,11 +2322,6 @@ def pergunta_menciona_instituicao_externa(pergunta: str) -> bool:
     Perguntas sem instituição explícita continuam sendo interpretadas
     no contexto padrão FCT/UFPA.
     """
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(pergunta)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
     texto = pergunta.casefold()
 
     # Detecta siglas UFxx diferentes de UFPA.
@@ -2442,11 +2411,6 @@ def consultar_modelo_local(pergunta: str) -> str:
     1. prompt institucional rígido;
     2. validação pós-geração.
     """
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(pergunta)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
 
     if pergunta_menciona_instituicao_externa(pergunta):
         return (
@@ -2776,11 +2740,6 @@ def processar_pergunta(pergunta):
     """
     Processa perguntas da Minerva usando camada institucional FCT/UFPA.
     """
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(pergunta)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
 
     conn = None
 

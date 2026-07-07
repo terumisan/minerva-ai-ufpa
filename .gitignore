@@ -23,3 +23,11 @@ app/main.py.bkp_*
 **/.venv/
 **/venv/
 app/.streamlit/secrets.toml
+*.bkp_*
+.minerva_backup_*
+app/.minerva_backup_*
+**/.minerva_backup_*
+*.log
+**/*.log
+.DS_Store
+Thumbs.db

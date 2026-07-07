@@ -420,7 +420,7 @@ DB_HOST = get_config("DB_HOST", "ufpa_rag_db")
 DB_PORT = int(get_config("DB_PORT", "5432"))
 DB_NAME = get_config("DB_NAME", "ufpa_rag")
 DB_USER = get_config("DB_USER", "admin")
-DB_PASSWORD = get_config("DB_PASSWORD", "")
+DB_PASSWORD = get_config("DB_PASSWORD", "ufpa_senha_123")
 
 DB_POOL_MIN = int(get_config("DB_POOL_MIN", "1"))
 DB_POOL_MAX = int(get_config("DB_POOL_MAX", "10"))
