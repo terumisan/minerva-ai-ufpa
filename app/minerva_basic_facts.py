@@ -101,6 +101,20 @@ BASIC_FACTS: Dict[
     dict,
 ] = {
 
+    "MINERVA": {
+        "name": (
+            "Módulo Inteligente de Navegação e Ensino de "
+            "Recursos Virtuais Acadêmicos"
+        ),
+
+        "description": (
+            "nome da própria assistente virtual acadêmica "
+            "da FCT/UFPA, responsável por orientar discentes "
+            "com base em documentos institucionais"
+        ),
+    },
+
+
     "UFPA": {
         "name": (
             "Universidade Federal do Pará"
@@ -398,6 +412,18 @@ def _extract_acronym(
     # Padrões explícitos.
     # ----------------------------------------------------------
 
+    # Maior sigla real cadastrada em BASIC_FACTS tem 7 letras (SAGITTA).
+    # Limitar a captura a esse tamanho evita que palavras comuns do
+    # domínio ("faculdade", "universidade", "regulamento", "trancamento")
+    # sejam confundidas com siglas — bug real: "O que é a Faculdade de
+    # Computação e Telecomunicações da Ufpa?" capturava "FACULDADE" como
+    # candidato e disparava uma busca dinâmica ao vivo nos portais oficiais
+    # (até 14 requisições HTTP, ~17s) antes de desistir e cair no RAG.
+    _MAX_SIGLA_LEN = max(
+        (len(k) for k in BASIC_FACTS),
+        default=7,
+    )
+
     patterns = [
 
         (
@@ -407,7 +433,7 @@ def _extract_acronym(
             r"significado de|"
             r"sigla)"
             r"\s+"
-            r"([a-z0-9]{2,12})"
+            rf"([a-z0-9]{{2,{_MAX_SIGLA_LEN}}})"
             r"\b"
         ),
 
@@ -416,7 +442,7 @@ def _extract_acronym(
             r"\s+"
             r"(?:a|o)?"
             r"\s*"
-            r"([a-z0-9]{2,12})"
+            rf"([a-z0-9]{{2,{_MAX_SIGLA_LEN}}})"
             r"\b"
         ),
     ]
@@ -438,7 +464,7 @@ def _extract_acronym(
         )
 
         if (
-            2 <= len(candidate) <= 12
+            2 <= len(candidate) <= _MAX_SIGLA_LEN
         ):
             return candidate
 

@@ -28,6 +28,13 @@ def criar_tabela():
     """)
     # Cria um índice de busca avançada para acelerar e dar inteligência ao Postgres
     cur.execute("CREATE INDEX IF NOT EXISTS idx_conteudo_trgm ON documentos_ufpa USING gin (conteudo gin_trgm_ops);")
+    # Índice para a busca full-text (to_tsvector/to_tsquery) usada por
+    # minerva_hybrid.buscar_em_documentos_postgres — sem ele, o Postgres
+    # recalcula to_tsvector(conteudo) linha a linha a cada pergunta.
+    cur.execute(
+        "CREATE INDEX IF NOT EXISTS idx_conteudo_tsv ON documentos_ufpa "
+        "USING gin (to_tsvector('portuguese', conteudo));"
+    )
     conn.commit()
     cur.close()
     conn.close()

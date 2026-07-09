@@ -31,3 +31,9 @@ app/.minerva_backup_*
 **/*.log
 .DS_Store
 Thumbs.db
+
+# Modelos GGUF (vários GB cada) — nunca devem ir para o Git.
+models/
+
+# Estado local do Claude Code (sessões, config de agente) — não é parte do projeto.
+.claude/

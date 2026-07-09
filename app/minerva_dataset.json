@@ -1,0 +1,146 @@
+{
+  "versao_dataset": "1.0.0",
+  "respostas_especificas": [
+    {
+      "id": "MINERVA_0001",
+      "macroarea": "Institucional FCT/ITEC/UFPA",
+      "intent": "identificacao_institucional",
+      "subintent": "o_que_significa_fct",
+      "pergunta": "O que significa FCT?",
+      "variacoes": [
+        "O que significa FCT",
+        "Minerva, o que significa FCT",
+        "Me explique o que significa FCT"
+      ],
+      "entidades": [
+        "FCT"
+      ],
+      "palavras_chave": [
+        "significa",
+        "fct"
+      ],
+      "fonte_esperada": "Portal FCT/UFPA",
+      "url_oficial": "https://fct.ufpa.br/",
+      "estrategia_recuperacao": "RAG_WEB_CONTROLADO",
+      "temporal": false,
+      "prioridade": "Baixa",
+      "tipo_resposta": "informativa",
+      "resposta_esperada": "Responder de forma direta, contextualizada ao discente da FCT/UFPA, com evidência e fonte oficial.",
+      "ativo": true,
+      "versao_dataset": "1.0.0"
+    },
+    {
+      "id": "MINERVA_0002",
+      "macroarea": "Institucional UFPA",
+      "intent": "localizacao_unidade",
+      "subintent": "localizacao_itec",
+      "pergunta": "Onde fica o ITEC?",
+      "variacoes": [
+        "Onde fica o ITEC",
+        "Qual a localização do ITEC",
+        "Localização do ITEC",
+        "Endereço do ITEC",
+        "Onde fica o Instituto de Tecnologia",
+        "Onde fica o instituto de tecnologia da UFPA"
+      ],
+      "entidades": [],
+      "palavras_chave": [
+        "itec"
+      ],
+      "fonte_esperada": "Portal do ITEC/UFPA",
+      "url_oficial": "https://itec.ufpa.br/index.php?lang=pt",
+      "estrategia_recuperacao": "RAG_WEB_CONTROLADO",
+      "temporal": false,
+      "prioridade": "Baixa",
+      "tipo_resposta": "informativa",
+      "resposta_esperada": "A FCT não tem dados estruturados de endereço/localização do ITEC nos documentos ingeridos (só regulamentos acadêmicos). Apontar para o portal oficial do ITEC em vez de inventar endereço.",
+      "ativo": true,
+      "versao_dataset": "1.1.0"
+    },
+    {
+      "id": "MINERVA_0003",
+      "macroarea": "Institucional UFPA",
+      "intent": "localizacao_unidade",
+      "subintent": "localizacao_ctic",
+      "pergunta": "Qual a localização do CTIC?",
+      "variacoes": [
+        "Qual a localização do CTIC",
+        "Onde fica o CTIC",
+        "Endereço do CTIC",
+        "Site do CTIC",
+        "Contato do CTIC"
+      ],
+      "entidades": [],
+      "palavras_chave": [
+        "ctic"
+      ],
+      "fonte_esperada": "Portal do CTIC/UFPA",
+      "url_oficial": "https://ctic.ufpa.br/",
+      "estrategia_recuperacao": "RAG_WEB_CONTROLADO",
+      "temporal": false,
+      "prioridade": "Baixa",
+      "tipo_resposta": "informativa",
+      "resposta_esperada": "CTIC é unidade própria da UFPA (Centro de Tecnologia da Informação e Comunicação), fora do escopo dos documentos da FCT. Apontar para o portal oficial em vez de inventar endereço.",
+      "ativo": true,
+      "versao_dataset": "1.1.0"
+    },
+    {
+      "id": "MINERVA_0004",
+      "macroarea": "Institucional UFPA",
+      "intent": "localizacao_unidade",
+      "subintent": "localizacao_reitoria",
+      "pergunta": "Qual a localização da Reitoria?",
+      "variacoes": [
+        "Qual a localização da Reitoria",
+        "Onde fica a Reitoria",
+        "Endereço da Reitoria",
+        "Site da Reitoria",
+        "Contato da Reitoria"
+      ],
+      "entidades": [],
+      "palavras_chave": [
+        "reitoria"
+      ],
+      "fonte_esperada": "Portal da Reitoria/UFPA",
+      "url_oficial": "https://ufpa.br/orgaos/reitoria/",
+      "estrategia_recuperacao": "RAG_WEB_CONTROLADO",
+      "temporal": false,
+      "prioridade": "Baixa",
+      "tipo_resposta": "informativa",
+      "resposta_esperada": "Reitoria é órgão central da UFPA, fora do escopo dos documentos da FCT. Apontar para o portal oficial em vez de inventar endereço.",
+      "ativo": true,
+      "versao_dataset": "1.1.0"
+    },
+    {
+      "id": "MINERVA_0005",
+      "macroarea": "Institucional UFPA",
+      "intent": "localizacao_unidade",
+      "subintent": "biblioteca_central",
+      "pergunta": "Site da Biblioteca Central",
+      "variacoes": [
+        "Site da Biblioteca Central",
+        "Onde fica a Biblioteca Central",
+        "Qual a localização da Biblioteca Central",
+        "Como emprestar livros",
+        "Como emprestar livros na biblioteca",
+        "Como funciona o empréstimo de livros",
+        "Horário de funcionamento da biblioteca",
+        "Dúvidas sobre a biblioteca",
+        "Dúvidas sobre a Biblioteca Central"
+      ],
+      "entidades": [],
+      "palavras_chave": [
+        "biblioteca"
+      ],
+      "fonte_esperada": "Portal da Biblioteca Central/UFPA (dúvidas frequentes)",
+      "url_oficial": "https://bc.ufpa.br/",
+      "estrategia_recuperacao": "RAG_WEB_CONTROLADO",
+      "temporal": false,
+      "prioridade": "Baixa",
+      "tipo_resposta": "informativa",
+      "resposta_esperada": "Regras de empréstimo/horário de funcionamento da Biblioteca Central não estão nos documentos ingeridos da FCT. Apontar para o portal oficial do SIBI/Biblioteca Central em vez de inventar regras.",
+      "ativo": true,
+      "versao_dataset": "1.1.0"
+    }
+  ]
+}

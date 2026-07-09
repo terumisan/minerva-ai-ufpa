@@ -12,14 +12,11 @@ import os
 import re
 import uuid
 import logging
-import unicodedata
 from io import BytesIO
-from datetime import date
 from pathlib import Path
 from typing import Any, Iterable
 
 import requests
-from bs4 import BeautifulSoup
 import streamlit as st
 import psycopg2
 from psycopg2 import pool
@@ -320,29 +317,6 @@ def mensagem_content(msg, default=""):
 
 
 
-def adicionar_mensagem_compat(
-    role,
-    content
-):
-    """
-    Adiciona mensagem sempre em formato estruturado.
-    """
-
-    if "messages" not in st.session_state:
-
-        st.session_state["messages"] = []
-
-
-    st.session_state["messages"].append(
-        normalizar_mensagem_historico(
-            {
-                "role": role,
-                "content": content
-            },
-            role_padrao=role
-        )
-    )
-
 # Normaliza automaticamente históricos antigos.
 normalizar_historico_session_state()
 
@@ -427,289 +401,136 @@ DB_POOL_MAX = int(get_config("DB_POOL_MAX", "10"))
 
 LLM_API_URL = get_config(
     "LLM_API_URL",
-    "http://host.docker.internal:8001/v1/chat/completions",
+    "http://ufpa_rag_llm:8002/v1/chat/completions",
 )
 
 DOCUMENTOS_DIR = Path(str(get_config("DOCUMENTOS_DIR", "documentos")))
 
 UFPA_LOGO_URL = get_config(
     "UFPA_LOGO_URL",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm91cy9Yj1tqqsKNsqNwQGIpxjaCr0sUjCOA&s",
+    str(Path(__file__).parent / "assets" / "logo-ufpa.png"),
 )
-
-CARDAPIO_URL = get_config("CARDAPIO_URL", "https://proaes.ufpa.br/cardapio")
 
 
 # =============================================================================
 # CSS DA INTERFACE
 # =============================================================================
-st.markdown(
-    """
-    <style>
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding-top: 10px;
-        margin-bottom: 5px;
-    }
-
-    .logo-img {
-        width: 86px !important;
-        height: auto !important;
-        object-fit: contain;
-        opacity: 0.96;
-    }
-
-    .chat-header {
-        text-align: center;
-        padding: 0px 0 10px 0;
-    }
-
-    .chat-header h1 {
-        font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        background: linear-gradient(45deg, #1E40AF, #3B82F6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 5px 0;
-    }
-
-    .chat-header p {
-        color: #6B7280;
-        font-size: 1rem;
-    }
-
-    .stSidebar {
-        background-color: #0F172A !important;
-    }
-
-    .stSidebar h3,
-    .stSidebar h4,
-    .stSidebar p,
-    .stSidebar span {
-        color: #F8FAFC !important;
-    }
-
-    div.stButton > button:first-child {
-        border-radius: 20px;
-        border: 1px solid #E2E8F0;
-        background-color: #FFFFFF;
-        color: #1E40AF;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    div.stButton > button:first-child:hover {
-        background-color: #1E40AF;
-        color: #FFFFFF;
-        border-color: #1E40AF;
-        transform: translateY(-2px);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-
-
-# -----------------------------------------------------------------------------
-# MELHORIAS DE LAYOUT DO FRONT-END
-# -----------------------------------------------------------------------------
-# Este bloco adiciona cards, área de boas-vindas, histórico visual e pequenos
-# ajustes de espaçamento. Mantém o visual institucional sem alterar a lógica.
-st.markdown(
-    """
-    <style>
-    .minerva-hero {
-        border: 1px solid #E5E7EB;
-        border-radius: 22px;
-        padding: 22px 24px;
-        margin: 8px 0 20px 0;
-        background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 70%);
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    }
-
-    .minerva-hero h3 {
-        margin: 0 0 8px 0;
-        color: #0F172A;
-        font-weight: 800;
-    }
-
-    .minerva-hero p {
-        margin: 0;
-        color: #475569;
-        line-height: 1.55;
-    }
-
-    .minerva-card {
-        border: 1px solid #E5E7EB;
-        border-radius: 18px;
-        padding: 14px 16px;
-        background: #FFFFFF;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
-        margin-bottom: 10px;
-    }
-
-    .minerva-muted {
-        color: #64748B;
-        font-size: 0.92rem;
-    }
-
-    .history-item {
-        border-left: 3px solid #3B82F6;
-        padding-left: 10px;
-        margin: 8px 0;
-        color: #334155;
-        font-size: 0.92rem;
-    }
-
-    div[data-testid="stExpander"] {
-        border-radius: 16px !important;
-        border-color: #E5E7EB !important;
-    }
-
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 6px;
-    }
-
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 999px;
-        padding: 8px 14px;
-        background-color: #F8FAFC;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-
-
-# =============================================================================
-# LAYOUT CLEAN - MINERVA AI
-# =============================================================================
-# Este bloco reduz poluição visual:
-# - remove excesso de sombras e bordas;
-# - compacta o cabeçalho;
-# - suaviza botões;
-# - cria uma área inicial mais institucional;
-# - deixa histórico e perguntas frequentes menos invasivos.
+# Bloco único. As iterações anteriores empilhavam 5 blocos <style> que se
+# sobrepunham (vários deles nem miravam mais em classes usadas no HTML atual).
+# Este bloco estiliza somente o que existe hoje: as divs ".minerva-v2-*", a
+# sidebar, os botões e as mensagens do chat.
 st.markdown(
     """
     <style>
     :root {
         --minerva-blue: #1E40AF;
         --minerva-blue-soft: #EFF6FF;
-        --minerva-border: #E5E7EB;
+        --minerva-border: #E2E8F0;
         --minerva-text: #0F172A;
         --minerva-muted: #64748B;
         --minerva-bg: #F8FAFC;
+        --minerva-white: #FFFFFF;
+    }
+
+    html, body, .stApp, [data-testid="stAppViewContainer"] {
+        background: var(--minerva-bg) !important;
+        color: var(--minerva-text) !important;
+    }
+
+    [data-testid="stHeader"] {
+        background: transparent !important;
     }
 
     .block-container {
-        padding-top: 1.2rem;
-        padding-bottom: 2rem;
-        max-width: 860px;
+        max-width: 860px !important;
+        padding-top: 1.1rem !important;
+        padding-bottom: 6rem !important;
     }
 
-    .logo-container {
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        margin: 4px 0 10px 0;
-    }
-
-    .logo-img {
-        width: 86px !important;
-        height: auto !important;
-        object-fit: contain;
-        opacity: 0.96;
-    }
-
-    .chat-header {
-        text-align: left !important;
-        padding: 6px 0 12px 0 !important;
-        border-bottom: 1px solid var(--minerva-border);
-        margin-bottom: 18px;
-    }
-
-    .chat-header h1 {
-        font-size: 1.75rem !important;
-        margin: 0 0 4px 0 !important;
-        color: var(--minerva-text) !important;
-        background: none !important;
-        -webkit-text-fill-color: unset !important;
-        font-weight: 800 !important;
-    }
-
-    .chat-header p {
-        color: var(--minerva-muted) !important;
-        font-size: 0.95rem !important;
-        margin: 0 !important;
-    }
-
-    .minerva-clean-hero {
-        border: 1px solid var(--minerva-border);
-        border-radius: 18px;
-        padding: 18px 20px;
-        margin: 0 0 18px 0;
-        background: #FFFFFF;
-    }
-
-    .minerva-clean-hero h3 {
-        margin: 0 0 6px 0;
-        font-size: 1.12rem;
-        color: var(--minerva-text);
-        font-weight: 750;
-    }
-
-    .minerva-clean-hero p {
-        margin: 0;
-        color: var(--minerva-muted);
-        line-height: 1.5;
-        font-size: 0.94rem;
-    }
-
-    .minerva-panel {
-        border: 1px solid var(--minerva-border);
-        border-radius: 16px;
-        background: #FFFFFF;
-        padding: 14px 16px;
-        margin-bottom: 14px;
-    }
-
-    .minerva-panel-title {
-        font-weight: 700;
-        color: var(--minerva-text);
-        margin-bottom: 4px;
-    }
-
-    .minerva-small {
-        color: var(--minerva-muted);
-        font-size: 0.9rem;
-    }
-
-    .stSidebar {
-        background: #FFFFFF !important;
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: var(--minerva-white) !important;
         border-right: 1px solid var(--minerva-border);
     }
 
-    .stSidebar h1,
-    .stSidebar h2,
-    .stSidebar h3,
-    .stSidebar h4,
-    .stSidebar p,
-    .stSidebar span,
-    .stSidebar label {
+    [data-testid="stSidebar"] * {
         color: var(--minerva-text) !important;
     }
 
+    [data-testid="stSidebar"] .stCaptionContainer {
+        color: var(--minerva-muted) !important;
+    }
+
+    .minerva-v2-sidebar-brand strong {
+        font-size: 1.05rem;
+    }
+
+    .minerva-v2-sidebar-brand span {
+        display: block;
+        color: var(--minerva-muted);
+        font-size: 0.85rem;
+    }
+
+    .minerva-v2-history-title,
+    .minerva-v2-section-title,
+    .minerva-v2-suggestions-label {
+        font-weight: 700;
+        color: var(--minerva-text);
+        margin: 10px 0 6px 0;
+        font-size: 0.92rem;
+    }
+
+    .minerva-v2-active {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: var(--minerva-blue-soft);
+        margin: 6px 0 14px 0;
+    }
+
+    .minerva-v2-active strong {
+        color: var(--minerva-blue);
+    }
+
+    .minerva-v2-active span {
+        color: var(--minerva-muted);
+        font-size: 0.88rem;
+    }
+
+    /* Boas-vindas (tela sem mensagens) */
+    .minerva-v2-intro {
+        border: 1px solid var(--minerva-border);
+        border-radius: 18px;
+        background: var(--minerva-white);
+        padding: 20px 22px;
+        margin: 0 0 18px 0;
+    }
+
+    .minerva-v2-intro h2 {
+        margin: 0 0 6px 0;
+        font-size: 1.3rem;
+        color: var(--minerva-text);
+    }
+
+    .minerva-v2-intro p {
+        margin: 0;
+        color: var(--minerva-muted);
+        line-height: 1.5;
+    }
+
+    /* Placeholder do campo de pergunta (st.chat_input) */
+    [data-testid="stChatInput"] textarea::placeholder {
+        color: var(--minerva-muted);
+        opacity: 1;
+    }
+
+    /* Botões */
     div.stButton > button {
         border-radius: 12px !important;
         border: 1px solid var(--minerva-border) !important;
-        background: #FFFFFF !important;
+        background: var(--minerva-white) !important;
         color: var(--minerva-text) !important;
         font-weight: 500 !important;
         box-shadow: none !important;
@@ -719,6 +540,7 @@ st.markdown(
     div.stButton > button:hover {
         border-color: var(--minerva-blue) !important;
         color: var(--minerva-blue) !important;
+        background: var(--minerva-blue-soft) !important;
         transform: none !important;
     }
 
@@ -726,303 +548,122 @@ st.markdown(
         border: 1px solid var(--minerva-border) !important;
         border-radius: 14px !important;
         box-shadow: none !important;
-        background: #FFFFFF !important;
-    }
-
-    div[data-testid="stChatMessage"] {
-        border-radius: 16px;
-        padding: 2px 0;
-    }
-
-    .history-item {
-        border-left: 2px solid var(--minerva-border);
-        padding-left: 10px;
-        margin: 6px 0;
-        color: var(--minerva-muted);
-        font-size: 0.88rem;
-    }
-
-    .stTabs [data-baseweb="tab-list"] {
-        display: none !important;
-    }
-
-    hr {
-        margin: 1rem 0 !important;
+        background: var(--minerva-white) !important;
     }
 
     .stDownloadButton button {
         border-radius: 12px !important;
     }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
-
-
-
-# =============================================================================
-# UX FINAL - LAYOUT INSTITUCIONAL CLARO
-# =============================================================================
-# Objetivo:
-# - Melhorar contraste.
-# - Reduzir poluição visual.
-# - Colocar a conversa como foco.
-# - Exibir categorias principais em cards.
-# - Manter histórico recolhido e clicável.
-st.markdown(
-    """
-    <style>
-    :root {
-        --ufpa-blue: #1E40AF;
-        --ufpa-blue-soft: #EFF6FF;
-        --ufpa-border: #E5E7EB;
-        --ufpa-text: #0F172A;
-        --ufpa-muted: #64748B;
-        --ufpa-bg: #F8FAFC;
-        --ufpa-white: #FFFFFF;
-    }
-
-    html,
-    body,
-    .stApp,
-    [data-testid="stAppViewContainer"] {
-        background: var(--ufpa-bg) !important;
-        color: var(--ufpa-text) !important;
-    }
-
-    [data-testid="stHeader"] {
-        background: transparent !important;
-    }
-
-    .block-container {
-        max-width: 920px !important;
-        padding-top: 1.4rem !important;
-        padding-bottom: 2.5rem !important;
-    }
-
-    .minerva-topbar {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 8px 0 16px 0;
-        border-bottom: 1px solid var(--ufpa-border);
-        margin-bottom: 20px;
-    }
-
-    .minerva-logo {
-        width: 58px;
-        min-width: 58px;
-        height: 58px;
-        object-fit: contain;
-        border-radius: 12px;
-        background: #FFFFFF;
-        border: 1px solid var(--ufpa-border);
-        padding: 4px;
-    }
-
-    .minerva-title-wrap h1 {
-        color: var(--ufpa-text) !important;
-        font-size: 1.7rem !important;
-        line-height: 1.15 !important;
-        margin: 0 !important;
-        font-weight: 800 !important;
-        background: none !important;
-        -webkit-text-fill-color: unset !important;
-    }
-
-    .minerva-title-wrap p {
-        color: var(--ufpa-muted) !important;
-        font-size: 0.94rem !important;
-        margin: 4px 0 0 0 !important;
-    }
-
-    .chat-header,
-    .logo-container {
-        display: none !important;
-    }
-
-    .minerva-welcome {
-        border: 1px solid var(--ufpa-border);
-        border-radius: 18px;
-        background: var(--ufpa-white);
-        padding: 18px 20px;
-        margin: 0 0 18px 0;
-    }
-
-    .minerva-welcome h3 {
-        margin: 0 0 6px 0;
-        color: var(--ufpa-text);
-        font-size: 1.08rem;
-        font-weight: 750;
-    }
-
-    .minerva-welcome p {
-        margin: 0;
-        color: var(--ufpa-muted);
-        font-size: 0.94rem;
-        line-height: 1.5;
-    }
-
-    .minerva-card-title {
-        color: var(--ufpa-text);
-        font-weight: 750;
-        font-size: 0.98rem;
-        margin-bottom: 4px;
-    }
-
-    .minerva-small {
-        color: var(--ufpa-muted);
-        font-size: 0.86rem;
-    }
-
-    .minerva-side-card {
-        border: 1px solid var(--ufpa-border);
-        border-radius: 16px;
-        background: var(--ufpa-white);
-        padding: 14px 16px;
-        margin: 10px 0 14px 0;
-    }
-
-    .history-item {
-        border-left: 2px solid var(--ufpa-border);
-        padding-left: 10px;
-        margin: 6px 0;
-        color: var(--ufpa-muted);
-        font-size: 0.88rem;
-    }
-
-    [data-testid="stSidebar"] {
-        background: var(--ufpa-white) !important;
-        border-right: 1px solid var(--ufpa-border);
-    }
-
-    [data-testid="stSidebar"] * {
-        color: var(--ufpa-text) !important;
-    }
-
-    [data-testid="stSidebar"] .stCaptionContainer,
-    [data-testid="stSidebar"] .minerva-small {
-        color: var(--ufpa-muted) !important;
-    }
-
-    div.stButton > button {
-        border-radius: 13px !important;
-        border: 1px solid var(--ufpa-border) !important;
-        background: var(--ufpa-white) !important;
-        color: var(--ufpa-text) !important;
-        font-weight: 550 !important;
-        min-height: 42px !important;
-        box-shadow: none !important;
-        transition: 0.14s ease-in-out !important;
-    }
-
-    div.stButton > button:hover {
-        border-color: var(--ufpa-blue) !important;
-        color: var(--ufpa-blue) !important;
-        background: var(--ufpa-blue-soft) !important;
-        transform: none !important;
-    }
-
-    div[data-testid="stExpander"] {
-        border: 1px solid var(--ufpa-border) !important;
-        border-radius: 14px !important;
-        background: var(--ufpa-white) !important;
-        box-shadow: none !important;
-    }
-
+    /* Bolhas do chat: diferencia usuário (destacado) de assistente (neutro) */
     div[data-testid="stChatMessage"] {
-        background: transparent !important;
+        border-radius: 16px !important;
+        padding: 10px 16px !important;
+        margin-bottom: 10px !important;
+    }
+
+    div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+        background: var(--minerva-blue-soft) !important;
+    }
+
+    div[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+        background: var(--minerva-white) !important;
+        border: 1px solid var(--minerva-border);
     }
 
     [data-testid="stChatInput"] {
-        max-width: 820px;
+        max-width: 860px;
         margin: auto;
-    }
-
-    .stDownloadButton button {
-        border-radius: 13px !important;
     }
 
     hr {
         margin: 0.9rem 0 !important;
     }
 
+    /* Imagens nunca devem estourar a coluna/container em que estão
+       (o logo do cabeçalho tem width fixo em pixels — sem isso, uma
+       coluna mais estreita que o valor fixo faz a imagem vazar). */
+    [data-testid="stImage"] img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    /* ------------------------------------------------------------
+       RESPONSIVO — MOBILE (celular e tablets estreitos)
+       ------------------------------------------------------------ */
     @media (max-width: 768px) {
-        .minerva-topbar {
-            align-items: flex-start;
+        .block-container {
+            padding-left: 0.85rem !important;
+            padding-right: 0.85rem !important;
+            padding-top: 0.85rem !important;
         }
 
-        .minerva-logo {
-            width: 48px;
-            min-width: 48px;
-            height: 48px;
+        /* Logo do cabeçalho: cap menor pra não competir por espaço
+           com o título "Minerva AI" numa tela estreita. */
+        [data-testid="stImage"] img {
+            max-width: 40px !important;
         }
 
-        .minerva-title-wrap h1 {
-            font-size: 1.35rem !important;
+        h2 {
+            font-size: 1.3rem !important;
+        }
+
+        .minerva-v2-intro {
+            padding: 16px 16px !important;
+        }
+
+        .minerva-v2-intro h2 {
+            font-size: 1.15rem;
+        }
+
+        .minerva-v2-intro p {
+            font-size: 0.9rem;
+        }
+
+        /* Grades de botões (categorias, perguntas sugeridas) quebram
+           em 2 colunas em vez de espremer 3-4 lado a lado. Linhas que
+           já tinham só 2 colunas mantêm o mesmo visual de antes. */
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap !important;
+            row-gap: 0.6rem !important;
+        }
+
+        [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+            flex: 1 1 45% !important;
+            min-width: 45% !important;
+            width: 45% !important;
+        }
+
+        /* Alvo de toque confortável (mínimo recomendado ~44px). */
+        div.stButton > button {
+            min-height: 44px !important;
+            font-size: 0.85rem !important;
+            padding: 0.5rem 0.6rem !important;
+            white-space: normal !important;
+        }
+
+        [data-testid="stChatInput"] {
+            max-width: 100% !important;
+        }
+
+        div[data-testid="stChatMessage"] {
+            padding: 8px 12px !important;
+            font-size: 0.94rem;
+        }
+    }
+
+    /* Celulares bem estreitos: 1 botão por linha nas grades. */
+    @media (max-width: 420px) {
+        [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+            flex: 1 1 100% !important;
+            min-width: 100% !important;
+            width: 100% !important;
         }
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-
-
-
-# =============================================================================
-# UX V2 - INTERFACE INSTITUCIONAL MODERNA
-# =============================================================================
-# Este bloco prioriza:
-# - menos poluição visual;
-# - melhor hierarquia;
-# - campo de pergunta em destaque;
-# - sidebar compacta;
-# - categorias sem duplicação;
-# - responsividade.
-
-
-
-# FIX VISUAL CABECALHO NATIVO V4
-st.markdown("""
-<style>
-/* Menos espaço no topo */
-.block-container {
-    padding-top: 1.1rem !important;
-}
-
-/* Título do cabeçalho */
-[data-testid="stMainBlockContainer"] h2 {
-    margin-top: 0 !important;
-    margin-bottom: 0.1rem !important;
-    color: #0F172A !important;
-    font-size: 1.55rem !important;
-    line-height: 1.15 !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.02em !important;
-}
-
-/* Subtítulo */
-[data-testid="stMainBlockContainer"] [data-testid="stCaptionContainer"] {
-    margin-top: 0 !important;
-}
-
-/* Divisor mais suave */
-[data-testid="stMainBlockContainer"] hr {
-    margin-top: 0.65rem !important;
-    margin-bottom: 1.15rem !important;
-    border-color: #E2E8F0 !important;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    [data-testid="stMainBlockContainer"] h2 {
-        font-size: 1.3rem !important;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
 
 
 # =============================================================================
@@ -1260,316 +901,6 @@ def gerar_docx(texto_estruturado: str) -> bytes:
 
 
 # =============================================================================
-# CARDÁPIO PROAES / RESTAURANTE UNIVERSITÁRIO
-# =============================================================================
-# Este bloco permite que a Minerva consulte o cardápio publicado pela PROAES.
-# Fluxo:
-# 1. Detecta perguntas sobre cardápio, RU, almoço ou jantar.
-# 2. Acessa https://proaes.ufpa.br/cardapio.
-# 3. Extrai dia, data, almoço, jantar e itens do cardápio.
-# 4. Se não houver informação extraída, responde que não há cardápio disponível.
-@st.cache_data(ttl=1800, show_spinner=False)
-def obter_cardapio_proaes() -> list[dict[str, Any]]:
-    """Consulta e extrai o cardápio publicado no site da PROAES.
-
-    O cache de 30 minutos evita consultar o site a cada pergunta, mas mantém
-    a resposta suficientemente atualizada para uso diário.
-    """
-    try:
-        response = http_session.get(
-            CARDAPIO_URL,
-            timeout=15,
-            headers={
-                "User-Agent": (
-                    "Mozilla/5.0 (compatible; MinervaAI/1.0; "
-                    "+https://proaes.ufpa.br/cardapio)"
-                )
-            },
-        )
-        response.raise_for_status()
-
-    except Exception as exc:
-        logger.exception("Erro ao acessar cardápio PROAES: %s", exc)
-        return []
-
-    soup = BeautifulSoup(response.text, "html.parser")
-    texto = soup.get_text("\n", strip=True)
-
-    linhas = [linha.strip() for linha in texto.splitlines() if linha.strip()]
-
-    if not linhas:
-        return []
-
-    return extrair_cardapio_das_linhas(linhas)
-
-
-def remover_acentos(texto: str) -> str:
-    """Remove acentos para facilitar comparação de termos."""
-    return "".join(
-        char
-        for char in unicodedata.normalize("NFD", texto)
-        if unicodedata.category(char) != "Mn"
-    )
-
-
-def normalizar_cardapio_texto(texto: str) -> str:
-    """Normaliza texto usado na detecção do cardápio."""
-    texto = remover_acentos(texto.lower().strip())
-    texto = re.sub(r"\s+", " ", texto)
-    return texto
-
-
-def eh_linha_dia(linha: str) -> bool:
-    """Identifica linhas com nome de dia da semana."""
-    dias = {
-        "segunda",
-        "terca",
-        "quarta",
-        "quinta",
-        "sexta",
-        "sabado",
-        "domingo",
-    }
-
-    return normalizar_cardapio_texto(linha) in dias
-
-
-def eh_linha_data(linha: str) -> bool:
-    """Identifica datas no formato DD/MM/AAAA."""
-    return bool(re.fullmatch(r"\d{2}/\d{2}/\d{4}", linha.strip()))
-
-
-def eh_linha_refeicao(linha: str) -> bool:
-    """Identifica ALMOÇO ou JANTAR."""
-    return normalizar_cardapio_texto(linha) in {"almoco", "jantar"}
-
-
-def extrair_cardapio_das_linhas(linhas: list[str]) -> list[dict[str, Any]]:
-    """Transforma o texto da página em uma estrutura de cardápio."""
-    cardapio: list[dict[str, Any]] = []
-    i = 0
-
-    while i < len(linhas):
-        linha = linhas[i]
-
-        if not eh_linha_dia(linha):
-            i += 1
-            continue
-
-        dia = linha.upper()
-        data = ""
-
-        i += 1
-
-        if i < len(linhas) and eh_linha_data(linhas[i]):
-            data = linhas[i]
-            i += 1
-
-        refeicoes: list[dict[str, Any]] = []
-
-        while i < len(linhas) and not eh_linha_dia(linhas[i]):
-            linha_atual = linhas[i]
-
-            if not eh_linha_refeicao(linha_atual):
-                i += 1
-                continue
-
-            tipo_refeicao = remover_acentos(linha_atual.upper())
-            tipo_refeicao = "ALMOÇO" if tipo_refeicao == "ALMOCO" else "JANTAR"
-
-            i += 1
-            secoes: dict[str, list[str]] = {}
-            secao_atual = None
-
-            while (
-                i < len(linhas)
-                and not eh_linha_dia(linhas[i])
-                and not eh_linha_refeicao(linhas[i])
-            ):
-                item = linhas[i].strip()
-
-                # Ignora fragmentos de navegação/rodapé que podem aparecer no HTML.
-                item_normalizado = normalizar_cardapio_texto(item)
-
-                if item_normalizado in {
-                    "acesso rapido",
-                    "fale conosco siga-nos",
-                    "assistencia estudantil por campi",
-                    "copyright",
-                }:
-                    i += 1
-                    continue
-
-                if item.endswith(":"):
-                    secao_atual = item[:-1].strip()
-                    secoes.setdefault(secao_atual, [])
-
-                elif secao_atual:
-                    secoes.setdefault(secao_atual, []).append(item)
-
-                i += 1
-
-            if secoes:
-                refeicoes.append(
-                    {
-                        "tipo": tipo_refeicao,
-                        "secoes": secoes,
-                    }
-                )
-
-        if dia and data and refeicoes:
-            cardapio.append(
-                {
-                    "dia": dia,
-                    "data": data,
-                    "refeicoes": refeicoes,
-                }
-            )
-
-    return cardapio
-
-
-def eh_pergunta_cardapio(query: str) -> bool:
-    """Detecta se o usuário está perguntando sobre cardápio/RU."""
-    query_lc = normalizar_cardapio_texto(query)
-
-    termos = [
-        "cardapio",
-        "cardapio do ru",
-        "ru",
-        "restaurante universitario",
-        "bandejao",
-        "almoco",
-        "jantar",
-        "comida de hoje",
-        "o que tem para comer",
-        "o que vai ter no almoco",
-        "o que vai ter no jantar",
-    ]
-
-    return any(termo in query_lc for termo in termos)
-
-
-def filtrar_cardapio_por_pergunta(
-    cardapio: list[dict[str, Any]],
-    query: str,
-) -> list[dict[str, Any]]:
-    """Filtra o cardápio por hoje ou por dia da semana, quando solicitado."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
-    if not cardapio:
-        return []
-
-    query_lc = normalizar_cardapio_texto(query)
-
-    if "hoje" in query_lc:
-        hoje = date.today().strftime("%d/%m/%Y")
-        return [item for item in cardapio if item.get("data") == hoje]
-
-    dias_busca = {
-        "segunda": "SEGUNDA",
-        "terca": "TERÇA",
-        "quarta": "QUARTA",
-        "quinta": "QUINTA",
-        "sexta": "SEXTA",
-        "sabado": "SÁBADO",
-        "domingo": "DOMINGO",
-    }
-
-    for termo, dia_formatado in dias_busca.items():
-        if termo in query_lc:
-            return [
-                item
-                for item in cardapio
-                if normalizar_cardapio_texto(item.get("dia", "")) == termo
-            ]
-
-    return cardapio
-
-
-def filtrar_refeicoes_por_pergunta(
-    refeicoes: list[dict[str, Any]],
-    query: str,
-) -> list[dict[str, Any]]:
-    """Filtra almoço ou jantar quando o usuário especifica uma refeição."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
-    query_lc = normalizar_cardapio_texto(query)
-
-    if "almoco" in query_lc:
-        return [r for r in refeicoes if normalizar_cardapio_texto(r.get("tipo", "")) == "almoco"]
-
-    if "jantar" in query_lc:
-        return [r for r in refeicoes if normalizar_cardapio_texto(r.get("tipo", "")) == "jantar"]
-
-    return refeicoes
-
-
-def formatar_cardapio_resposta(cardapio: list[dict[str, Any]], query: str) -> str:
-    """Formata a resposta do cardápio para o chat."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
-    if not cardapio:
-        return "Não há cardápio disponível no momento no site da PROAES."
-
-    cardapio_filtrado = filtrar_cardapio_por_pergunta(cardapio, query)
-
-    if not cardapio_filtrado:
-        return "Não há cardápio disponível no momento no site da PROAES."
-
-    linhas = [
-        "Consultei o cardápio publicado pela **PROAES/UFPA**.",
-        "",
-    ]
-
-    for dia_info in cardapio_filtrado:
-        linhas.append(f"### {dia_info['dia']} - {dia_info['data']}")
-
-        refeicoes = filtrar_refeicoes_por_pergunta(dia_info.get("refeicoes", []), query)
-
-        if not refeicoes:
-            linhas.append("Não há informação da refeição solicitada para este dia.")
-            linhas.append("")
-            continue
-
-        for refeicao in refeicoes:
-            linhas.append(f"**{refeicao['tipo']}**")
-
-            for secao, itens in refeicao.get("secoes", {}).items():
-                if not itens:
-                    continue
-
-                linhas.append(f"- **{secao}:** {', '.join(itens)}")
-
-            linhas.append("")
-
-    linhas.append("---")
-    linhas.append("Fonte: site da PROAES/UFPA.")
-
-    resposta = "\n".join(linhas).strip()
-
-    if resposta.count("###") == 0:
-        return "Não há cardápio disponível no momento no site da PROAES."
-
-    return resposta
-
-
-def responder_cardapio_proaes(query: str) -> str:
-    """Função principal chamada pelo fluxo do chat."""
-    cardapio = obter_cardapio_proaes()
-    return formatar_cardapio_resposta(cardapio, query)
-
-
-# =============================================================================
 # BUSCA POR INTENÇÃO
 # =============================================================================
 # Mapeia termos do usuário para documentos oficiais.
@@ -1743,260 +1074,6 @@ def usuario_pediu_formato(query: str) -> bool:
     return any(termo in query_lc for termo in termos)
 
 
-def montar_resposta_documento(nome_arquivo: str, query: str) -> str:
-    """Monta resposta institucional para o documento encontrado."""
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(query)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
-    query_lc = query.lower()
-
-    if "calendario" in query_lc or "calendário" in query_lc or "cronograma" in query_lc:
-        return (
-            "Localizei o **Calendário Acadêmico Oficial de 2026** na base institucional.\n\n"
-            "Para preservar a precisão das datas, consulte o documento original disponível abaixo."
-        )
-
-    if "estagio" in query_lc or "estágio" in query_lc:
-        return (
-            "Localizei documento compatível com **Estágio** na base institucional da FCT/UFPA.\n\n"
-            "Consulte o arquivo abaixo para verificar requisitos, fluxos e orientações oficiais."
-        )
-
-    if "tcc" in query_lc:
-        return (
-            "Localizei documento compatível com **Trabalho de Conclusão de Curso (TCC)**.\n\n"
-            "Consulte o arquivo abaixo para verificar regras, prazos, banca e demais orientações oficiais."
-        )
-
-    nome_amigavel = Path(nome_arquivo).stem.replace("_", " ")
-
-    return (
-        f"Localizei um documento compatível com sua solicitação: **{nome_amigavel}**.\n\n"
-        "Consulte o arquivo abaixo para confirmar as informações oficiais."
-    )
-
-
-
-
-# =============================================================================
-# PERGUNTAS PRÉ-DEFINIDAS PARA O FRONT-END
-# =============================================================================
-# Esta lista organiza dúvidas comuns por categoria. Isso ajuda o discente a
-# começar a conversa sem precisar saber exatamente como formular a pergunta.
-PERGUNTAS_PRE_DEFINIDAS: dict[str, list[str]] = {
-    "🍽️ Cardápio RU": [
-        "Qual é o cardápio do RU?",
-        "Qual é o cardápio de hoje?",
-        "O que tem no almoço do RU?",
-        "O que tem no jantar do RU?",
-    ],
-    "📅 Calendário": [
-        "Me mostre o calendário acadêmico de 2026",
-        "Quais são os principais prazos do calendário acadêmico?",
-        "Quando começa e termina o período letivo?",
-        "Quais datas de matrícula e rematrícula constam no calendário?",
-    ],
-    "💼 Estágio": [
-        "Quais são as regras de estágio?",
-        "Como faço a matrícula de estágio?",
-        "Quais documentos são necessários para estágio?",
-        "Existe carga horária mínima para estágio?",
-    ],
-    "🎓 TCC": [
-        "Quero saber o regulamento do TCC",
-        "Como faço a matrícula do TCC?",
-        "Quais regras existem para banca de TCC?",
-        "Quais documentos preciso para defender o TCC?",
-    ],
-    "📘 Graduação": [
-        "O que diz o regulamento de graduação?",
-        "Como funciona trancamento de disciplina?",
-        "Como funciona segunda chamada?",
-        "Como funciona aproveitamento de disciplina?",
-    ],
-    "🏛️ Normas FCT/UFPA": [
-        "Me mostre o regimento da FCT",
-        "Me mostre o regimento geral da UFPA",
-        "Quais normas gerais se aplicam aos discentes?",
-        "Onde encontro as regras institucionais da faculdade?",
-    ],
-    "⭐ Atividades e Mobilidade": [
-        "Quais são as regras de atividades complementares?",
-        "Como funcionam as horas complementares?",
-        "Quais são as regras de intercâmbio?",
-        "Como funciona mobilidade acadêmica?",
-    ],
-}
-
-
-def adicionar_pergunta_rapida(pergunta: str) -> None:
-    """Adiciona pergunta pré-definida ao chat e dispara o processamento."""
-    st.session_state.messages.append({"role": "user", "content": pergunta})
-    st.rerun()
-
-
-def render_perguntas_pre_definidas(prefixo: str = "quick") -> None:
-    """Renderiza perguntas rápidas em abas por categoria.
-
-    O prefixo evita conflito de chaves quando o mesmo componente aparece
-    no corpo da página e também na barra lateral.
-    """
-    categorias = list(PERGUNTAS_PRE_DEFINIDAS.keys())
-    abas = st.tabs(categorias)
-
-    for idx_categoria, categoria in enumerate(categorias):
-        perguntas = PERGUNTAS_PRE_DEFINIDAS[categoria]
-
-        with abas[idx_categoria]:
-            st.caption("Clique em uma pergunta para consultar a Minerva automaticamente.")
-
-            for idx_pergunta, pergunta in enumerate(perguntas):
-                chave = f"{prefixo}_{idx_categoria}_{idx_pergunta}"
-
-                if st.button(pergunta, key=chave, use_container_width=True):
-                    adicionar_pergunta_rapida(pergunta)
-
-
-def gerar_txt_historico():
-    """
-    Exporta histórico de forma compatível
-    com mensagens antigas e novas.
-    """
-
-    mensagens = normalizar_historico_session_state()
-
-    blocos = []
-
-    for msg in mensagens:
-
-        role = mensagem_role(
-            msg
-        )
-
-        conteudo = mensagem_content(
-            msg
-        ).strip()
-
-        if not conteudo:
-            continue
-
-
-        if role == "user":
-
-            rotulo = "USUÁRIO"
-
-        elif role == "system":
-
-            rotulo = "SISTEMA"
-
-        else:
-
-            rotulo = "MINERVA"
-
-
-        blocos.append(
-            f"{rotulo}:\n{conteudo}"
-        )
-
-
-    if not blocos:
-        return "Histórico vazio."
-
-
-    return (
-        "\n\n".join(blocos)
-        + "\n"
-    )
-
-
-
-
-# =============================================================================
-# COMPONENTES CLEAN DE PERGUNTAS FREQUENTES
-# =============================================================================
-def obter_lista_perguntas_flat() -> list[str]:
-    """Converte PERGUNTAS_PRE_DEFINIDAS em lista única e limpa."""
-    perguntas: list[str] = []
-
-    try:
-        for _, itens in PERGUNTAS_PRE_DEFINIDAS.items():
-            perguntas.extend(itens)
-    except Exception:
-        perguntas = [
-            "Me mostre o calendário acadêmico de 2026",
-            "Quais são as regras de estágio?",
-            "Quero saber o regulamento do TCC",
-            "Qual é o cardápio do RU?",
-        ]
-
-    # Remove duplicadas preservando ordem.
-    vistas = set()
-    unicas = []
-
-    for pergunta in perguntas:
-        if pergunta not in vistas:
-            vistas.add(pergunta)
-            unicas.append(pergunta)
-
-    return unicas
-
-
-def render_consulta_rapida_clean(prefixo: str = "clean") -> None:
-    """Renderiza perguntas frequentes em selectbox, evitando muitos botões.
-
-    Também usa prefixo único para evitar conflito de keys.
-    """
-    global _MINERVA_RENDER_COUNTER
-    _MINERVA_RENDER_COUNTER += 1
-    prefixo = f"{prefixo}_{_MINERVA_RENDER_COUNTER}"
-    perguntas = obter_lista_perguntas_flat()
-
-    escolha = st.selectbox(
-        "Perguntas frequentes",
-        options=["Selecione uma pergunta pronta..."] + perguntas,
-        key=f"{prefixo}_select_pergunta",
-    )
-
-    col_a, col_b = st.columns([1, 3])
-
-    with col_a:
-        consultar = st.button(
-            "Consultar",
-            key=f"{prefixo}_btn_consultar",
-            use_container_width=True,
-        )
-
-    with col_b:
-        st.caption("Use uma pergunta pronta ou digite sua dúvida no campo principal.")
-
-    if consultar and escolha != "Selecione uma pergunta pronta...":
-        st.session_state.messages.append({"role": "user", "content": escolha})
-        st.rerun()
-
-
-def render_historico_clean() -> None:
-    """Mostra histórico de forma compacta e recolhida."""
-    perguntas = [
-        mensagem_content(msg)
-        for msg in st.session_state.get("messages", [])
-        if isinstance(msg, dict) and mensagem_role(msg) == "user"
-    ]
-
-    if not perguntas:
-        st.caption("Sem perguntas nesta sessão.")
-        return
-
-    for idx, pergunta in enumerate(perguntas[-6:], start=1):
-        st.markdown(
-            f"<div class='history-item'><strong>{idx}.</strong> {pergunta}</div>",
-            unsafe_allow_html=True,
-        )
-
-
-
-
 _MINERVA_RENDER_COUNTER = 0
 
 # =============================================================================
@@ -2066,6 +1143,16 @@ CATEGORIAS_MINERVA: dict[str, dict[str, list[str] | str]] = {
             "Me mostre o regimento geral da UFPA",
             "Quais normas gerais se aplicam aos discentes?",
             "Onde encontro as regras institucionais da faculdade?",
+        ],
+    },
+    "Guias e Manuais": {
+        "icone": "📚",
+        "descricao": "Tutoriais e formulários oficiais da PROEG (docentes).",
+        "perguntas": [
+            "Quais guias e manuais a PROEG disponibiliza?",
+            "Onde encontro o tutorial do LabINFRA?",
+            "Onde encontro o formulário do Avalia Docente?",
+            "Onde encontro o tutorial do portal do docente no SIGAA?",
         ],
     },
 }
@@ -2348,11 +1435,6 @@ def pergunta_menciona_instituicao_externa(pergunta: str) -> bool:
     Perguntas sem instituição explícita continuam sendo interpretadas
     no contexto padrão FCT/UFPA.
     """
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(pergunta)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
     texto = pergunta.casefold()
 
     # Detecta siglas UFxx diferentes de UFPA.
@@ -2441,22 +1523,23 @@ def consultar_modelo_local(pergunta: str) -> str:
     A resposta é submetida a duas barreiras:
     1. prompt institucional rígido;
     2. validação pós-geração.
+
+    Nota: este método recebe o PROMPT JÁ MONTADO (pergunta + contexto do
+    RAG + instruções), não a pergunta crua do usuário — por isso a checagem
+    de instituição externa não é feita aqui (ver processar_pergunta). O
+    próprio texto do PROMPT_INSTITUCIONAL_UFPA cita "UFPB, UFPE, UPE" como
+    exemplos do que não confundir, e checar essas palavras aqui gerava
+    falso positivo em toda pergunta que chegasse a este ponto.
+
+    Bug real: este método envolvia "pergunta" (que já é o prompt inteiro
+    montado por responder_minerva, com regras + contexto RAG + a pergunta
+    real) num segundo wrapper ("Considere obrigatoriamente... Pergunta do
+    usuário: <prompt inteiro>"). O resultado era um "Pergunta do usuário"
+    contendo, ele mesmo, outro bloco "Pergunta:" lá dentro — confuso para
+    um modelo pequeno (3B), que podia perder o foco na pergunta real em
+    meio a instruções duplicadas. Envia-se "pergunta" direto como conteúdo
+    do usuário: ela já está completa.
     """
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    _minerva_priority_result = priority_answer(pergunta)
-    if _minerva_priority_result is not None:
-        return _minerva_priority_result
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
-
-    if pergunta_menciona_instituicao_externa(pergunta):
-        return (
-            "Meu escopo institucional está restrito à "
-            "**Faculdade de Computação e Telecomunicações (FCT)** da "
-            "**Universidade Federal do Pará (UFPA)**. "
-            "Não utilizo informações de outras universidades para responder "
-            "como se fossem dados da UFPA."
-        )
-
     payload = {
         "messages": [
             {
@@ -2465,22 +1548,26 @@ def consultar_modelo_local(pergunta: str) -> str:
             },
             {
                 "role": "user",
-                "content": (
-                    "Considere obrigatoriamente o contexto institucional "
-                    "FCT/UFPA ao responder.\n\n"
-                    f"Pergunta do usuário: {pergunta}"
-                ),
+                "content": pergunta,
             },
         ],
         "temperature": 0.0,
         "max_tokens": 450,
+        # O Gemma 4 "pensa" antes de responder por padrão (gasta ~400
+        # tokens em raciocínio interno numa pergunta de 4 palavras, estourando
+        # o max_tokens antes de gerar a resposta de verdade). Modelos sem
+        # esse recurso (Qwen, Llama) simplesmente ignoram o campo.
+        "chat_template_kwargs": {"enable_thinking": False},
     }
 
     try:
         response = http_session.post(
             LLM_API_URL,
             json=payload,
-            timeout=12,
+            # 12s originais eram menores que o tempo real de resposta do
+            # modelo local em CPU (~1-2min com contexto de RAG) — todo
+            # request estourava o timeout antes do modelo terminar.
+            timeout=240,
         )
 
         if response.status_code != 200:
@@ -2599,8 +1686,9 @@ with st.sidebar:
     st.markdown("---")
 
     st.caption(
-        "Assistente acadêmica baseada em documentos "
-        "institucionais da FCT/UFPA."
+        "**M.I.N.E.R.V.A.** – Módulo Inteligente de Navegação e "
+        "Ensino de Recursos Virtuais Acadêmicos. Assistente "
+        "acadêmica baseada em documentos institucionais da FCT/UFPA."
     )
 
 
@@ -2702,54 +1790,14 @@ if len(st.session_state.messages) == 0:
 
 
 # -------------------------------------------------------------------------
-# 2. Campo principal de pergunta
-# -------------------------------------------------------------------------
-st.markdown(
-    '<div class="minerva-v2-ask-label">'
-    'Como posso ajudar?'
-    '</div>',
-    unsafe_allow_html=True,
-)
-
-with st.form(
-    "minerva_v2_form_pergunta",
-    clear_on_submit=True,
-    border=False,
-):
-
-    pergunta_digitada = st.text_input(
-        "Pergunta",
-        placeholder="Ex.: Quais são as regras de estágio?",
-        label_visibility="collapsed",
-    )
-
-    enviar_pergunta = st.form_submit_button(
-        "Enviar pergunta",
-        use_container_width=True,
-        type="primary",
-    )
-
-if enviar_pergunta and pergunta_digitada.strip():
-
-    st.session_state.messages.append(
-        {
-            "role": "user",
-            "content": pergunta_digitada.strip(),
-        }
-    )
-
-    st.rerun()
-
-
-# -------------------------------------------------------------------------
-# 3. Histórico visual da conversa
+# 2. Histórico visual da conversa
 # -------------------------------------------------------------------------
 if st.session_state.messages:
     render_chat_history()
 
 
 # -------------------------------------------------------------------------
-# 4. Categorias
+# 3. Categorias
 # -------------------------------------------------------------------------
 if len(st.session_state.messages) == 0:
 
@@ -2768,6 +1816,26 @@ else:
         )
 
 
+# -------------------------------------------------------------------------
+# 4. Campo de pergunta — fixo no rodapé e com rolagem automática, nativos
+#    do st.chat_input (substitui o antigo st.form + text_input do topo).
+# -------------------------------------------------------------------------
+pergunta_digitada = st.chat_input(
+    "Faça sua pergunta"
+)
+
+if pergunta_digitada and pergunta_digitada.strip():
+
+    st.session_state.messages.append(
+        {
+            "role": "user",
+            "content": pergunta_digitada.strip(),
+        }
+    )
+
+    st.rerun()
+
+
 
 # =============================================================================
 # PROCESSAMENTO DA PERGUNTA
@@ -2782,22 +1850,35 @@ def processar_pergunta(pergunta):
         return _minerva_priority_result
     # MINERVA_PRIORITY_ROUTER_GUARD_END
 
+    # Checagem de instituição externa feita aqui, sobre a pergunta CRUA do
+    # usuário — e não dentro de consultar_modelo_local, que só recebe o
+    # prompt já montado (pergunta + contexto + instruções institucionais).
+    if pergunta_menciona_instituicao_externa(pergunta):
+        return (
+            "Meu escopo institucional está restrito à "
+            "**Faculdade de Computação e Telecomunicações (FCT)** da "
+            "**Universidade Federal do Pará (UFPA)**. "
+            "Não utilizo informações de outras universidades para responder "
+            "como se fossem dados da UFPA."
+        )
+
+    # Bug real: este trecho procurava por get_connection/conectar_postgres/
+    # conectar_banco, nenhuma das quais existe neste módulo (main.py usa
+    # db_pool + executar_query). "conn" nunca era preenchido, então
+    # buscar_em_documentos_postgres(conn=None, ...) sempre devolvia [] e a
+    # Minerva caía direto no fallback genérico — nunca chegava a consultar
+    # o banco nem a chamar o modelo local, para nenhuma pergunta fora das
+    # rotas fixas do priority_router.
     conn = None
 
     try:
-        if "get_connection" in globals():
-            conn = get_connection()
-        elif "conectar_postgres" in globals():
-            conn = conectar_postgres()
-        elif "conectar_banco" in globals():
-            conn = conectar_banco()
+        if db_pool:
+            conn = db_pool.getconn()
     except Exception:
         conn = None
 
     def llm_func(prompt):
-        if "consultar_modelo_local" in globals():
-            return consultar_modelo_local(prompt)
-        return None
+        return consultar_modelo_local(prompt)
 
     resposta = responder_minerva(
         pergunta=pergunta,
@@ -2805,11 +1886,11 @@ def processar_pergunta(pergunta):
         llm_func=llm_func
     )
 
-    try:
-        if conn:
-            conn.close()
-    except Exception:
-        pass
+    if conn:
+        try:
+            db_pool.putconn(conn)
+        except Exception:
+            pass
 
     return resposta
 
@@ -2818,7 +1899,8 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
     ultima_pergunta = mensagem_content(st.session_state.messages[-1])
 
     with st.chat_message("assistant", avatar="🏫"):
-        nova_msg = processar_pergunta(ultima_pergunta)
+        with st.spinner("Consultando fontes oficiais da FCT/UFPA..."):
+            nova_msg = processar_pergunta(ultima_pergunta)
 
     st.session_state.messages.append(normalizar_mensagem_historico(nova_msg, role_padrao="assistant"))
     st.rerun()

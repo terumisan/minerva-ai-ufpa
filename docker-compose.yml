@@ -2,6 +2,7 @@ services:
   ufpa_rag_db:
     image: ankane/pgvector:latest
     container_name: ufpa_rag_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ufpa_rag
       POSTGRES_USER: admin
@@ -14,6 +15,7 @@ services:
   ufpa_rag_ui:
     build: ./app
     container_name: ufpa_rag_ui
+    restart: unless-stopped
     ports:
       - "8501:8501"
     volumes:
@@ -23,6 +25,48 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - ufpa_rag_db
+      - ufpa_rag_llm
+
+  # Modelo local gratuito (Llama-3.2-3B-Instruct), isolado do chat_llm de
+  # outro projeto. Só a Minerva usa este container, na porta 8002.
+  # Histórico de modelos testados (arquivos .gguf ficam em models/ caso
+  # queira voltar a algum): Qwen2.5-7B (melhor precisão, mais lento) ->
+  # Llama-3.2-3B (mais rápido, ativo agora) -> Gemma 4 E4B (QAT, pensa
+  # demais por padrão e alucina sem grounding — ver conversa).
+  ufpa_rag_llm:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: ufpa_rag_llm
+    restart: unless-stopped
+    command:
+      - "-m"
+      - "/models/Llama-3.2-3B-Instruct-Q5_K_M.gguf"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8002"
+      - "-c"
+      - "8192"
+      - "--threads"
+      - "10"
+      - "--threads-batch"
+      - "10"
+      - "--parallel"
+      - "1"
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./models:/models
+    # A imagem ghcr.io/ggml-org/llama.cpp:server traz um HEALTHCHECK padrão
+    # fixo em "curl -f http://localhost:8080/health", mas o servidor aqui
+    # roda na porta 8002 (--port 8002 acima). Isso fazia o container
+    # aparecer sempre como "unhealthy" em "docker compose ps" mesmo
+    # funcionando normalmente. Sobrescreve para checar a porta certa.
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   pgdata_rag:

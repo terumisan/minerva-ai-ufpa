@@ -2,4 +2,3 @@ streamlit
 requests
 psycopg2-binary
 python-docx
-beautifulsoup4

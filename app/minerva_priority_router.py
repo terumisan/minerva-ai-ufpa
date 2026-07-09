@@ -107,6 +107,35 @@ PROEG_CALENDARIO = (
     "calendario-academico"
 )
 
+PROEG_GUIAS_MANUAIS = (
+    "https://proeg.ufpa.br/guias-e-manuais"
+)
+
+PROEG_TUTORIAL_LABINFRA_MONITORIA = (
+    "https://proeg.ufpa.br/images/Artigos/Academico/"
+    "Guias-Manuais/Tutorial-de-execuo-2023-otimizado_1.pdf"
+)
+
+PROEG_SIGAA_DOCENTE = (
+    "https://proeg.ufpa.br/images/Artigos/Academico/"
+    "Guias-Manuais/SIgaaDocente2020.pdf"
+)
+
+PROEG_AVALIA_DISCENTE = (
+    "https://proeg.ufpa.br/images/Artigos/Noticias/"
+    "AVALIA_DISCENTE_ERE_ATUALIZAO_11-01-21.docx"
+)
+
+PROEG_AVALIA_DOCENTE = (
+    "https://proeg.ufpa.br/images/Artigos/Noticias/"
+    "AVALIA_DOCENTE_ERE_ATUALIZADO_11-01-2021-1.docx"
+)
+
+PROEG_LABINFRA_DESPESAS = (
+    "https://proeg.ufpa.br/images/Artigos/Academico/"
+    "Guias-Manuais/PROCEDIMENTOS-DE-SOLICITAO-FINAL--TODOS-LABINFRAS.pdf"
+)
+
 UFPA_LEGISLACAO = (
     "https://portal.ufpa.br/index.php/"
     "sig-ufpa/2-uncategorised/77-legislacao"
@@ -192,6 +221,38 @@ def classify_question(
         return None
 
     qset = _tokens(q)
+
+
+    # ------------------------------------------------------------------
+    # 0. OUTRAS UNIDADES DA UFPA (não-FCT)
+    #
+    # Bug real encontrado: "Qual a localização do CTIC?" caía na rota
+    # "contact" (dispara em qualquer "localizacao"/"contato") e devolvia
+    # o telefone/e-mail da FCT rotulado como se fosse do CTIC. As rotas
+    # abaixo são todas específicas da FCT — se a pergunta menciona outra
+    # unidade (CTIC, Reitoria, Biblioteca) sem também citar a FCT, nenhuma
+    # rota fixa da FCT deve responder por ela.
+    # ------------------------------------------------------------------
+
+    if (
+        _has_any(
+            q,
+            (
+                "ctic",
+                "reitoria",
+                "biblioteca",
+            ),
+        )
+        and not _has_any(
+            q,
+            (
+                "fct",
+                "faculdade de computacao",
+                "faculdade de engenharia da computacao",
+            ),
+        )
+    ):
+        return None
 
 
     # ------------------------------------------------------------------
@@ -311,6 +372,30 @@ def classify_question(
         ),
     ):
         return "ufpa_regiment"
+
+
+    # ------------------------------------------------------------------
+    # 7.5. GUIAS E MANUAIS DA PROEG (LabINFRA, Monitoria, AVALIA, portal
+    # do docente no SIGAA). Verificado antes de "professores" porque
+    # "docente" sozinho já dispara aquela rota (ex.: "avalia docente" e
+    # "portal do docente" seriam capturados por engano como pergunta
+    # sobre corpo docente).
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "labinfra",
+            "bolsa monitoria",
+            "avalia docente",
+            "avalia discente",
+            "portal do docente",
+            "guias e manuais",
+            "guias da proeg",
+            "manuais da proeg",
+        ),
+    ):
+        return "proeg_manuais"
 
 
     # ------------------------------------------------------------------
@@ -1226,6 +1311,24 @@ def priority_answer(
 
 
     # ------------------------------------------------------------------
+    # GUIAS E MANUAIS DA PROEG
+    # ------------------------------------------------------------------
+
+    if route == "proeg_manuais":
+        return (
+            "A PROEG (Pró-Reitoria de Ensino de Graduação) mantém uma página "
+            "oficial de Guias e Manuais, voltada principalmente a docentes, "
+            "com tutoriais e formulários de apoio às atividades acadêmicas:\n\n"
+            f"- **Tutorial de execução de Bolsa Monitoria e LabINFRA**: {PROEG_TUTORIAL_LABINFRA_MONITORIA}\n"
+            f"- **SIGAA — Tutorial do portal do docente**: {PROEG_SIGAA_DOCENTE}\n"
+            f"- **AVALIA — Formulário Discente (ERE)**: {PROEG_AVALIA_DISCENTE}\n"
+            f"- **AVALIA — Formulário Docente (ERE)**: {PROEG_AVALIA_DOCENTE}\n"
+            f"- **LabINFRA — Procedimentos para despesas**: {PROEG_LABINFRA_DESPESAS}\n\n"
+            f"Fonte oficial (lista completa): {PROEG_GUIAS_MANUAIS}"
+        )
+
+
+    # ------------------------------------------------------------------
     # DOCUMENTAÇÃO
     # ------------------------------------------------------------------
 
@@ -1308,6 +1411,13 @@ except (ImportError, ValueError):
         classify_basic_question as _minerva_classify_basic_question,
     )
 
+# MINERVA_DATASET_BEGIN
+try:
+    from .minerva_dataset import resposta_dataset as _minerva_resposta_dataset
+except (ImportError, ValueError):
+    from minerva_dataset import resposta_dataset as _minerva_resposta_dataset
+# MINERVA_DATASET_END
+
 
 # Preservar todo o roteamento anterior:
 # FCT, ITEC, PPGEE, PROAES, PROEG, RAG etc.
@@ -1361,7 +1471,17 @@ def priority_answer(question: str):
     if basic_result is not None:
         return basic_result
 
-    return _minerva_router_before_basic_answer(
+    resultado_router = _minerva_router_before_basic_answer(
+        question
+    )
+
+    if resultado_router is not None:
+        return resultado_router
+
+    # Último recurso, prioridade baixa: dataset de perguntas cadastradas
+    # manualmente (minerva_dataset.json). Só entra quando nada acima já
+    # respondeu — não compete com nenhuma rota fixa existente.
+    return _minerva_resposta_dataset(
         question
     )
 
