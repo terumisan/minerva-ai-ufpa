@@ -84,6 +84,20 @@ def pergunta_menciona_instituicao_externa(pergunta: str) -> bool:
     if any(sigla != "ufpa" for sigla in siglas):
         return True
 
+    # "FCT" sozinha não basta pra bloquear (é a sigla da própria FCT/UFPA),
+    # mas "FCT" associada a Portugal/Lisboa é o mesmo caso de confusão com
+    # a Faculdade de Ciências e Tecnologia da Universidade Nova de Lisboa
+    # (ver TERMOS_BLOQUEADOS_FRASES em minerva_hybrid.py). Pergunta como
+    # "O que é a FCT de Portugal?" não repete o nome completo da instituição
+    # portuguesa, então a checagem por frase abaixo sozinha não pega.
+    if "fct" in texto and (
+        any(termo in texto for termo in ("portugal", "português", "portugues", "lisboa"))
+        # "UNL" (Universidade Nova de Lisboa) é curta demais pra substring
+        # simples — "\b" evita casar dentro de outra palavra.
+        or re.search(r"\bunl\b", texto)
+    ):
+        return True
+
     instituicoes_externas = (
         "universidade federal de pernambuco",
         "universidade federal da paraíba",
@@ -95,6 +109,14 @@ def pergunta_menciona_instituicao_externa(pergunta: str) -> bool:
         "universidade federal do rio de janeiro",
         "universidade de são paulo",
         "universidade de sao paulo",
+        # A FCT/UFPA (Faculdade de Computação e Telecomunicações) tem o
+        # mesmo nome/sigla da Faculdade de Ciências e Tecnologia da
+        # Universidade Nova de Lisboa, também conhecida como "FCT" em
+        # Portugal — ver mesmo bloqueio em minerva_hybrid.py e em
+        # validar_resposta_institucional() logo abaixo.
+        "faculdade de ciências e tecnologia",
+        "faculdade de ciencias e tecnologia",
+        "universidade nova de lisboa",
     )
 
     return any(nome in texto for nome in instituicoes_externas)
@@ -122,9 +144,24 @@ def validar_resposta_institucional(resposta: str) -> str:
         "universidade de pernambuco",
         "faculdade de ciências técnicas",
         "faculdade de ciencias tecnicas",
+        # Mesmo caso de confusão FCT/Portugal (Universidade Nova de Lisboa)
+        # documentado em minerva_hybrid.py e em
+        # pergunta_menciona_instituicao_externa() acima.
+        "faculdade de ciências e tecnologia",
+        "faculdade de ciencias e tecnologia",
+        "universidade nova de lisboa",
     )
 
-    if any(termo in texto for termo in associacoes_invalidas):
+    # Mesma lógica de pergunta_menciona_instituicao_externa(): "FCT" sozinha
+    # é a sigla da própria FCT/UFPA, mas "FCT" associada a Portugal/Lisboa
+    # indica que o modelo confundiu com a FCT da Universidade Nova de
+    # Lisboa sem necessariamente repetir o nome completo da instituição.
+    fct_portugal = "fct" in texto and (
+        any(termo in texto for termo in ("portugal", "português", "portugues", "lisboa"))
+        or re.search(r"\bunl\b", texto)
+    )
+
+    if fct_portugal or any(termo in texto for termo in associacoes_invalidas):
         logger.warning(
             "Resposta bloqueada por associação institucional incompatível: %s",
             resposta,

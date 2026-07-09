@@ -30,6 +30,30 @@ def test_sanitizar_resposta_nao_bloqueia_falso_positivo_de_substring():
     assert resposta == "O supervisor de estágio deve assinar o termo."
 
 
+def test_sanitizar_resposta_bloqueia_universidade_nova_de_lisboa_isolada():
+    # Bug real: antes dessa entrada, só a frase exata "Faculdade de Ciências
+    # e Tecnologia" era bloqueada — "Universidade Nova de Lisboa" sozinha
+    # (sem repetir aquele nome) passava direto, mesmo sendo a mesma confusão
+    # FCT/UFPA x FCT/Portugal.
+    resposta = sanitizar_resposta("Trata-se da Universidade Nova de Lisboa, em Portugal.")
+    assert "Referência correta" in resposta
+
+
+def test_sanitizar_resposta_bloqueia_fct_de_portugal_sem_nome_completo():
+    resposta = sanitizar_resposta("A FCT de Portugal fica em Lisboa.")
+    assert "Referência correta" in resposta
+
+
+def test_sanitizar_resposta_bloqueia_fct_unl():
+    resposta = sanitizar_resposta("A FCT-UNL é uma faculdade portuguesa.")
+    assert "Referência correta" in resposta
+
+
+def test_sanitizar_resposta_nao_bloqueia_fct_sem_portugal():
+    resposta = "A FCT é a Faculdade de Computação e Telecomunicações da UFPA."
+    assert sanitizar_resposta(resposta) == resposta
+
+
 def test_sanitizar_resposta_ok_passa_direto():
     texto = "O trancamento de matrícula segue o Regulamento de Graduação."
     assert sanitizar_resposta(texto) == texto

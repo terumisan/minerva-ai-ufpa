@@ -15,6 +15,7 @@ TERMOS_BLOQUEADOS_FRASES = [
     # Nova de Lisboa (também conhecida como "FCT" em Portugal).
     "faculdade de ciências e tecnologia",
     "faculdade de ciencias e tecnologia",
+    "universidade nova de lisboa",
 ]
 
 # Siglas curtas: precisam de limite de palavra (\b), senão "upe" também bate
@@ -37,7 +38,16 @@ def sanitizar_resposta(resposta):
 
     baixo = resposta.lower()
 
-    bloqueado = any(
+    # "FCT" sozinha é a sigla da própria FCT/UFPA — não basta pra bloquear.
+    # Associada a Portugal/Lisboa, é o mesmo caso de confusão com a FCT da
+    # Universidade Nova de Lisboa, mesmo sem repetir o nome completo dela
+    # (ver mesma lógica em prompts.py).
+    fct_portugal = "fct" in baixo and (
+        any(termo in baixo for termo in ("portugal", "português", "portugues", "lisboa"))
+        or re.search(r"\bunl\b", baixo)
+    )
+
+    bloqueado = fct_portugal or any(
         frase in baixo for frase in TERMOS_BLOQUEADOS_FRASES
     ) or any(
         re.search(rf"\b{re.escape(sigla)}\b", baixo)
