@@ -35,5 +35,9 @@ Thumbs.db
 # Modelos GGUF (vários GB cada) — nunca devem ir para o Git.
 models/
 
+# Cache de modelo de embedding (fastembed/ONNX) baixado em runtime — não é código-fonte.
+.fastembed_cache/
+**/.fastembed_cache/
+
 # Estado local do Claude Code (sessões, config de agente) — não é parte do projeto.
 .claude/

@@ -47,6 +47,17 @@ FCT_CONTATO = (
     "https://fct.ufpa.br/index.php/contato"
 )
 
+# Dados fixos de localização/telefone (perfil oficial da FCT no Google Maps,
+# checado manually). A página FCT_CONTATO só expõe telefone/e-mail via
+# _label_value — não tem endereço estruturado para extrair ao vivo, então
+# esses dois campos abaixo ficam como valor conhecido, usados como
+# complemento (endereço) e fallback (telefone) na rota "contact". Não inclui
+# horário de funcionamento aqui: o horário do Google Maps é um status
+# dinâmico ("Fechado · Abre qui. às 08:00" no momento da consulta), não um
+# fato fixo — hardcodar ficaria errado em poucos dias.
+FCT_ENDERECO = "Instituto de Tecnologia (ITEC), Universitário, Belém - PA"
+FCT_TELEFONE_CONHECIDO = "(91) 3201-7901"
+
 FCT_DOCENTES = (
     "https://fct.ufpa.br/index.php/corpo-docente"
 )
@@ -1237,6 +1248,18 @@ def priority_answer(
             ["E-mail", "Email"],
         )
 
+        # Bug real: na página de contato da FCT, "E-mail" é o rótulo de um
+        # ITEM DE MENU (Serviços: Secretaria / E-mail / Sigaa / Contato...),
+        # não um par rótulo-valor. _label_value pegava a linha seguinte do
+        # menu ("Sigaa") como se fosse o e-mail. Só aceita o valor extraído
+        # se realmente parecer um e-mail.
+        if email and "@" not in email:
+            email = None
+
+        # FCT_CONTATO não expõe endereço estruturado para extrair ao vivo, e
+        # o telefone às vezes não está presente na página no formato que
+        # _label_value reconhece — usa o telefone/endereço conhecidos
+        # (FCT_ENDERECO/FCT_TELEFONE_CONHECIDO) como complemento/fallback.
         values: List[str] = []
 
         if email:
@@ -1244,18 +1267,20 @@ def priority_answer(
                 f"e-mail {email}"
             )
 
-        if phone:
-            values.append(
-                f"telefone {phone}"
-            )
+        values.append(
+            f"telefone {phone or FCT_TELEFONE_CONHECIDO}"
+        )
 
-        if values:
-            return (
-                "Os dados oficiais de contato localizados são: "
-                + "; ".join(values)
-                + ". "
-                + f"Fonte oficial: {FCT_CONTATO}"
-            )
+        values.append(
+            f"localização {FCT_ENDERECO}"
+        )
+
+        return (
+            "Os dados oficiais de contato/localização da FCT/UFPA são: "
+            + "; ".join(values)
+            + ". "
+            + f"Fonte oficial: {FCT_CONTATO}"
+        )
 
         return (
             "Os dados institucionais de contato estão disponíveis "

@@ -2,3 +2,6 @@ streamlit
 requests
 psycopg2-binary
 python-docx
+pypdf
+langchain-text-splitters
+fastembed

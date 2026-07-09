@@ -360,17 +360,6 @@ logger = logging.getLogger("minerva")
 
 
 # =============================================================================
-# CONFIGURAÇÃO DA PÁGINA STREAMLIT
-# =============================================================================
-st.set_page_config(
-    page_title="Minerva - FCT/UFPA",
-    layout="centered",
-    page_icon="🏫",
-    initial_sidebar_state="expanded",
-)
-
-
-# =============================================================================
 # CONFIGURAÇÕES SEGURAS
 # =============================================================================
 def get_config(nome: str, padrao: Any = None) -> Any:
@@ -409,6 +398,20 @@ DOCUMENTOS_DIR = Path(str(get_config("DOCUMENTOS_DIR", "documentos")))
 UFPA_LOGO_URL = get_config(
     "UFPA_LOGO_URL",
     str(Path(__file__).parent / "assets" / "logo-ufpa.png"),
+)
+
+
+# =============================================================================
+# CONFIGURAÇÃO DA PÁGINA STREAMLIT
+# =============================================================================
+# page_icon usa o mesmo logo do cabeçalho (UFPA_LOGO_URL, definido acima) em vez
+# do emoji genérico 🏫 — antes a aba do navegador não tinha identidade visual
+# com o resto da aplicação.
+st.set_page_config(
+    page_title="Minerva - FCT/UFPA",
+    layout="centered",
+    page_icon=UFPA_LOGO_URL,
+    initial_sidebar_state="expanded",
 )
 
 
@@ -455,6 +458,18 @@ st.markdown(
 
     [data-testid="stSidebar"] * {
         color: var(--minerva-text) !important;
+    }
+
+    /* Bug real: a regra acima ("*" dentro da sidebar) atinge diretamente o
+       texto interno do botão "＋ Nova conversa" (que é type="primary", fundo
+       azul sólido) e o força para --minerva-text (quase preto) — texto escuro
+       em cima de fundo azul escuro, quase ilegível. Precisa de um seletor mais
+       específico, incluindo os descendentes do botão, para vencer o "*". */
+    [data-testid="stSidebar"] div.stButton > button[kind="primary"],
+    [data-testid="stSidebar"] div.stButton > button[kind="primary"] *,
+    [data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"],
+    [data-testid="stSidebar"] div.stButton > button[data-testid="stBaseButton-primary"] * {
+        color: var(--minerva-white) !important;
     }
 
     [data-testid="stSidebar"] .stCaptionContainer {
@@ -542,6 +557,28 @@ st.markdown(
         color: var(--minerva-blue) !important;
         background: var(--minerva-blue-soft) !important;
         transform: none !important;
+    }
+
+    /* Botão "primary" (categoria ativa, Nova conversa etc.): a regra genérica
+       acima forçava fundo/borda brancos em TODO botão com !important, então
+       type="primary" nunca aparecia visualmente diferente de "secondary" — a
+       categoria selecionada em render_cards_categorias() ficava sem nenhum
+       destaque no grid de botões. Seletores redundantes porque o atributo
+       "kind" e o data-testid mudaram entre versões do Streamlit. */
+    div.stButton > button[kind="primary"],
+    div.stButton > button[data-testid="stBaseButton-primary"],
+    div.stButton > button[data-testid="baseButton-primary"] {
+        border-color: var(--minerva-blue) !important;
+        background: var(--minerva-blue) !important;
+        color: var(--minerva-white) !important;
+    }
+
+    div.stButton > button[kind="primary"]:hover,
+    div.stButton > button[data-testid="stBaseButton-primary"]:hover,
+    div.stButton > button[data-testid="baseButton-primary"]:hover {
+        background: var(--minerva-blue) !important;
+        color: var(--minerva-white) !important;
+        opacity: 0.92;
     }
 
     div[data-testid="stExpander"] {
@@ -1286,15 +1323,23 @@ def render_cards_categorias(prefixo: str = "home") -> None:
         unsafe_allow_html=True,
     )
 
-    primeira_linha = categorias[:4]
-    segunda_linha = categorias[4:]
+    # Largura fixa de coluna por linha: antes, a primeira linha (4 categorias)
+    # usava st.columns(4) e a segunda (3 categorias) usava st.columns(3) — como
+    # cada chamada divide o espaço disponível igualmente, os botões da segunda
+    # linha ficavam visivelmente mais largos que os da primeira. Usar sempre o
+    # mesmo número de colunas (colunas extras na última linha ficam vazias)
+    # mantém a largura dos botões consistente entre as linhas.
+    COLUNAS_POR_LINHA = 4
 
-    if primeira_linha:
-        cols = st.columns(len(primeira_linha))
+    for inicio_linha in range(0, len(categorias), COLUNAS_POR_LINHA):
+        linha = categorias[inicio_linha : inicio_linha + COLUNAS_POR_LINHA]
+        cols = st.columns(COLUNAS_POR_LINHA)
 
-        for idx, (col, categoria) in enumerate(
-            zip(cols, primeira_linha)
-        ):
+        for idx, col in enumerate(cols):
+            if idx >= len(linha):
+                continue
+
+            categoria = linha[idx]
             ativo = (
                 st.session_state.categoria_minerva_ativa
                 == categoria
@@ -1303,28 +1348,7 @@ def render_cards_categorias(prefixo: str = "home") -> None:
             with col:
                 if st.button(
                     categoria,
-                    key=f"{prefixo}_{render_id}_cat_a_{idx}",
-                    use_container_width=True,
-                    type="primary" if ativo else "secondary",
-                ):
-                    st.session_state.categoria_minerva_ativa = categoria
-                    st.rerun()
-
-    if segunda_linha:
-        cols = st.columns(len(segunda_linha))
-
-        for idx, (col, categoria) in enumerate(
-            zip(cols, segunda_linha)
-        ):
-            ativo = (
-                st.session_state.categoria_minerva_ativa
-                == categoria
-            )
-
-            with col:
-                if st.button(
-                    categoria,
-                    key=f"{prefixo}_{render_id}_cat_b_{idx}",
+                    key=f"{prefixo}_{render_id}_cat_{inicio_linha}_{idx}",
                     use_container_width=True,
                     type="primary" if ativo else "secondary",
                 ):
