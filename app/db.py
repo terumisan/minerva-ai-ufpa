@@ -109,7 +109,9 @@ def executar_query(
 def inicializar_banco() -> None:
     """Garante a existência da tabela de histórico.
 
-    A coluna session_id separa conversas de usuários diferentes.
+    A coluna session_id identifica o navegador/dispositivo. A coluna
+    conversa_id agrupa mensagens dentro de uma mesma conversa (um
+    session_id pode ter várias conversas — ver listar_conversas_dispositivo).
     """
     executar_query(
         """
@@ -134,44 +136,71 @@ def inicializar_banco() -> None:
         commit=True,
     )
 
-
-def salvar_no_historico(pergunta: str, resposta: str) -> None:
-    """Salva pergunta e resposta da sessão atual."""
     executar_query(
-        """
-        INSERT INTO historico_minerva (session_id, pergunta, resposta)
-        VALUES (%s, %s, %s);
-        """,
-        params=(st.session_state.session_id, pergunta, resposta),
+        "ALTER TABLE historico_minerva ADD COLUMN IF NOT EXISTS conversa_id TEXT;",
+        commit=True,
+    )
+
+    # Backfill: antes desta mudança, um session_id inteiro já era uma única
+    # conversa contínua — agrupar as linhas antigas por session_id preserva
+    # esse histórico como "uma conversa por sessão antiga" sem perder nada.
+    executar_query(
+        "UPDATE historico_minerva SET conversa_id = session_id WHERE conversa_id IS NULL;",
         commit=True,
     )
 
 
-def limpar_historico_banco() -> bool:
-    """Remove apenas o histórico da sessão atual."""
-    try:
-        executar_query(
-            "DELETE FROM historico_minerva WHERE session_id = %s;",
-            params=(st.session_state.session_id,),
-            commit=True,
-        )
-        return True
-
-    except Exception as exc:
-        logger.exception("Erro ao limpar histórico: %s", exc)
-        return False
+def salvar_no_historico(conversa_id: str, pergunta: str, resposta: str) -> None:
+    """Salva pergunta e resposta na conversa indicada, dentro da sessão atual."""
+    executar_query(
+        """
+        INSERT INTO historico_minerva (session_id, conversa_id, pergunta, resposta)
+        VALUES (%s, %s, %s, %s);
+        """,
+        params=(st.session_state.session_id, conversa_id, pergunta, resposta),
+        commit=True,
+    )
 
 
-def carregar_historico_sessao() -> list[tuple[str, str]]:
-    """Carrega o histórico persistido da sessão atual."""
+def carregar_historico_conversa(conversa_id: str) -> list[tuple[str, str]]:
+    """Carrega o histórico persistido de uma conversa específica.
+
+    Filtra também por session_id: um dispositivo não pode carregar uma
+    conversa de outro, mesmo que adivinhe o conversa_id.
+    """
     registros = executar_query(
         """
         SELECT pergunta, resposta
         FROM historico_minerva
-        WHERE session_id = %s
+        WHERE session_id = %s AND conversa_id = %s
         ORDER BY id ASC;
         """,
-        params=(st.session_state.session_id,),
+        params=(st.session_state.session_id, conversa_id),
+        fetch=True,
+    )
+
+    return registros or []
+
+
+def listar_conversas_dispositivo(limite: int = 15) -> list[tuple[str, str, Any]]:
+    """Lista as conversas da sessão atual, mais recente primeiro.
+
+    Cada item é (conversa_id, primeira_pergunta, ultima_atividade).
+    "Primeira pergunta" vira o título mostrado na sidebar.
+    """
+    registros = executar_query(
+        """
+        SELECT
+            conversa_id,
+            (ARRAY_AGG(pergunta ORDER BY id ASC))[1] AS primeira_pergunta,
+            MAX(data_hora) AS ultima_atividade
+        FROM historico_minerva
+        WHERE session_id = %s AND conversa_id IS NOT NULL
+        GROUP BY conversa_id
+        ORDER BY ultima_atividade DESC
+        LIMIT %s;
+        """,
+        params=(st.session_state.session_id, limite),
         fetch=True,
     )
 

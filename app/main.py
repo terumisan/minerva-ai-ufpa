@@ -34,7 +34,7 @@ try:
         normalizar_historico_session_state,
         obter_perguntas_usuario,
         gerar_txt_historico,
-        render_historico_clicavel,
+        render_lista_conversas,
         render_cards_categorias,
         render_chat_history,
     )
@@ -44,7 +44,7 @@ except (ImportError, ValueError):
         normalizar_historico_session_state,
         obter_perguntas_usuario,
         gerar_txt_historico,
-        render_historico_clicavel,
+        render_lista_conversas,
         render_cards_categorias,
         render_chat_history,
     )
@@ -118,16 +118,16 @@ try:
         db_pool,
         inicializar_banco,
         salvar_no_historico,
-        limpar_historico_banco,
-        carregar_historico_sessao,
+        carregar_historico_conversa,
+        listar_conversas_dispositivo,
     )
 except (ImportError, ValueError):
     from db import (
         db_pool,
         inicializar_banco,
         salvar_no_historico,
-        limpar_historico_banco,
-        carregar_historico_sessao,
+        carregar_historico_conversa,
+        listar_conversas_dispositivo,
     )
 # MINERVA_DB_IMPORT_END
 
@@ -198,12 +198,31 @@ if "session_id" not in st.session_state:
 
     st.query_params["sid"] = st.session_state.session_id
 
+# Conversa ativa dentro da sessão/dispositivo: um dispositivo pode ter
+# várias conversas (ver listar_conversas_dispositivo em db.py e a lista na
+# sidebar). Mesmo padrão de persistência do session_id acima, espelhada em
+# st.query_params ("cid") pra sobreviver a reloads.
+if "conversa_id" not in st.session_state:
+    cid_da_url = st.query_params.get("cid")
+
+    if cid_da_url:
+        try:
+            uuid.UUID(cid_da_url)
+            st.session_state.conversa_id = cid_da_url
+        except ValueError:
+            st.session_state.conversa_id = None
+
+    if not st.session_state.get("conversa_id"):
+        st.session_state.conversa_id = str(uuid.uuid4())
+
+    st.query_params["cid"] = st.session_state.conversa_id
+
 inicializar_banco()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-    registros_passados = carregar_historico_sessao()
+    registros_passados = carregar_historico_conversa(st.session_state.conversa_id)
 
     for pergunta, resposta in registros_passados:
         st.session_state.messages.append({"role": "user", "content": pergunta})
@@ -235,32 +254,39 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    perguntas_usuario = obter_perguntas_usuario()
-
     if st.button(
         "＋ Nova conversa",
         key="sidebar_v2_nova_conversa",
         use_container_width=True,
         type="primary",
     ):
-        if limpar_historico_banco():
-            st.session_state.messages = []
-            st.session_state.categoria_minerva_ativa = "Calendário"
-            st.rerun()
+        # Não apaga nada do banco: só inicia uma conversa nova. A conversa
+        # anterior fica intacta e passa a aparecer na lista abaixo.
+        st.session_state.conversa_id = str(uuid.uuid4())
+        st.query_params["cid"] = st.session_state.conversa_id
+        st.session_state.messages = []
+        st.session_state.categoria_minerva_ativa = "Calendário"
+        st.rerun()
 
-    # Histórico aparece somente quando existe.
-    if perguntas_usuario:
+    conversas = listar_conversas_dispositivo()
+
+    # Lista de conversas aparece somente quando existe alguma.
+    if conversas:
 
         st.markdown(
             '<div class="minerva-v2-history-title">'
-            'Histórico recente'
+            'Conversas'
             '</div>',
             unsafe_allow_html=True,
         )
 
-        render_historico_clicavel()
+        render_lista_conversas(conversas)
 
         st.markdown("---")
+
+    perguntas_usuario = obter_perguntas_usuario()
+
+    if perguntas_usuario:
 
         st.download_button(
             "Exportar histórico",
@@ -436,12 +462,7 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
         with st.spinner("Consultando fontes oficiais da FCT/UFPA..."):
             nova_msg = processar_pergunta(ultima_pergunta)
 
-    # Bug real: salvar_no_historico() existia (tabela criada, INSERT escrito)
-    # mas nunca era chamada em lugar nenhum do fluxo - nenhuma conversa era
-    # persistida, então carregar_historico_sessao() sempre voltava vazia (a
-    # persistência de session_id via URL, feita acima, não tinha nada pra
-    # restaurar). Salva antes do rerun, igual ao texto que vai pro chat.
-    salvar_no_historico(ultima_pergunta, mensagem_content(nova_msg))
+    salvar_no_historico(st.session_state.conversa_id, ultima_pergunta, mensagem_content(nova_msg))
 
     st.session_state.messages.append(normalizar_mensagem_historico(nova_msg, role_padrao="assistant"))
     st.rerun()

@@ -519,27 +519,36 @@ def gerar_txt_historico():
     )
 
 
-def render_historico_clicavel() -> None:
-    """Mostra as últimas perguntas como atalhos clicáveis."""
-    perguntas = obter_perguntas_usuario()
+def render_lista_conversas(conversas) -> None:
+    """Mostra as conversas do dispositivo como botões clicáveis.
 
-    if not perguntas:
-        return
-
-    recentes = perguntas[-6:]
-
-    for idx, pergunta in enumerate(reversed(recentes)):
-        label = pergunta.strip()
+    "conversas" é o retorno de listar_conversas_dispositivo() (db.py):
+    lista de (conversa_id, primeira_pergunta, ultima_atividade), mais
+    recente primeiro. O título de cada botão é a primeira pergunta da
+    conversa, truncada. Clicar troca a conversa ativa (st.query_params
+    "cid") e força o recarregamento das mensagens dessa conversa.
+    """
+    for idx, (conversa_id, titulo, _ultima_atividade) in enumerate(conversas):
+        label = (titulo or "Conversa").strip()
 
         if len(label) > 48:
             label = label[:45] + "..."
 
+        ativo = st.session_state.get("conversa_id") == conversa_id
+
         if st.button(
             label,
-            key=f"hist_v2_{idx}_{abs(hash(pergunta))}",
+            key=f"conversa_v2_{idx}",
             use_container_width=True,
+            type="primary" if ativo else "secondary",
         ):
-            enviar_pergunta_minerva(pergunta)
+            st.session_state.conversa_id = conversa_id
+            st.query_params["cid"] = conversa_id
+
+            if "messages" in st.session_state:
+                del st.session_state["messages"]
+
+            st.rerun()
 
 
 def render_cards_categorias(prefixo: str = "home") -> None:
