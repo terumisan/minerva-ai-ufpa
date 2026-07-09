@@ -873,8 +873,15 @@ def caminhos_documento(nome_arquivo: str) -> Iterable[Path]:
     yield Path(nome_arquivo)
 
 
+@st.cache_data(show_spinner=False)
 def obter_binario_pdf(nome_arquivo: str) -> bytes | None:
-    """Obtém o arquivo PDF original em bytes."""
+    """Obtém o arquivo PDF original em bytes.
+
+    Cacheado por nome_arquivo: várias mensagens do histórico podem apontar
+    para o mesmo documento (ex. 5 perguntas sobre TCC) — sem cache, a leitura
+    do arquivo se repetia uma vez por mensagem toda vez que uma sessão
+    recarregava o histórico salvo.
+    """
     for caminho in caminhos_documento(nome_arquivo):
         if caminho.exists():
             try:
@@ -917,8 +924,14 @@ def formatar_documento_para_download(texto_bruto: str | None, nome_arquivo: str)
     return re.sub(r"\.\s+([A-ZÁÉÍÓÚÂÊÔÃÕÇ])", r".\n\n\1", texto_limpo)
 
 
+@st.cache_data(show_spinner=False)
 def gerar_docx(texto_estruturado: str) -> bytes:
-    """Gera arquivo DOCX real com python-docx."""
+    """Gera arquivo DOCX real com python-docx.
+
+    Cacheado por texto_estruturado: a geração é uma função pura do texto —
+    cachear evita regerar o mesmo DOCX a cada mensagem do histórico que
+    aponta para o mesmo documento, e entre reruns/sessões subsequentes.
+    """
     doc = Document()
     doc.add_heading("DOCUMENTO OFICIAL EMITIDO PELA MINERVA AI", level=1)
 
@@ -1631,8 +1644,27 @@ def consultar_modelo_local(pergunta: str) -> str:
 # =============================================================================
 # Cada navegador/sessão recebe um ID próprio.
 # Isso impede que conversas de usuários diferentes se misturem.
+#
+# O session_id é espelhado em st.query_params ("sid"): st.session_state por
+# si só reseta a cada reload de página (nova conexão WebSocket = novo estado
+# em branco), então sem isso "carregar_historico_sessao()" abaixo quase nunca
+# encontrava nada — um F5 gerava um session_id novo antes mesmo de checar o
+# banco. Guardar o id na URL faz o histórico sobreviver a reloads dentro do
+# mesmo link/aba, sem precisar de cookies ou login.
 if "session_id" not in st.session_state:
-    st.session_state.session_id = str(uuid.uuid4())
+    sid_da_url = st.query_params.get("sid")
+
+    if sid_da_url:
+        try:
+            uuid.UUID(sid_da_url)
+            st.session_state.session_id = sid_da_url
+        except ValueError:
+            st.session_state.session_id = None
+
+    if not st.session_state.get("session_id"):
+        st.session_state.session_id = str(uuid.uuid4())
+
+    st.query_params["sid"] = st.session_state.session_id
 
 inicializar_banco()
 
