@@ -33,10 +33,13 @@ _MARCADORES_ESTRUTURAIS = re.compile(
 
 def conectar_banco():
     return psycopg2.connect(
-        host="ufpa_rag_db",
-        database="ufpa_rag",
-        user="admin",
-        password="ufpa_senha_123"
+        host=os.getenv("DB_HOST", "ufpa_rag_db"),
+        port=os.getenv("DB_PORT", "5432"),
+        database=os.getenv("DB_NAME", "ufpa_rag"),
+        user=os.getenv("DB_USER", "admin"),
+        # Sem default: credencial real deve vir do .env (ver .env.example),
+        # consumido pelo docker-compose.yml como env var do container.
+        password=os.environ["DB_PASSWORD"],
     )
 
 

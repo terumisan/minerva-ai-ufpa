@@ -4,11 +4,14 @@ services:
     container_name: ufpa_rag_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ufpa_rag
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ufpa_senha_123
+      POSTGRES_DB: ${DB_NAME:-ufpa_rag}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
     ports:
-      - "5432:5432"
+      # Só localhost: antes era "5432:5432" (0.0.0.0), expondo o Postgres a
+      # qualquer host na mesma rede. Acesso local via psql/pgAdmin continua
+      # funcionando normalmente em 127.0.0.1:5432.
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata_rag:/var/lib/postgresql/data
 
@@ -16,6 +19,12 @@ services:
     build: ./app
     container_name: ufpa_rag_ui
     restart: unless-stopped
+    environment:
+      DB_HOST: ufpa_rag_db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-ufpa_rag}
+      DB_USER: ${DB_USER:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
     ports:
       - "8501:8501"
     volumes:
