@@ -51,6 +51,17 @@ def normalizar_historico_session_state():
     - tuplas
     """
 
+    # Bug real (achado via streamlit.testing.v1.AppTest): esta função usava
+    # st.session_state.get("messages", []) e gravava o resultado de volta
+    # incondicionalmente. Numa sessão nova, "messages" ainda não existe, o
+    # get() cai no default [] e o write-back CRIA a chave como lista vazia -
+    # a checagem mais abaixo ("if 'messages' not in st.session_state") deixa
+    # de detectar sessão nova, e carregar_historico_sessao() (restaurar do
+    # banco) nunca é chamada, mesmo com o histórico salvo lá. Só normaliza
+    # (e só grava de volta) quando "messages" já existe de fato.
+    if "messages" not in st.session_state:
+        return []
+
     try:
 
         atuais = st.session_state.get(
@@ -1714,6 +1725,13 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
     with st.chat_message("assistant", avatar="🏫"):
         with st.spinner("Consultando fontes oficiais da FCT/UFPA..."):
             nova_msg = processar_pergunta(ultima_pergunta)
+
+    # Bug real: salvar_no_historico() existia (tabela criada, INSERT escrito)
+    # mas nunca era chamada em lugar nenhum do fluxo - nenhuma conversa era
+    # persistida, então carregar_historico_sessao() sempre voltava vazia (a
+    # persistência de session_id via URL, feita acima, não tinha nada pra
+    # restaurar). Salva antes do rerun, igual ao texto que vai pro chat.
+    salvar_no_historico(ultima_pergunta, mensagem_content(nova_msg))
 
     st.session_state.messages.append(normalizar_mensagem_historico(nova_msg, role_padrao="assistant"))
     st.rerun()
