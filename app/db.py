@@ -149,6 +149,13 @@ def inicializar_banco() -> None:
         commit=True,
     )
 
+    # NULL = sem título customizado (cai no fallback da primeira pergunta em
+    # listar_conversas_dispositivo) — sem necessidade de backfill.
+    executar_query(
+        "ALTER TABLE historico_minerva ADD COLUMN IF NOT EXISTS titulo_personalizado TEXT;",
+        commit=True,
+    )
+
 
 def salvar_no_historico(conversa_id: str, pergunta: str, resposta: str) -> None:
     """Salva pergunta e resposta na conversa indicada, dentro da sessão atual."""
@@ -185,14 +192,19 @@ def carregar_historico_conversa(conversa_id: str) -> list[tuple[str, str]]:
 def listar_conversas_dispositivo(limite: int = 15) -> list[tuple[str, str, Any]]:
     """Lista as conversas da sessão atual, mais recente primeiro.
 
-    Cada item é (conversa_id, primeira_pergunta, ultima_atividade).
-    "Primeira pergunta" vira o título mostrado na sidebar.
+    Cada item é (conversa_id, titulo, ultima_atividade). O título é o
+    titulo_personalizado (ver renomear_conversa) quando existir; senão cai
+    na primeira pergunta da conversa. Ordenação por atividade mais recente
+    não muda com o título — renomear não deve "subir" a conversa na lista.
     """
     registros = executar_query(
         """
         SELECT
             conversa_id,
-            (ARRAY_AGG(pergunta ORDER BY id ASC))[1] AS primeira_pergunta,
+            COALESCE(
+                MAX(titulo_personalizado),
+                (ARRAY_AGG(pergunta ORDER BY id ASC))[1]
+            ) AS titulo,
             MAX(data_hora) AS ultima_atividade
         FROM historico_minerva
         WHERE session_id = %s AND conversa_id IS NOT NULL
@@ -205,3 +217,32 @@ def listar_conversas_dispositivo(limite: int = 15) -> list[tuple[str, str, Any]]
     )
 
     return registros or []
+
+
+def renomear_conversa(conversa_id: str, novo_titulo: str) -> None:
+    """Define um título customizado para a conversa (sobrepõe a 1ª pergunta)."""
+    executar_query(
+        """
+        UPDATE historico_minerva
+        SET titulo_personalizado = %s
+        WHERE session_id = %s AND conversa_id = %s;
+        """,
+        params=(novo_titulo, st.session_state.session_id, conversa_id),
+        commit=True,
+    )
+
+
+def excluir_conversa(conversa_id: str) -> None:
+    """Remove uma conversa específica do histórico da sessão atual.
+
+    Mesmo filtro duplo de segurança de carregar_historico_conversa: um
+    dispositivo não pode excluir conversa de outro, mesmo adivinhando o id.
+    """
+    executar_query(
+        """
+        DELETE FROM historico_minerva
+        WHERE session_id = %s AND conversa_id = %s;
+        """,
+        params=(st.session_state.session_id, conversa_id),
+        commit=True,
+    )

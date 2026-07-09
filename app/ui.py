@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,13 @@ except (ImportError, ValueError):
         mensagem_content,
     )
 # MINERVA_UI_HISTORY_IMPORT_END
+
+# MINERVA_UI_DB_IMPORT_BEGIN
+try:
+    from .db import renomear_conversa, excluir_conversa
+except (ImportError, ValueError):
+    from db import renomear_conversa, excluir_conversa
+# MINERVA_UI_DB_IMPORT_END
 
 
 # ======================================================================
@@ -205,6 +213,22 @@ def aplicar_css() -> None:
 
         .stDownloadButton button {
             border-radius: 12px !important;
+        }
+
+        /* Botão "⋯" (menu de renomear/excluir conversa): ícone puro, sem a
+           borda/fundo padrão de botão — key="conversa_v2_menu_N" no
+           st.popover() gera a classe "st-key-conversa_v2_menu_N", única
+           forma estável de mirar só nesse botão (não existe seletor CSS
+           por conteúdo de texto). */
+        [class*="st-key-conversa_v2_menu_"] button {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0.25rem 0.5rem !important;
+        }
+
+        [class*="st-key-conversa_v2_menu_"] button:hover {
+            background: var(--minerva-blue-soft) !important;
         }
 
         /* Bolhas do chat: diferencia usuário (destacado) de assistente (neutro) */
@@ -519,36 +543,122 @@ def gerar_txt_historico():
     )
 
 
+def iniciar_nova_conversa() -> None:
+    """Troca pra uma conversa nova e vazia.
+
+    Reaproveitada pelo botão "＋ Nova conversa" (main.py) e por
+    render_lista_conversas() quando a conversa excluída é a ativa. Não
+    chama st.rerun() — fica a cargo de quem chama, depois de qualquer outra
+    ação (ex. excluir_conversa) já ter sido feita.
+    """
+    st.session_state.conversa_id = str(uuid.uuid4())
+    st.query_params["cid"] = st.session_state.conversa_id
+    st.session_state.messages = []
+    st.session_state.categoria_minerva_ativa = "Calendário"
+
+
+@st.dialog("Excluir conversa")
+def _dialog_excluir_conversa(conversa_id: str, titulo_atual: str, era_ativa: bool) -> None:
+    st.write(f"Isso excluirá **{titulo_atual}**.")
+    st.caption("Essa ação não pode ser desfeita.")
+
+    col_cancelar, col_confirmar = st.columns(2)
+
+    with col_cancelar:
+        if st.button("Cancelar", key="dialog_excluir_cancelar", use_container_width=True):
+            st.rerun()
+
+    with col_confirmar:
+        if st.button(
+            "Excluir",
+            key="dialog_excluir_confirmar",
+            use_container_width=True,
+            type="primary",
+        ):
+            excluir_conversa(conversa_id)
+
+            if era_ativa:
+                iniciar_nova_conversa()
+
+            st.rerun()
+
+
 def render_lista_conversas(conversas) -> None:
-    """Mostra as conversas do dispositivo como botões clicáveis.
+    """Mostra as conversas do dispositivo, uma por linha, estilo ChatGPT:
+    título clicável (troca de conversa) + "⋯" no canto que abre um menu
+    com "Renomear" (edição inline, substitui o título por um campo de
+    texto na própria linha) e "Excluir" (abre modal de confirmação).
 
     "conversas" é o retorno de listar_conversas_dispositivo() (db.py):
-    lista de (conversa_id, primeira_pergunta, ultima_atividade), mais
-    recente primeiro. O título de cada botão é a primeira pergunta da
-    conversa, truncada. Clicar troca a conversa ativa (st.query_params
-    "cid") e força o recarregamento das mensagens dessa conversa.
+    lista de (conversa_id, titulo, ultima_atividade), mais recente
+    primeiro.
     """
     for idx, (conversa_id, titulo, _ultima_atividade) in enumerate(conversas):
-        label = (titulo or "Conversa").strip()
+        titulo = (titulo or "Conversa").strip()
+        ativo = st.session_state.get("conversa_id") == conversa_id
+        editando = st.session_state.get("editando_conversa_id") == conversa_id
 
+        if editando:
+            col_input, col_confirmar, col_cancelar = st.columns([6, 1, 1], gap="small")
+
+            with col_input:
+                novo_titulo = st.text_input(
+                    "Renomear conversa",
+                    value=titulo,
+                    key=f"conversa_v2_rename_input_{idx}",
+                    label_visibility="collapsed",
+                )
+
+            with col_confirmar:
+                if st.button(
+                    "✓", key=f"conversa_v2_rename_confirmar_{idx}", use_container_width=True
+                ):
+                    renomear_conversa(conversa_id, novo_titulo.strip() or titulo)
+                    st.session_state.editando_conversa_id = None
+                    st.rerun()
+
+            with col_cancelar:
+                if st.button(
+                    "✕", key=f"conversa_v2_rename_cancelar_{idx}", use_container_width=True
+                ):
+                    st.session_state.editando_conversa_id = None
+                    st.rerun()
+
+            continue
+
+        label = titulo
         if len(label) > 48:
             label = label[:45] + "..."
 
-        ativo = st.session_state.get("conversa_id") == conversa_id
+        col_titulo, col_menu = st.columns([8, 1], gap="small", vertical_alignment="center")
 
-        if st.button(
-            label,
-            key=f"conversa_v2_{idx}",
-            use_container_width=True,
-            type="primary" if ativo else "secondary",
-        ):
-            st.session_state.conversa_id = conversa_id
-            st.query_params["cid"] = conversa_id
+        with col_titulo:
+            if st.button(
+                label,
+                key=f"conversa_v2_{idx}",
+                use_container_width=True,
+                type="primary" if ativo else "secondary",
+            ):
+                st.session_state.conversa_id = conversa_id
+                st.query_params["cid"] = conversa_id
 
-            if "messages" in st.session_state:
-                del st.session_state["messages"]
+                if "messages" in st.session_state:
+                    del st.session_state["messages"]
 
-            st.rerun()
+                st.rerun()
+
+        with col_menu, st.container(horizontal_alignment="center"):
+            with st.popover("⋯", key=f"conversa_v2_menu_{idx}"):
+                if st.button(
+                    "✏️ Renomear", key=f"conversa_v2_edit_{idx}", use_container_width=True
+                ):
+                    st.session_state.editando_conversa_id = conversa_id
+                    st.rerun()
+
+                if st.button(
+                    "🗑️ Excluir", key=f"conversa_v2_delete_{idx}", use_container_width=True
+                ):
+                    _dialog_excluir_conversa(conversa_id, titulo, ativo)
 
 
 def render_cards_categorias(prefixo: str = "home") -> None:

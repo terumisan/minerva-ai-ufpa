@@ -32,6 +32,7 @@ try:
     from .ui import (
         aplicar_css,
         normalizar_historico_session_state,
+        iniciar_nova_conversa,
         obter_perguntas_usuario,
         gerar_txt_historico,
         render_lista_conversas,
@@ -42,6 +43,7 @@ except (ImportError, ValueError):
     from ui import (
         aplicar_css,
         normalizar_historico_session_state,
+        iniciar_nova_conversa,
         obter_perguntas_usuario,
         gerar_txt_historico,
         render_lista_conversas,
@@ -262,10 +264,7 @@ with st.sidebar:
     ):
         # Não apaga nada do banco: só inicia uma conversa nova. A conversa
         # anterior fica intacta e passa a aparecer na lista abaixo.
-        st.session_state.conversa_id = str(uuid.uuid4())
-        st.query_params["cid"] = st.session_state.conversa_id
-        st.session_state.messages = []
-        st.session_state.categoria_minerva_ativa = "Calendário"
+        iniciar_nova_conversa()
         st.rerun()
 
     conversas = listar_conversas_dispositivo()
