@@ -1463,6 +1463,15 @@ def classify_question(question: str):
     Perguntas complexas permanecem no router anterior.
     """
 
+    # Bug real (achado por teste automatizado): esta função substitui o
+    # classify_question original no namespace do módulo (late binding — todo
+    # chamador, inclusive dentro do router "anterior", passa a resolver para
+    # esta versão). O guard contra input não-string existia no original e
+    # não tinha sido repetido aqui, então debug_route(question=None) ou
+    # qualquer entrada não-string quebrava com TypeError em vez de None.
+    if not isinstance(question, str):
+        return None
+
     basic_route = _minerva_classify_basic_question(
         question
     )

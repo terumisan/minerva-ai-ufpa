@@ -134,7 +134,7 @@ def extrair_e_salvar_texto():
 
                 embeddings = list(modelo_embedding.embed(chunks_validos))
 
-                for texto_limpo, vetor in zip(chunks_validos, embeddings):
+                for texto_limpo, vetor in zip(chunks_validos, embeddings, strict=True):
                     # psycopg2 não conhece o tipo "vector" nativamente — sem o
                     # pacote adaptador pgvector, formata como texto "[v1,v2,...]"
                     # e deixa o Postgres fazer o cast (::vector).
