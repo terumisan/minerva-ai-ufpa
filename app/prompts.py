@@ -251,9 +251,12 @@ def consultar_modelo_local(pergunta: str) -> str:
             LLM_API_URL,
             json=payload,
             # 12s originais eram menores que o tempo real de resposta do
-            # modelo local em CPU (~1-2min com contexto de RAG) — todo
-            # request estourava o timeout antes do modelo terminar.
-            timeout=240,
+            # modelo local em CPU. Medido no i5-1245U com o Qwen2.5-7B
+            # Q4_K_M: ~14 tok/s lendo o prompt e ~2,5 tok/s gerando —
+            # uma resposta RAG completa leva de 2 a 5 minutos. 420s cobre
+            # o pior caso com folga; abaixo disso o request estourava
+            # antes de o modelo terminar.
+            timeout=420,
         )
 
         if response.status_code != 200:

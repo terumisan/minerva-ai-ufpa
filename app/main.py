@@ -402,6 +402,24 @@ if pergunta_digitada and pergunta_digitada.strip():
 def processar_pergunta(pergunta):
     """
     Processa perguntas da Minerva usando camada institucional FCT/UFPA.
+
+    Passo a passo (a primeira camada que responder encerra o fluxo):
+
+    1. ROTAS FIXAS — priority_answer() (minerva_priority_router.py) resolve
+       deterministicamente calendário, cardápio do RU, TCC, estágio,
+       contatos etc., incluindo as camadas de fatos básicos
+       (minerva_basic_facts.py) e dataset manual (minerva_dataset.py).
+       Resposta instantânea, sem tocar no LLM.
+    2. BARREIRA PRÉ-GERAÇÃO — pergunta_menciona_instituicao_externa()
+       bloqueia, antes de qualquer busca, pergunta explicitamente dirigida
+       a outra universidade (UFxx ≠ UFPA, FCT de Lisboa...).
+    3. CONEXÃO — pega uma conexão do pool (db_pool); sem banco, o RAG
+       degrada graciosamente para o fallback genérico.
+    4. RAG GENÉRICO — responder_minerva() (minerva_hybrid.py) faz a busca
+       híbrida (léxica + semântica + fusão RRF) e chama o modelo local
+       via consultar_modelo_local() — ver o passo a passo detalhado no
+       docstring de responder_minerva.
+    5. DEVOLUÇÃO DA CONEXÃO — putconn() no finally, senão o pool esgota.
     """
     # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
     _minerva_priority_result = priority_answer(pergunta)
@@ -439,19 +457,21 @@ def processar_pergunta(pergunta):
     def llm_func(prompt):
         return consultar_modelo_local(prompt)
 
-    resposta = responder_minerva(
-        pergunta=pergunta,
-        conn=conn,
-        llm_func=llm_func
-    )
-
-    if conn:
-        try:
-            db_pool.putconn(conn)
-        except Exception:
-            pass
-
-    return resposta
+    # try/finally: sem ele, uma exceção em responder_minerva vazava a
+    # conexão (nunca voltava ao pool) — com DB_POOL_MAX=10, dez erros
+    # seguidos esgotariam o pool e derrubariam o app inteiro.
+    try:
+        return responder_minerva(
+            pergunta=pergunta,
+            conn=conn,
+            llm_func=llm_func
+        )
+    finally:
+        if conn:
+            try:
+                db_pool.putconn(conn)
+            except Exception:
+                pass
 
 
 if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messages[-1]) == "user":

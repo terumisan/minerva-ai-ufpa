@@ -79,7 +79,7 @@ Cada pergunta passa por camadas, na ordem — a primeira que responder "ganha":
 - **Python 3.10**
 - **Streamlit 1.59** — interface web
 - **PostgreSQL + pgvector** — histórico de conversas e busca vetorial
-- **llama.cpp** — inferência do LLM local (modelo ativo: `Llama-3.2-3B-Instruct-Q5_K_M.gguf`)
+- **llama.cpp** — inferência do LLM local (modelo ativo: `Qwen2.5-7B-Instruct-Q4_K_M.gguf`, o mais preciso entre os testados — ver histórico no `docker-compose.yml`)
 - **fastembed** — embeddings (`paraphrase-multilingual-MiniLM-L12-v2`, ONNX, sem depender de GPU/torch)
 - **langchain-text-splitters** + **pypdf** — extração e *chunking* dos PDFs institucionais na ingestão
 - **python-docx** — geração de documentos `.docx` a partir do conteúdo indexado
@@ -110,7 +110,7 @@ ufpa_rag/
     ├── minerva_basic_facts.py     # respostas sobre siglas/identidade institucional
     ├── minerva_dataset.py         # respostas cadastradas manualmente (minerva_dataset.json)
     ├── scripts/ingestao.py        # extrai PDFs de documentos/, gera embeddings, popula o Postgres
-    ├── tests/                     # suíte pytest (43 testes, módulos puros)
+    ├── tests/                     # suíte pytest (57 testes, módulos puros)
     ├── requirements.txt            # dependências de produção (pinadas)
     ├── requirements-dev.txt        # + pytest/ruff, só pra dev/CI
     └── Dockerfile
@@ -118,7 +118,7 @@ ufpa_rag/
 
 ## Como rodar
 
-**Pré-requisitos**: Docker + Docker Compose. Um modelo `.gguf` em `models/` (o `docker-compose.yml` já aponta pro `Llama-3.2-3B-Instruct-Q5_K_M.gguf` — troque o `command` do serviço `ufpa_rag_llm` se for usar outro). PDFs institucionais em `documentos/`.
+**Pré-requisitos**: Docker + Docker Compose. Um modelo `.gguf` em `models/` (o `docker-compose.yml` já aponta pro `Qwen2.5-7B-Instruct-Q4_K_M.gguf` — troque o `command` do serviço `ufpa_rag_llm` se for usar outro). PDFs institucionais em `documentos/`.
 
 ```bash
 # 1. Credenciais do Postgres
@@ -215,7 +215,7 @@ docker compose exec ufpa_rag_ui python scripts/ingestao.py
 # instala dependências de dev (pytest + ruff) com uv
 uv pip install -r app/requirements-dev.txt
 
-# testes (43 testes, cobrindo módulos que não dependem de Streamlit/Postgres:
+# testes (57 testes, cobrindo módulos que não dependem de Streamlit/Postgres:
 # minerva_history, minerva_hybrid, minerva_priority_router, minerva_dataset)
 pytest
 
@@ -236,6 +236,6 @@ Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de c
 
 ## Limitações conhecidas
 
-- O modelo local roda em **CPU** — respostas que passam pelo RAG genérico podem levar 1–2 minutos. Perguntas cobertas por rotas fixas são instantâneas.
+- O modelo local roda em **CPU** — com o Qwen2.5-7B (escolhido pela precisão), respostas que passam pelo RAG genérico podem levar de 2 a 5 minutos. Perguntas cobertas por rotas fixas são instantâneas. Pra priorizar velocidade sobre precisão, troque pro `Llama-3.2-3B` no `docker-compose.yml` (~1 min por resposta).
 - Sem autenticação de usuário: qualquer pessoa com o link acessa o app. O histórico de conversas é isolado por navegador (via `session_id` na URL), não por login.
 - Sem rate limiting: como o LLM roda serializado (`--parallel 1` no llama.cpp), várias perguntas simultâneas de usuários diferentes enfileiram.

@@ -349,6 +349,39 @@ def resposta_extrativa(fontes):
     return sanitizar_resposta("\n\n".join(partes))
 
 def responder_minerva(pergunta, conn=None, llm_func=None):
+    """Pipeline do RAG genérico — última camada do roteador (ver README).
+
+    Passo a passo:
+
+    1. RECUPERAÇÃO — buscar_em_documentos_postgres() roda duas buscas em
+       paralelo conceitual sobre a tabela documentos_ufpa:
+       a. léxica: full-text search do Postgres (stemmer 'portuguese'),
+          com expansão de sinônimos institucionais e estratégia E-depois-OU
+          (_buscar_lexico);
+       b. semântica: embedding da pergunta via fastembed comparado por
+          distância de cosseno com o embedding de cada chunk no pgvector
+          (_buscar_semantico).
+       Os dois rankings são combinados por Reciprocal Rank Fusion
+       (_fusao_rrf), que dispensa calibrar pesos entre escalas de score
+       incomparáveis. Saem os 6 melhores chunks.
+
+    2. MONTAGEM DO PROMPT — os chunks viram um bloco "Fonte/Trecho" e são
+       embutidos num prompt com as regras institucionais (não inventar,
+       não misturar trechos de assuntos diferentes, escopo FCT/UFPA).
+
+    3. GERAÇÃO — llm_func (prompts.consultar_modelo_local) envia o prompt
+       ao llama.cpp local (Qwen2.5-7B). Lá dentro ainda existe o prompt de
+       sistema institucional e a barreira pós-geração de prompts.py.
+
+    4. SANITIZAÇÃO — sanitizar_resposta() bloqueia qualquer resposta que
+       associe a Minerva a instituições homônimas externas (UFPB/UFPE/UPE,
+       FCT de Lisboa etc.), mesmo que o modelo tenha ignorado o prompt.
+
+    5. FALLBACK — sem LLM disponível (ou erro na geração), cai para
+       resposta_extrativa(): devolve os próprios trechos recuperados,
+       citando a fonte, sem gerar texto novo. Sem fontes, admite não saber
+       (fallback_sem_base) em vez de inventar.
+    """
     fontes = buscar_em_documentos_postgres(conn, pergunta)
 
     contexto = "\n\n".join(
