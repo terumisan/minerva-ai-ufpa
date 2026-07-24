@@ -244,6 +244,13 @@ def consultar_modelo_local(pergunta: str) -> str:
         # o max_tokens antes de gerar a resposta de verdade). Modelos sem
         # esse recurso (Qwen, Llama) simplesmente ignoram o campo.
         "chat_template_kwargs": {"enable_thinking": False},
+        # Reaproveita o KV cache do prefixo comum entre requisições (o
+        # PROMPT_INSTITUCIONAL_UFPA acima é idêntico em toda chamada) —
+        # com --parallel 1 há só 1 slot, então o ganho é limitado à parte
+        # fixa do prompt (o contexto do RAG, que muda a cada pergunta,
+        # ainda precisa ser lido do zero), mas é estritamente positivo e
+        # sem custo.
+        "cache_prompt": True,
     }
 
     try:

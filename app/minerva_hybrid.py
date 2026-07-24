@@ -148,11 +148,15 @@ def _grupo_tsquery(termo: str) -> str:
 # Embedding semântico (fastembed, ONNX — sem depender de torch/GPU).
 # Mesmo modelo usado em app/scripts/ingestao.py: embeddings de pergunta e de
 # chunk precisam vir do mesmo modelo para a distância de cosseno fazer
-# sentido. Carregado uma única vez por processo (~450ms depois de baixado
-# e cacheado) e nunca recarregado — se falhar, a busca léxica sozinha ainda
-# funciona (degradação graciosa, não é um requisito rígido).
+# sentido. Carregado uma única vez por processo e nunca recarregado — se
+# falhar, a busca léxica sozinha ainda funciona (degradação graciosa, não é
+# um requisito rígido).
+#
+# mpnet-base-v2 (768d, ~1GB): substituiu o MiniLM-L12 (384d, ~225MB) — ver
+# justificativa e números medidos no comentário de EMBEDDING_MODEL em
+# app/scripts/ingestao.py.
 # ----------------------------------------------------------------------
-_EMBEDDING_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+_EMBEDDING_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 _EMBEDDING_CACHE_DIR = "/app/.fastembed_cache"
 
 _embedding_model = None
@@ -241,7 +245,7 @@ def _buscar_semantico(conn, pergunta, limite=10):
         return []
 
     try:
-        vetor = list(modelo.embed([pergunta]))[0]
+        vetor = list(modelo.query_embed([pergunta]))[0]
         vetor_literal = "[" + ",".join(f"{v:.6f}" for v in vetor.tolist()) + "]"
     except Exception:
         return []

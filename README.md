@@ -79,8 +79,8 @@ Cada pergunta passa por camadas, na ordem — a primeira que responder "ganha":
 - **Python 3.10**
 - **Streamlit 1.59** — interface web
 - **PostgreSQL + pgvector** — histórico de conversas e busca vetorial
-- **llama.cpp** — inferência do LLM local (modelo ativo: `Qwen2.5-7B-Instruct-Q4_K_M.gguf`, o mais preciso entre os testados — ver histórico no `docker-compose.yml`)
-- **fastembed** — embeddings (`paraphrase-multilingual-MiniLM-L12-v2`, ONNX, sem depender de GPU/torch)
+- **llama.cpp** — inferência do LLM local (modelo ativo: `Qwen2.5-7B-Instruct-Q4_K_M.gguf`. Testado `Qwen3-4B-Instruct-2507` em jul/2026 — ~2x mais rápido isolado e qualidade comparável — mas revertido a pedido do usuário; ver histórico no `docker-compose.yml`)
+- **fastembed** — embeddings (`paraphrase-multilingual-mpnet-base-v2`, 768d, ONNX, sem depender de GPU/torch — trocado do MiniLM-L12 384d após medir com `app/scripts/comparar_embeddings.py`: hit-rate@6 semântico saltou de 44,2% para 63,5% na base real. O `multilingual-e5-large` media ainda melhor, mas 2,3GB era arriscado demais de memória nesta máquina)
 - **langchain-text-splitters** + **pypdf** — extração e *chunking* dos PDFs institucionais na ingestão
 - **python-docx** — geração de documentos `.docx` a partir do conteúdo indexado
 - **uv** (Astral) — instalador de dependências (Dockerfile e CI)
@@ -137,27 +137,37 @@ docker compose exec ufpa_rag_ui python scripts/ingestao.py
 
 O Postgres fica acessível localmente em `127.0.0.1:5432` (não exposto pra fora da máquina) — útil pra inspecionar com `psql`/pgAdmin durante o desenvolvimento.
 
-## Exposição pública (Cloudflare Tunnel)
+## Exposição pública (ngrok, domínio fixo)
 
-Opcional: pra acessar a Minerva de outros dispositivos pela internet, sem ter domínio próprio nem abrir portas no roteador, o app é exposto via **Cloudflare quick tunnel** (gratuito, sem conta), rodando como serviço systemd de usuário.
+Opcional: pra acessar a Minerva de outros dispositivos pela internet, sem ter domínio próprio nem abrir portas no roteador, o app é exposto via **ngrok** (conta gratuita, domínio "dev domain" fixo — não muda entre reinícios), rodando como serviço systemd de usuário.
+
+Histórico: antes era exposto via Cloudflare quick tunnel, trocado por ngrok porque a URL do quick tunnel mudava toda vez que o túnel reconectava. Named tunnel da Cloudflare (URL fixa) exigiria domínio próprio numa conta Cloudflare, que não estava disponível.
 
 ```bash
-# 1. Instala o binário do cloudflared (sem root)
+# 1. Instala o binário do ngrok (sem root)
 mkdir -p ~/.local/bin
-curl -L -o ~/.local/bin/cloudflared \
-  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-chmod +x ~/.local/bin/cloudflared
+curl -sSL -o /tmp/ngrok.tgz "https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz"
+tar -xzf /tmp/ngrok.tgz -C ~/.local/bin ngrok
+chmod +x ~/.local/bin/ngrok
 
-# 2. Cria o serviço systemd de usuário
+# 2. Configura o authtoken da conta (pegar em https://dashboard.ngrok.com/get-started/your-authtoken)
+~/.local/bin/ngrok config add-authtoken <SEU_AUTHTOKEN>
+
+# 3. O "dev domain" gratuito e fixo já vem atribuído à conta automaticamente
+#    (nome gerado pelo ngrok, não escolhido pelo usuário — ver
+#    https://dashboard.ngrok.com/domains). Nomes customizados (ex.: "minerva.ngrok-free.app")
+#    exigem plano pago (ERR_NGROK_313) — usar exatamente o domínio listado no dashboard.
+
+# 4. Cria o serviço systemd de usuário
 mkdir -p ~/.config/systemd/user
-cat > ~/.config/systemd/user/cloudflared-minerva.service <<'EOF'
+cat > ~/.config/systemd/user/ngrok-minerva.service <<'EOF'
 [Unit]
-Description=Cloudflare Tunnel - Minerva AI
+Description=ngrok Tunnel - Minerva AI (dominio fixo gratuito)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=%h/.local/bin/cloudflared tunnel --url http://localhost:8501 --no-autoupdate
+ExecStart=%h/.local/bin/ngrok http 8501 --url=https://<SEU_DEV_DOMAIN>.ngrok-free.dev --log=stdout
 Restart=always
 RestartSec=5
 
@@ -165,16 +175,15 @@ RestartSec=5
 WantedBy=default.target
 EOF
 
-# 3. Ativa o serviço e garante que sobrevive a logout/reboot
+# 5. Ativa o serviço e garante que sobrevive a logout/reboot
 systemctl --user daemon-reload
-systemctl --user enable --now cloudflared-minerva.service
+systemctl --user enable --now ngrok-minerva.service
 loginctl enable-linger $USER
-
-# 4. Descobre a URL pública atual
-journalctl --user -u cloudflared-minerva.service --no-pager | grep -o 'https://[a-z-]*\.trycloudflare\.com' | tail -1
 ```
 
-⚠️ Limitações do quick tunnel: a URL (`https://<palavras-aleatórias>.trycloudflare.com`) **não é estável** — muda se o túnel reconectar (reboot, queda longa) — e **não há autenticação** na frente do app. Pra URL fixa, é preciso ter domínio numa conta Cloudflare e migrar pra um *named tunnel* (`cloudflared tunnel create` + CNAME no DNS).
+URL pública atual: `https://preschool-unsaid-doodle.ngrok-free.dev` (fixa — não muda entre reinícios do serviço, ao contrário do quick tunnel).
+
+⚠️ Sem autenticação na frente do app (mesma limitação de antes) — qualquer pessoa com o link acessa a Minerva.
 
 ## Configuração
 
@@ -209,6 +218,11 @@ docker compose exec ufpa_rag_ui python scripts/ingestao.py
 
 ⚠️ Isso faz `TRUNCATE` na tabela `documentos_ufpa` antes de reindexar — reprocessa tudo do zero a cada execução.
 
+**Consistência dos dados-fonte** (`documentos/`, 15 PDFs válidos):
+- `Regimento_UFPA_FCT.pdf` era um duplicado exato (MD5 idêntico) de `RegimentoGeral.pdf` — removido; mantido só `RegimentoGeral.pdf` (é o nome referenciado em `app/documents.py`, usado no download por palavra-chave). A duplicata inflava a base em ~33% de chunks repetidos e prejudicava o ranking do RRF (chunks idênticos competindo entre si) — hit-rate@1 subiu de 42,6% para 52,9% só com essa remoção.
+- `Apresentacao_Eng_Computacao.pdf` e `Apresentacao_Eng_Telecomunicacoes.pdf` (0 bytes, vazios) — removidos.
+- `ManualSagitta.pdf` está corrompido (falta o marcador EOF, "stream has ended unexpectedly") — nem o Ghostscript consegue abrir pra reparar. Continua em `documentos/` mas nunca gera chunks (a ingestão pula com um aviso). Precisa ser re-obtido na fonte original se o conteúdo for importante.
+
 ## Desenvolvimento
 
 ```bash
@@ -236,6 +250,7 @@ Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de c
 
 ## Limitações conhecidas
 
-- O modelo local roda em **CPU** — com o Qwen2.5-7B (escolhido pela precisão), respostas que passam pelo RAG genérico podem levar de 2 a 5 minutos. Perguntas cobertas por rotas fixas são instantâneas. Pra priorizar velocidade sobre precisão, troque pro `Llama-3.2-3B` no `docker-compose.yml` (~1 min por resposta).
+- O modelo local roda em **CPU** — com o Qwen2.5-7B (escolhido pela precisão), respostas que passam pelo RAG genérico levam em média ~90s (medido; a estimativa antiga de 2-5min já refletia um servidor sem reiniciar há semanas — ver item de memória abaixo). Perguntas cobertas por rotas fixas ou pelo dataset promovido (`minerva_dataset.json`, estratégia `RESPOSTA_LITERAL`) são instantâneas. Pra priorizar velocidade sobre precisão, troque pro `Llama-3.2-3B` no `docker-compose.yml` (~1 min por resposta).
 - Sem autenticação de usuário: qualquer pessoa com o link acessa o app. O histórico de conversas é isolado por navegador (via `session_id` na URL), não por login.
 - Sem rate limiting: como o LLM roda serializado (`--parallel 1` no llama.cpp), várias perguntas simultâneas de usuários diferentes enfileiram.
+- **Vazamento de memória do llama.cpp em uso prolongado**: o cache interno de "compute graphs" do servidor cresce sem limite (observado: 11,2GB de RAM depois de dias no ar, contra ~4,5GB esperados de um modelo 7B Q4 — forçava a máquina inteira pro swap e degradava a latência de todos os containers, não só do LLM). Mitigado com um timer systemd de usuário (`ufpa_rag_restart_llm.timer`, reinicia o container `ufpa_rag_llm` diariamente às 4h — ver `systemctl --user list-timers`). Sem estado persistente no container, reiniciar é seguro.

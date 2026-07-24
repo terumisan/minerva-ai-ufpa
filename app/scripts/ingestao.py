@@ -9,8 +9,16 @@ from fastembed import TextEmbedding
 # Mesmo modelo usado em minerva_hybrid.py para buscar — embeddings de
 # ingestão e de pergunta precisam vir do mesmo modelo para a distância de
 # cosseno fazer sentido.
-EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-EMBEDDING_DIM = 384
+#
+# mpnet-base-v2 substituiu o MiniLM-L12 (medido com comparar_embeddings.py
+# contra as 720 perguntas de app/tests/data/eval_minerva_qa.json, comparando
+# só a busca semântica): hit@1 18,3%->30,8%, hit@3 32,9%->47,4%,
+# hit@6 44,2%->57,4%. O multilingual-e5-large media ainda melhor
+# (hit@6 66,1%) mas é 2,3GB (vs 1GB do mpnet) — descartado pelo risco de
+# memória nesta máquina (12-14GB RAM, já teve um incidente de swap com o
+# container do LLM).
+EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+EMBEDDING_DIM = 768
 EMBEDDING_CACHE_DIR = "/app/.fastembed_cache"
 
 # Marcadores estruturais típicos de regulamentos/resoluções da UFPA. Forçar
@@ -59,10 +67,13 @@ def criar_tabela():
         );
     """)
     # Coluna de embedding semântico (busca híbrida em minerva_hybrid.py).
-    cur.execute(
-        f"ALTER TABLE documentos_ufpa ADD COLUMN IF NOT EXISTS "
-        f"embedding vector({EMBEDDING_DIM});"
-    )
+    # DROP+ADD em vez de "ADD COLUMN IF NOT EXISTS": ao trocar de modelo de
+    # embedding (dimensão diferente), "IF NOT EXISTS" seria um no-op sobre a
+    # coluna já existente e deixaria a dimensão antiga — como toda ingestão
+    # já faz TRUNCATE da tabela de qualquer forma, recriar a coluna aqui é
+    # seguro e permite mudar EMBEDDING_DIM sem migração manual.
+    cur.execute("ALTER TABLE documentos_ufpa DROP COLUMN IF EXISTS embedding;")
+    cur.execute(f"ALTER TABLE documentos_ufpa ADD COLUMN embedding vector({EMBEDDING_DIM});")
     # Cria um índice de busca avançada para acelerar e dar inteligência ao Postgres
     cur.execute("CREATE INDEX IF NOT EXISTS idx_conteudo_trgm ON documentos_ufpa USING gin (conteudo gin_trgm_ops);")
     # Índice para a busca full-text (to_tsvector/to_tsquery) usada por
@@ -132,7 +143,13 @@ def extrair_e_salvar_texto():
                     print(f"⚠️ {arquivo}: nenhum chunk válido extraído.")
                     continue
 
-                embeddings = list(modelo_embedding.embed(chunks_validos))
+                # passage_embed (não embed genérico): modelos assimétricos
+                # como o E5 (considerado e descartado — ver comentário em
+                # EMBEDDING_MODEL) exigem prefixo diferente para texto
+                # indexado vs. pergunta; passage_embed/query_embed é a API
+                # correta do fastembed para isso, e é um no-op seguro para
+                # modelos simétricos como o mpnet atual.
+                embeddings = list(modelo_embedding.passage_embed(chunks_validos))
 
                 for texto_limpo, vetor in zip(chunks_validos, embeddings, strict=True):
                     # psycopg2 não conhece o tipo "vector" nativamente — sem o

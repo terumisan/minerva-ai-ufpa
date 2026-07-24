@@ -36,12 +36,14 @@ services:
       - ufpa_rag_db
       - ufpa_rag_llm
 
-  # Modelo local gratuito (Qwen2.5-7B-Instruct), isolado do chat_llm de
-  # outro projeto. Só a Minerva usa este container, na porta 8002.
+  # Modelo local gratuito, isolado do chat_llm de outro projeto. Só a
+  # Minerva usa este container, na porta 8002.
   # Histórico de modelos testados (arquivos .gguf ficam em models/ caso
-  # queira voltar a algum): Qwen2.5-7B (melhor precisão, ativo agora) ->
-  # Llama-3.2-3B (mais rápido, porém respostas mais pobres) -> Gemma 4 E4B
-  # (QAT, pensa demais por padrão e alucina sem grounding — ver conversa).
+  # queira voltar a algum): Qwen2.5-7B (ativo) -> Llama-3.2-3B (mais rápido,
+  # porém respostas mais pobres) -> Gemma 4 E4B (QAT, pensa demais por
+  # padrão e alucina sem grounding — ver conversa) -> Qwen3-4B-Instruct-2507
+  # (testado jul/2026, ~2x mais rápido isolado e qualidade comparável, mas
+  # revertido a pedido do usuário — ver memória/conversa).
   ufpa_rag_llm:
     image: ghcr.io/ggml-org/llama.cpp:server
     container_name: ufpa_rag_llm
@@ -55,10 +57,20 @@ services:
       - "8002"
       - "-c"
       - "8192"
+      # --threads (geração/decode): limitado por banda de memória, não por
+      # núcleos — medido no i5-1245U (12 threads lógicos): 10 threads gerava
+      # a ~6,86 tok/s, 12 threads CAIU para ~6,13 tok/s (mais threads geram
+      # overhead de sincronização sem ganho na fase memory-bound). 8 é o
+      # meio-termo testado que recupera a velocidade de geração.
       - "--threads"
-      - "10"
+      - "8"
+      # --threads-batch (leitura do prompt/prefill): fase compute-bound,
+      # escala bem com mais núcleos — medido 20,6 tok/s (10 threads) ->
+      # 26,7 tok/s (12 threads), ~30% mais rápido. Maior impacto real na
+      # latência: com 6 chunks de contexto (~1400 tokens), a leitura do
+      # prompt é a maior fatia do tempo total de resposta, não a geração.
       - "--threads-batch"
-      - "10"
+      - "12"
       - "--parallel"
       - "1"
       # Trava o modelo na RAM (evita page-out que degrada a geração quando
