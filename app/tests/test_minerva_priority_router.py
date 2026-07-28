@@ -58,3 +58,37 @@ def test_classify_question_outra_unidade_sem_fct_nao_usa_rota_fct():
     # na rota "contact" (que é específica da FCT).
     resultado = classify_question("Qual a localização do CTIC?")
     assert resultado != "contact"
+
+
+def test_classify_question_matricula_variacoes_comuns():
+    # Bug real (achado por medição de latência): "onde/como posso me
+    # matricular" não tinha nenhuma rota fixa e caía sempre no RAG
+    # genérico (2-5min em CPU), apesar de ser resposta institucional
+    # estável e uma das perguntas mais frequentes de alunos novos.
+    variacoes = [
+        "Onde posso me matricular?",
+        "Como faço minha matrícula?",
+        "Como me matricular na UFPA?",
+        "Quero me matricular",
+        "matrícula",
+    ]
+    for pergunta in variacoes:
+        assert classify_question(pergunta) == "enrollment", pergunta
+
+
+def test_classify_question_matricula_em_estagio_continua_internship():
+    # Não pode regredir: pergunta com "estágio" continua roteada para
+    # internship, e não para a nova rota "enrollment" (o check de
+    # "estagio" vem antes no classify_question).
+    pergunta = "Quem pode solicitar a matrícula em Estágio Supervisionado?"
+    assert classify_question(pergunta) == "internship"
+
+
+def test_classify_question_matricula_especifica_nao_intercepta_dataset():
+    # Não pode regredir: uma pergunta específica já coberta por entrada
+    # RESPOSTA_LITERAL do dataset (minerva_dataset.json) não deve ser
+    # engolida pela rota genérica de matrícula — o priority_router roda
+    # antes do dataset no pipeline, então "enrollment" precisa devolver
+    # None aqui para a pergunta seguir até o dataset.
+    pergunta = "O que acontece após a solicitação de matrícula?"
+    assert classify_question(pergunta) is None

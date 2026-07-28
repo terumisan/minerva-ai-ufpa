@@ -152,6 +152,11 @@ UFPA_LEGISLACAO = (
     "sig-ufpa/2-uncategorised/77-legislacao"
 )
 
+# Portal público do sistema acadêmico — mesmo sistema descrito no documento
+# institucional "ManualAlunoSIGAA.pdf" já ingerido na base (ver rota
+# "enrollment" abaixo).
+SIGAA_URL = "https://sigaa.ufpa.br"
+
 
 TIMEOUT = 10
 CACHE_TTL = 15 * 60
@@ -332,6 +337,56 @@ def classify_question(
 
     if "estagio" in q:
         return "internship"
+
+
+    # ------------------------------------------------------------------
+    # 4.5. MATRÍCULA
+    #
+    # Bug real (achado por medição de latência): "onde/como posso me
+    # matricular" — uma das perguntas mais previsíveis e mais frequentes
+    # que existem — não tinha NENHUMA rota fixa, então caía sempre no RAG
+    # genérico (2-5min no Qwen2.5-7B em CPU) mesmo tendo resposta
+    # institucional estável.
+    #
+    # Fraseado por frase (não "matricul" substring solto): um match
+    # genérico demais interceptaria também perguntas específicas já
+    # cobertas por entradas RESPOSTA_LITERAL do dataset (ex.: "O que
+    # acontece após a solicitação de matrícula?", que tem resposta própria
+    # mais detalhada em minerva_dataset.json) ANTES de chegarem lá — o
+    # priority_router roda antes do dataset no pipeline (ver
+    # priority_answer no fim do arquivo).
+    # ------------------------------------------------------------------
+
+    if (
+        q in ("matricula", "matricular")
+        or _has_any(
+            q,
+            (
+                "onde posso me matricular",
+                "como posso me matricular",
+                "como faco para me matricular",
+                "como faco minha matricula",
+                "como faco a matricula",
+                "onde faco a matricula",
+                "onde faco minha matricula",
+                "como e feita a matricula",
+                "como funciona a matricula",
+                "onde fica a matricula",
+                "quero me matricular",
+                "como me matriculo",
+                "onde me matriculo",
+                "como me matricular",
+                "onde me matricular",
+                "me matricular na ufpa",
+                "me matricular na fct",
+                "como se matricula",
+                "como se faz a matricula",
+                "onde se matricula",
+                "onde e a matricula",
+            ),
+        )
+    ):
+        return "enrollment"
 
 
     # ------------------------------------------------------------------
@@ -1091,6 +1146,29 @@ def priority_answer(
             "a Minerva deve consultar primeiro essa orientação da FCT e "
             "complementar com a documentação institucional disponível na base. "
             f"Fonte oficial FCT: {FCT_ESTAGIO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # MATRÍCULA
+    # ------------------------------------------------------------------
+
+    if route == "enrollment":
+        return (
+            "A matrícula na UFPA é feita pelo **SIGAA** (Sistema Integrado "
+            "de Gestão de Atividades Acadêmicas), o sistema acadêmico "
+            "oficial da universidade — acesse pelo portal da UFPA ou "
+            f"diretamente em {SIGAA_URL}, com seu login institucional.\n\n"
+            "O processo tem duas etapas: você faz a **solicitação** de "
+            "matrícula nas turmas desejadas dentro do prazo do calendário "
+            "acadêmico; só depois, quando o sistema roda o processamento, "
+            "a matrícula é efetivamente confirmada nas turmas, conforme as "
+            "regras do Regulamento de Graduação — a solicitação sozinha "
+            "não garante a vaga.\n\n"
+            "Os prazos de matrícula constam no calendário acadêmico. "
+            f"Fonte oficial (prazos): {PROEG_CALENDARIO} "
+            "| Fonte institucional (passo a passo no sistema): "
+            "Manual SIGAA - UFPA (Discentes), documento da base da FCT/UFPA."
         )
 
 
