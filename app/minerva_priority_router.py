@@ -81,6 +81,80 @@ FCT_ATIVIDADES_COMPLEMENTARES = (
     "https://fct.ufpa.br/index.php/atividades-complementares"
 )
 
+FCT_LABORATORIOS_PESQUISA = (
+    "https://fct.ufpa.br/index.php/laboratorios-de-pesquisa"
+)
+
+FCT_LABORATORIOS_ENSINO = (
+    "https://fct.ufpa.br/index.php/laboratorios-de-ensino"
+)
+
+PPGCC_HOME = (
+    "http://www.ppgcc.propesp.ufpa.br/index.php/br/"
+)
+
+# Laboratórios de pesquisa vinculados à FCT (conteúdo verificado direto na
+# página oficial acima antes de escrever qualquer texto — sem fabricação).
+# Cada entrada permite tanto "quais laboratórios de pesquisa a FCT tem?"
+# (lista geral) quanto "o que é o GERCOM?" (consulta pontual por sigla).
+LABORATORIOS_PESQUISA: dict[str, dict[str, str]] = {
+    "GERCOM": {
+        "nome": "Grupo de Estudos em Redes de Computadores e Comunicação Multimídia",
+        "foco": (
+            "redes óticas, redes sem fio, redes de sensores, segurança, "
+            "redes tolerantes a falhas e desconexões, gerência de rede, "
+            "aplicações para cidades inteligentes e sistemas multimídia"
+        ),
+    },
+    "LAMIC": {
+        "nome": "Laboratório de Modelagem e Inteligência Computacional",
+        "foco": (
+            "monitoramento inteligente de processos, domótica, aquisição "
+            "de dados em bioengenharia, smart grids, comunicação com/sem "
+            "fio e serviços web"
+        ),
+    },
+    "LASSE": {
+        # A página oficial não especifica o nome por extenso da sigla —
+        # não inventamos uma expansão que ela mesma não confirma.
+        "nome": "laboratório de pesquisa da FCT (nome por extenso não detalhado na fonte oficial)",
+        "foco": (
+            "circuitos digitais usando FPGAs, microcontroladores, redes "
+            "de sensores sem fio e monitoramento remoto"
+        ),
+    },
+    "LCT": {
+        "nome": "Laboratório de Computação e Telecomunicações",
+        "foco": (
+            "cobertura de rádio/TV digital, redes móveis (WiMAX, WLAN, "
+            "celulares) e compatibilidade eletromagnética"
+        ),
+    },
+    "LINC": {
+        "nome": "Laboratório de Inteligência Computacional e Pesquisa Operacional",
+        "foco": (
+            "modelos matemáticos, otimização, sistemas de suporte à "
+            "decisão, mineração de dados e business intelligence"
+        ),
+    },
+    "LPRAD": {
+        "nome": "Laboratório de Planejamento de Redes de Alto Desempenho",
+        "foco": (
+            "planejamento de redes cabeadas/sem fio, TV digital, "
+            "desenvolvimento de software, infraestrutura de Internet e "
+            "segurança da informação"
+        ),
+    },
+    "LEA": {
+        "nome": "Laboratório de Eletromagnetismo Aplicado",
+        "foco": "telecomunicações, optoeletrônica e eletromagnetismo aplicado",
+    },
+}
+
+_LABORATORIOS_PESQUISA_REGEX = re.compile(
+    r"\b(" + "|".join(LABORATORIOS_PESQUISA.keys()).lower() + r")\b"
+)
+
 FCT_HISTORICO = (
     "https://fct.ufpa.br/index.php/historico"
 )
@@ -491,6 +565,63 @@ def classify_question(
         ),
     ):
         return "atividades_complementares"
+
+
+    # ------------------------------------------------------------------
+    # 4.10. LABORATÓRIOS DE PESQUISA
+    #
+    # Encontrada continuando a varredura de portais UFPA/FCT (pedido do
+    # usuário: laboratórios). Cobre tanto "quais laboratórios de pesquisa
+    # a FCT tem?" (lista) quanto "o que é o GERCOM?" (sigla específica —
+    # regex com \b para não casar substring dentro de outra palavra).
+    # ------------------------------------------------------------------
+
+    if (
+        _has_any(
+            q,
+            (
+                "laboratorios de pesquisa",
+                "laboratorio de pesquisa",
+                "grupos de pesquisa da fct",
+                "grupo de pesquisa da fct",
+            ),
+        )
+        or _LABORATORIOS_PESQUISA_REGEX.search(q)
+    ):
+        return "laboratorios_pesquisa"
+
+
+    # ------------------------------------------------------------------
+    # 4.11. LABORATÓRIOS DE ENSINO (LABCOM I / II)
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "laboratorio de ensino",
+            "laboratorios de ensino",
+            "labcom",
+            "laboratorio de computacao i",
+            "laboratorio de computacao ii",
+        ),
+    ):
+        return "laboratorios_ensino"
+
+
+    # ------------------------------------------------------------------
+    # 4.12. PPGCC
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "ppgcc",
+            "mestrado em ciencia da computacao",
+            "pos graduacao em ciencia da computacao",
+            "pos-graduacao em ciencia da computacao",
+        ),
+    ):
+        return "ppgcc"
 
 
     # ------------------------------------------------------------------
@@ -1380,6 +1511,73 @@ def priority_answer(
             "linkado nela é a fonte definitiva.\n\n"
             f"Página oficial: {FCT_ATIVIDADES_COMPLEMENTARES}\n"
             f"Documentação geral da FCT (resoluções e formulários): {FCT_DOCUMENTACAO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # LABORATÓRIOS DE PESQUISA
+    # ------------------------------------------------------------------
+
+    if route == "laboratorios_pesquisa":
+        q_lab = _norm(question)
+        casado = _LABORATORIOS_PESQUISA_REGEX.search(q_lab)
+
+        if casado:
+            sigla = casado.group(1).upper()
+            info = LABORATORIOS_PESQUISA[sigla]
+
+            return (
+                f"**{sigla}** — {info['nome']}.\n\n"
+                f"Foco de pesquisa: {info['foco']}.\n\n"
+                f"Fonte oficial: {FCT_LABORATORIOS_PESQUISA}"
+            )
+
+        lista = "\n".join(
+            f"- **{sigla}** ({info['nome']}): {info['foco']}"
+            for sigla, info in LABORATORIOS_PESQUISA.items()
+        )
+
+        return (
+            "A FCT tem 7 laboratórios/grupos de pesquisa:\n\n"
+            f"{lista}\n\n"
+            f"Fonte oficial: {FCT_LABORATORIOS_PESQUISA}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # LABORATÓRIOS DE ENSINO (LABCOM I / II)
+    # ------------------------------------------------------------------
+
+    if route == "laboratorios_ensino":
+        return (
+            "A FCT mantém dois laboratórios de ensino para os cursos de "
+            "Engenharia da Computação, Engenharia de Telecomunicações e "
+            "Engenharia Elétrica:\n\n"
+            "- **Laboratório de Computação I** — uso geral, com agenda "
+            "online via Google Calendar.\n"
+            "- **Laboratório de Computação II** — mesma finalidade, mas "
+            "com ambiente Linux adicional (Matlab, Android Studio, entre "
+            "outros softwares não disponíveis no Windows do Labcom I).\n\n"
+            "Softwares disponíveis nos dois: Arduino, Blender, Codeblocks, "
+            "Java JDK, NetBeans, Quartus, PSpice, entre outros.\n\n"
+            f"Fonte oficial: {FCT_LABORATORIOS_ENSINO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # PPGCC
+    # ------------------------------------------------------------------
+
+    if route == "ppgcc":
+        return (
+            "O **PPGCC** (Programa de Pós-Graduação em Ciência da "
+            "Computação) da UFPA oferece curso de **mestrado**. Nasceu de "
+            "uma cooperação entre a Faculdade de Computação e a área de "
+            "concentração em Computação Aplicada da Engenharia Elétrica, "
+            "com o objetivo de ampliar a produção científica regional na "
+            "área.\n\n"
+            f"Site oficial: {PPGCC_HOME}\n"
+            f"Contato geral da FCT: {FCT_CONTATO}"
         )
 
 

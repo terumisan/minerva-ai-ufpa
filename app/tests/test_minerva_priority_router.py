@@ -203,3 +203,75 @@ def test_novas_rotas_nao_regridem_enrollment_nem_internship():
     # já cobertas por rotas anteriores.
     assert classify_question("Onde posso me matricular?") == "enrollment"
     assert classify_question("Quais são as regras de estágio?") == "internship"
+
+
+# ----------------------------------------------------------------------
+# Rotas encontradas continuando a varredura em domínios UFPA/FCT
+# (laboratórios de pesquisa/ensino, PPGCC)
+# ----------------------------------------------------------------------
+
+def test_classify_question_laboratorios_pesquisa_lista_geral():
+    assert classify_question("Quais laboratórios de pesquisa a FCT tem?") == "laboratorios_pesquisa"
+
+
+def test_classify_question_laboratorios_pesquisa_sigla_especifica():
+    # "O que é X?" também casa com a checagem de sigla básica (mesma
+    # nuance do teste de "direção do FCT" acima) — o classify_question
+    # público pode devolver "basic_acronym" para essas frases por design.
+    # O que importa é a resposta final: testamos _classify_question_base
+    # (usada internamente por priority_answer, ver bug fix acima) e uma
+    # frase sem esse padrão de sigla para o classify_question público.
+    from minerva_priority_router import _classify_question_base
+
+    for pergunta in ["O que é o GERCOM?", "Me fale sobre o LASSE", "O que é o LEA?"]:
+        assert _classify_question_base(pergunta) == "laboratorios_pesquisa", pergunta
+
+    assert classify_question("Fale sobre o GERCOM") == "laboratorios_pesquisa"
+
+
+def test_classify_question_laboratorios_pesquisa_nao_casa_substring_solta():
+    # "lea" e "lct" são siglas curtas — o regex usa \b para não disparar
+    # dentro de outra palavra (ex.: "linear", "aleatorio").
+    assert classify_question("Isso é um problema linear e aleatório") != "laboratorios_pesquisa"
+
+
+def test_classify_question_laboratorios_ensino():
+    for pergunta in ["Onde fica o Labcom?", "Que softwares tem no laboratório de ensino?"]:
+        assert classify_question(pergunta) == "laboratorios_ensino", pergunta
+
+
+def test_classify_question_ppgcc():
+    assert classify_question("Tem mestrado em ciência da computação?") == "ppgcc"
+
+
+def test_priority_answer_laboratorio_especifico_cita_foco_de_pesquisa():
+    # "Fale sobre" (em vez de "O que é") evita a checagem de sigla básica
+    # (classify_basic_question), que faria priority_answer tentar uma
+    # busca de rede ao vivo para "GERCOM" antes de desistir e cair na
+    # rota certa — mesmo resultado final, sem depender de rede no teste.
+    resposta = priority_answer("Fale sobre o GERCOM")
+    assert resposta is not None
+    assert "redes" in resposta.lower()
+    assert "laboratorios-de-pesquisa" in resposta
+
+
+def test_priority_answer_laboratorios_ensino_cita_labcom():
+    resposta = priority_answer("Onde fica o Labcom?")
+    assert resposta is not None
+    assert "Laboratório de Computação" in resposta
+
+
+def test_priority_answer_ppgcc_nao_afirma_doutorado_nao_confirmado():
+    # A página oficial só confirma mestrado — a resposta não pode afirmar
+    # doutorado, que não está confirmado na fonte.
+    resposta = priority_answer("Tem mestrado em ciência da computação?")
+    assert resposta is not None
+    assert "doutorado" not in resposta.lower()
+
+
+def test_novas_rotas_lab_nao_regridem_professores_nem_ppgee():
+    assert classify_question("Quem são os professores da FCT?") == "faculty"
+    # PPGEE já tem entrada dedicada em minerva_basic_facts.py — a rota
+    # nova de PPGCC não deve interferir na classificação de PPGEE.
+    from minerva_basic_facts import classify_basic_question
+    assert classify_basic_question("O que significa PPGEE?") == "basic_acronym"
