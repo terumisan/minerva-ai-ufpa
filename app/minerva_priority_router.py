@@ -383,6 +383,14 @@ def classify_question(
                 "como se faz a matricula",
                 "onde se matricula",
                 "onde e a matricula",
+                # Encontrada por medição de latência real: "Quando posso me
+                # matricular?" apareceu no histórico de conversas e não
+                # batia em nenhuma frase acima (só cobria onde/como).
+                "quando posso me matricular",
+                "quando e a matricula",
+                "quando comeca a matricula",
+                "quando abre a matricula",
+                "quando me matriculo",
             ),
         )
     ):
@@ -551,6 +559,13 @@ def classify_question(
                 "quando comecam as aulas",
                 "inicio das aulas",
                 "fim do semestre",
+                # Encontrada por medição de latência real: "quando começa
+                # e termina o período letivo" apareceu 2x no histórico de
+                # conversas e não batia em nenhuma frase acima.
+                "quando comeca e termina o periodo letivo",
+                "quando termina o periodo letivo",
+                "quando comeca o periodo letivo",
+                "inicio e fim do periodo letivo",
             ),
         )
     ):
@@ -1069,11 +1084,30 @@ def _menu_today() -> str:
 # RESPOSTAS
 # ======================================================================
 
+# Bug real (achado analisando por que "Quem é a atual direção do FCT?"
+# caía no RAG genérico apesar de a rota "leadership" abaixo cobrir
+# "direcao"): o bloco MINERVA_BASIC_FACTS no fim do arquivo REBINDA o nome
+# global "classify_question" para uma versão que checa siglas/fatos
+# básicos primeiro. Como priority_answer() abaixo chama "classify_question"
+# pelo nome (resolvido a cada chamada, não no momento da definição —
+# late binding), depois que o rebind acontece, toda chamada aqui também
+# passa pela checagem básica primeiro. Se essa checagem básica reivindica
+# a pergunta (ex.: extrai "FCT" como sigla) mas falha ao gerar resposta
+# (ex.: extração de sigla erra e pega outra palavra), a rota devolve uma
+# categoria ("basic_acronym") que este priority_answer não reconhece em
+# nenhum "if route ==" abaixo — a função cai até o fim e devolve None,
+# mesmo com uma rota específica (leadership, contact etc.) que bateria
+# perfeitamente. _classify_question_base é uma referência fixa à função
+# ORIGINAL definida acima, capturada aqui — antes do rebind acontecer —
+# para este fallback nunca ser sequestrado pela camada básica.
+_classify_question_base = classify_question
+
+
 def priority_answer(
     question: str,
 ) -> Optional[str]:
 
-    route = classify_question(
+    route = _classify_question_base(
         question
     )
 

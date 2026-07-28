@@ -92,3 +92,38 @@ def test_classify_question_matricula_especifica_nao_intercepta_dataset():
     # None aqui para a pergunta seguir até o dataset.
     pergunta = "O que acontece após a solicitação de matrícula?"
     assert classify_question(pergunta) is None
+
+
+def test_classify_question_base_direcao_fct_nao_e_sequestrada_por_rota_basica():
+    # Bug real (achado por medição de latência): "Quem é a atual direção
+    # do FCT?" contém "FCT". A camada de fatos básicos (classify_question
+    # rebindado no fim do arquivo — ver _minerva_router_before_basic_classify)
+    # reivindicava essa pergunta como "basic_acronym" antes do roteador
+    # original decidir algo, mas a extração de sigla falhava (extraía
+    # "ATUAL" em vez de "FCT") e devolvia None — sem nunca chegar à rota
+    # "leadership", que cobre "direcao" corretamente. Resultado: a
+    # pergunta caía direto no RAG genérico (2-5min) apesar de ter rota
+    # instantânea pronta. O fix usa _classify_question_base (referência à
+    # função original, capturada antes do rebind) dentro de
+    # priority_answer, em vez do nome global "classify_question" — sujeito
+    # a late binding e resolvido para a versão sequestrada a cada chamada.
+    #
+    # Testa _classify_question_base diretamente, não o classify_question
+    # público (que continua devolvendo "basic_acronym" por design — ver
+    # seu próprio docstring) nem priority_answer (cuja rota "leadership"
+    # faz scrape ao vivo da página da FCT quando de fato responde).
+    from minerva_priority_router import _classify_question_base
+
+    assert _classify_question_base("Quem é a atual direção fo FCT?") == "leadership"
+
+
+def test_classify_question_matricula_quando():
+    # Gap encontrado na mesma varredura: a rota de matrícula só cobria
+    # "onde/como", não "quando".
+    assert classify_question("Quando posso me matricular?") == "enrollment"
+
+
+def test_classify_question_calendario_periodo_letivo():
+    # Gap encontrado na mesma varredura: pergunta real do histórico de
+    # conversas (2 ocorrências) sem cobertura na rota de calendário.
+    assert classify_question("Quando começa e termina o período letivo?") == "calendar"
