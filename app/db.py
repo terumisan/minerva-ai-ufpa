@@ -156,6 +156,24 @@ def inicializar_banco() -> None:
         commit=True,
     )
 
+    # Respostas do formulário de avaliação (minerva_avaliacao.py). Colunas
+    # fixas só para o que se consulta direto (score SUS, curso); o restante
+    # do formulário vai íntegro no JSONB — adicionar pergunta nova ao
+    # formulário não exige migração.
+    executar_query(
+        """
+        CREATE TABLE IF NOT EXISTS avaliacoes_minerva (
+            id SERIAL PRIMARY KEY,
+            session_id TEXT,
+            data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            curso TEXT,
+            sus_score NUMERIC,
+            respostas JSONB
+        );
+        """,
+        commit=True,
+    )
+
 
 def salvar_no_historico(conversa_id: str, pergunta: str, resposta: str) -> None:
     """Salva pergunta e resposta na conversa indicada, dentro da sessão atual."""
@@ -244,5 +262,27 @@ def excluir_conversa(conversa_id: str) -> None:
         WHERE session_id = %s AND conversa_id = %s;
         """,
         params=(st.session_state.session_id, conversa_id),
+        commit=True,
+    )
+
+
+def salvar_avaliacao(session_id: str, registro: dict) -> None:
+    """Persiste uma resposta do formulário de avaliação (minerva_avaliacao.py)."""
+    try:
+        from minerva_avaliacao import registro_para_json
+    except ImportError:
+        from .minerva_avaliacao import registro_para_json
+
+    executar_query(
+        """
+        INSERT INTO avaliacoes_minerva (session_id, curso, sus_score, respostas)
+        VALUES (%s, %s, %s, %s);
+        """,
+        params=(
+            session_id,
+            registro.get("curso"),
+            registro.get("sus_score"),
+            registro_para_json(registro),
+        ),
         commit=True,
     )

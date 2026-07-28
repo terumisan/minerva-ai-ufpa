@@ -122,6 +122,7 @@ try:
         salvar_no_historico,
         carregar_historico_conversa,
         listar_conversas_dispositivo,
+        salvar_avaliacao,
     )
 except (ImportError, ValueError):
     from db import (
@@ -130,8 +131,16 @@ except (ImportError, ValueError):
         salvar_no_historico,
         carregar_historico_conversa,
         listar_conversas_dispositivo,
+        salvar_avaliacao,
     )
 # MINERVA_DB_IMPORT_END
+
+# MINERVA_AVALIACAO_IMPORT_BEGIN
+try:
+    from .minerva_avaliacao import render_formulario_avaliacao
+except (ImportError, ValueError):
+    from minerva_avaliacao import render_formulario_avaliacao
+# MINERVA_AVALIACAO_IMPORT_END
 
 
 # =============================================================================
@@ -298,6 +307,25 @@ with st.sidebar:
 
     st.markdown("---")
 
+    # Alterna entre o chat e o formulário de avaliação (minerva_avaliacao.py).
+    if st.session_state.get("modo_avaliacao"):
+        if st.button(
+            "← Voltar ao chat",
+            key="sidebar_v2_voltar_chat",
+            use_container_width=True,
+        ):
+            st.session_state.modo_avaliacao = False
+            st.rerun()
+    elif st.button(
+        "📝 Avaliar a Minerva",
+        key="sidebar_v2_avaliacao",
+        use_container_width=True,
+    ):
+        st.session_state.modo_avaliacao = True
+        st.rerun()
+
+    st.markdown("---")
+
     st.caption(
         "**M.I.N.E.R.V.A.** – Módulo Inteligente de Navegação e "
         "Ensino de Recursos Virtuais Acadêmicos. Assistente "
@@ -323,6 +351,20 @@ with _header_texto:
 
 st.divider()
 # FIM CABECALHO NATIVO MINERVA V4
+
+
+# =============================================================================
+# MODO AVALIAÇÃO
+# =============================================================================
+# No modo avaliação, o formulário substitui a área do chat inteira;
+# st.stop() impede que o restante do script (intro, histórico, chat_input,
+# processamento) seja renderizado — a sidebar acima continua visível.
+if st.session_state.get("modo_avaliacao"):
+    render_formulario_avaliacao(
+        salvar_func=salvar_avaliacao,
+        session_id=st.session_state.session_id,
+    )
+    st.stop()
 
 
 # =============================================================================

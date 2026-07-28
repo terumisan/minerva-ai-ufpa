@@ -79,7 +79,11 @@ def main() -> None:
     eval_dados = json.loads(EVAL_PATH.read_text(encoding="utf-8"))
     perguntas = eval_dados["perguntas"]
 
-    retrieval = [json.loads(l) for l in RETRIEVAL_PATH.read_text(encoding="utf-8").splitlines() if l.strip()]
+    retrieval = [
+        json.loads(linha)
+        for linha in RETRIEVAL_PATH.read_text(encoding="utf-8").splitlines()
+        if linha.strip()
+    ]
 
     # testar_retrieval.py itera perguntas na mesma ordem de eval_minerva_qa.json
     # e grava um resultado por pergunta (não por chunk) — um dict chaveado só
@@ -90,7 +94,8 @@ def main() -> None:
         return
 
     candidatos = []
-    for item, r in zip(perguntas, retrieval):
+    # strict=True: o if acima já garante tamanhos iguais; falhar alto se mudar.
+    for item, r in zip(perguntas, retrieval, strict=True):
         if r["encontrado"]:
             continue
 
