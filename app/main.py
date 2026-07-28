@@ -441,9 +441,14 @@ if pergunta_digitada and pergunta_digitada.strip():
 # =============================================================================
 # PROCESSAMENTO DA PERGUNTA
 # =============================================================================
-def processar_pergunta(pergunta):
+def processar_pergunta(pergunta, stream_area=None):
     """
     Processa perguntas da Minerva usando camada institucional FCT/UFPA.
+
+    stream_area (st.empty() opcional): quando presente, a resposta do RAG
+    genérico é exibida token a token ali enquanto o modelo gera (streaming
+    SSE — ver consultar_modelo_local). As rotas fixas continuam respondendo
+    de uma vez, já que são instantâneas.
 
     Passo a passo (a primeira camada que responder encerra o fluxo):
 
@@ -497,7 +502,15 @@ def processar_pergunta(pergunta):
         conn = None
 
     def llm_func(prompt):
-        return consultar_modelo_local(prompt)
+        if stream_area is None:
+            return consultar_modelo_local(prompt)
+
+        # O callback recebe o texto acumulado pronto pra exibir; o "▌" no
+        # fim imita o cursor de digitação enquanto a geração não termina.
+        return consultar_modelo_local(
+            prompt,
+            on_chunk=lambda texto: stream_area.markdown(texto + " ▌"),
+        )
 
     # try/finally: sem ele, uma exceção em responder_minerva vazava a
     # conexão (nunca voltava ao pool) — com DB_POOL_MAX=10, dez erros
@@ -520,8 +533,19 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
     ultima_pergunta = mensagem_content(st.session_state.messages[-1])
 
     with st.chat_message("assistant", avatar="🏫"):
+        # Área onde a resposta aparece token a token durante a geração
+        # (preenchida pelo on_chunk em llm_func). O spinner cobre a fase
+        # muda (busca no banco + leitura do prompt pelo modelo); assim que
+        # o primeiro token chega, o texto começa a crescer abaixo dele.
+        stream_area = st.empty()
+
         with st.spinner("Consultando fontes oficiais da FCT/UFPA..."):
-            nova_msg = processar_pergunta(ultima_pergunta)
+            nova_msg = processar_pergunta(ultima_pergunta, stream_area=stream_area)
+
+        # O st.rerun() abaixo redesenha tudo via render_chat_history();
+        # limpar aqui evita a resposta duplicada (parcial + final) no
+        # instante entre o fim da geração e o rerun.
+        stream_area.empty()
 
     salvar_no_historico(st.session_state.conversa_id, ultima_pergunta, mensagem_content(nova_msg))
 

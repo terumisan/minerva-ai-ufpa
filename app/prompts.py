@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 
 import requests
@@ -122,6 +123,53 @@ def pergunta_menciona_instituicao_externa(pergunta: str) -> bool:
     return any(nome in texto for nome in instituicoes_externas)
 
 
+_ASSOCIACOES_INVALIDAS = (
+    "universidade federal de pernambuco",
+    "universidade federal da paraíba",
+    "universidade federal da paraiba",
+    "universidade de pernambuco",
+    "faculdade de ciências técnicas",
+    "faculdade de ciencias tecnicas",
+    # Mesmo caso de confusão FCT/Portugal (Universidade Nova de Lisboa)
+    # documentado em minerva_hybrid.py e em
+    # pergunta_menciona_instituicao_externa() acima.
+    "faculdade de ciências e tecnologia",
+    "faculdade de ciencias e tecnologia",
+    "universidade nova de lisboa",
+)
+
+
+def resposta_viola_escopo(texto: str) -> str | None:
+    """Classifica violação de escopo institucional numa resposta gerada.
+
+    Devolve "associacao" (instituição homônima/externa), "sigla" (UFxx
+    diferente de UFPA) ou None. É o núcleo da barreira pós-geração,
+    separado de validar_resposta_institucional() para poder rodar também
+    DURANTE o streaming, sobre o texto parcial acumulado.
+    """
+    baixo = texto.casefold()
+
+    # Mesma lógica de pergunta_menciona_instituicao_externa(): "FCT" sozinha
+    # é a sigla da própria FCT/UFPA, mas "FCT" associada a Portugal/Lisboa
+    # indica que o modelo confundiu com a FCT da Universidade Nova de
+    # Lisboa sem necessariamente repetir o nome completo da instituição.
+    fct_portugal = "fct" in baixo and (
+        any(termo in baixo for termo in ("portugal", "português", "portugues", "lisboa"))
+        or re.search(r"\bunl\b", baixo)
+    )
+
+    if fct_portugal or any(termo in baixo for termo in _ASSOCIACOES_INVALIDAS):
+        return "associacao"
+
+    # Bloqueia siglas UFxx externas produzidas pelo modelo.
+    siglas = re.findall(r"\buf[a-z]{1,4}\b", baixo)
+
+    if any(sigla != "ufpa" for sigla in siglas):
+        return "sigla"
+
+    return None
+
+
 def validar_resposta_institucional(resposta: str) -> str:
     """
     Barreira pós-geração.
@@ -135,33 +183,9 @@ def validar_resposta_institucional(resposta: str) -> str:
             "da FCT/UFPA para responder com segurança."
         )
 
-    texto = resposta.casefold()
+    violacao = resposta_viola_escopo(resposta)
 
-    associacoes_invalidas = (
-        "universidade federal de pernambuco",
-        "universidade federal da paraíba",
-        "universidade federal da paraiba",
-        "universidade de pernambuco",
-        "faculdade de ciências técnicas",
-        "faculdade de ciencias tecnicas",
-        # Mesmo caso de confusão FCT/Portugal (Universidade Nova de Lisboa)
-        # documentado em minerva_hybrid.py e em
-        # pergunta_menciona_instituicao_externa() acima.
-        "faculdade de ciências e tecnologia",
-        "faculdade de ciencias e tecnologia",
-        "universidade nova de lisboa",
-    )
-
-    # Mesma lógica de pergunta_menciona_instituicao_externa(): "FCT" sozinha
-    # é a sigla da própria FCT/UFPA, mas "FCT" associada a Portugal/Lisboa
-    # indica que o modelo confundiu com a FCT da Universidade Nova de
-    # Lisboa sem necessariamente repetir o nome completo da instituição.
-    fct_portugal = "fct" in texto and (
-        any(termo in texto for termo in ("portugal", "português", "portugues", "lisboa"))
-        or re.search(r"\bunl\b", texto)
-    )
-
-    if fct_portugal or any(termo in texto for termo in associacoes_invalidas):
+    if violacao == "associacao":
         logger.warning(
             "Resposta bloqueada por associação institucional incompatível: %s",
             resposta,
@@ -174,10 +198,7 @@ def validar_resposta_institucional(resposta: str) -> str:
             "- **UFPA:** Universidade Federal do Pará"
         )
 
-    # Bloqueia siglas UFxx externas produzidas pelo modelo.
-    siglas = re.findall(r"\buf[a-z]{1,4}\b", texto)
-
-    if any(sigla != "ufpa" for sigla in siglas):
+    if violacao == "sigla":
         logger.warning(
             "Resposta bloqueada por sigla institucional externa: %s",
             resposta,
@@ -202,9 +223,53 @@ def get_http_session() -> requests.Session:
 http_session = get_http_session()
 
 
-def consultar_modelo_local(pergunta: str) -> str:
+def _extrair_delta_sse(linha: str) -> str | None:
+    """Extrai o pedaço de texto de uma linha SSE do llama.cpp.
+
+    Com stream=True o servidor emite linhas "data: {json}" (uma por token)
+    e encerra com "data: [DONE]". Devolve o conteúdo do delta (pode ser
+    string vazia) ou None para linhas sem conteúdo útil — linhas em
+    branco, [DONE], JSON malformado ou deltas sem campo "content" (o
+    primeiro chunk, por exemplo, costuma trazer só {"role": "assistant"}).
+    """
+    if not linha or not linha.startswith("data: "):
+        return None
+
+    corpo = linha[len("data: "):]
+
+    if corpo.strip() == "[DONE]":
+        return None
+
+    try:
+        obj = json.loads(corpo)
+        return obj.get("choices", [{}])[0].get("delta", {}).get("content") or ""
+    except Exception:
+        return None
+
+
+def _texto_sem_palavra_incompleta(texto: str) -> str:
+    """Remove a última palavra (possivelmente cortada) do texto parcial.
+
+    Durante o streaming, um chunk pode terminar no meio de uma palavra:
+    "...consulte a UFP" viraria falso positivo na checagem de sigla
+    externa ("ufp" casa \\bUFxx\\b mas é só a UFPA pela metade). Checar
+    apenas até a última fronteira de palavra elimina o falso positivo;
+    a palavra completa é checada no chunk seguinte e na validação final.
+    """
+    return re.sub(r"\S+$", "", texto)
+
+
+def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
     """
     Consulta a API local compatível com /v1/chat/completions.
+
+    Com on_chunk=None (padrão), comportamento clássico: espera a resposta
+    inteira. Com on_chunk, ativa streaming SSE: o callback recebe o texto
+    ACUMULADO a cada pedaço (pronto pra exibir), e a barreira de escopo
+    roda incrementalmente — se o modelo começar a associar a Minerva a
+    outra instituição, o streaming é interrompido na hora, sem esperar a
+    resposta terminar. Em ambos os modos a resposta final passa por
+    validar_resposta_institucional().
 
     A resposta é submetida a duas barreiras:
     1. prompt institucional rígido;
@@ -253,6 +318,9 @@ def consultar_modelo_local(pergunta: str) -> str:
         "cache_prompt": True,
     }
 
+    if on_chunk is not None:
+        payload["stream"] = True
+
     try:
         response = http_session.post(
             LLM_API_URL,
@@ -262,8 +330,10 @@ def consultar_modelo_local(pergunta: str) -> str:
             # Q4_K_M: ~14 tok/s lendo o prompt e ~2,5 tok/s gerando —
             # uma resposta RAG completa leva de 2 a 5 minutos. 420s cobre
             # o pior caso com folga; abaixo disso o request estourava
-            # antes de o modelo terminar.
+            # antes de o modelo terminar. No streaming, o timeout vale para
+            # cada intervalo sem dados chegando, não para o tempo total.
             timeout=420,
+            stream=on_chunk is not None,
         )
 
         if response.status_code != 200:
@@ -277,16 +347,49 @@ def consultar_modelo_local(pergunta: str) -> str:
                 "disponível da FCT/UFPA para responder com segurança."
             )
 
-        data = response.json()
+        if on_chunk is None:
+            data = response.json()
 
-        resposta = (
-            data.get("choices", [{}])[0]
-            .get("message", {})
-            .get("content", "")
-            .strip()
-        )
+            resposta = (
+                data.get("choices", [{}])[0]
+                .get("message", {})
+                .get("content", "")
+                .strip()
+            )
 
-        return validar_resposta_institucional(resposta)
+            return validar_resposta_institucional(resposta)
+
+        # --- Modo streaming ---
+        # O llama.cpp responde "Content-Type: text/event-stream" SEM
+        # charset; nesse caso o requests assume Latin-1 (herança do HTTP/1.1)
+        # e decode_unicode corrompia todo acento ("Computação" virava
+        # "ComputaÃ§Ã£o"). Forçar UTF-8 antes de iterar corrige a decodificação.
+        response.encoding = "utf-8"
+
+        partes: list[str] = []
+
+        for linha in response.iter_lines(decode_unicode=True):
+            delta = _extrair_delta_sse(linha)
+
+            if delta is None:
+                continue
+
+            partes.append(delta)
+            texto = "".join(partes)
+
+            # Barreira incremental: interrompe a geração no instante em que
+            # uma associação proibida se completa no texto parcial, em vez
+            # de deixá-la visível até a validação final. A checagem ignora
+            # a última palavra (pode estar cortada no meio — ver
+            # _texto_sem_palavra_incompleta); a versão completa do texto
+            # ainda passa pela validação final abaixo.
+            if resposta_viola_escopo(_texto_sem_palavra_incompleta(texto)):
+                response.close()
+                return validar_resposta_institucional(texto)
+
+            on_chunk(texto)
+
+        return validar_resposta_institucional("".join(partes).strip())
 
     except Exception as exc:
         logger.exception(
