@@ -1,4 +1,10 @@
-from minerva_priority_router import _norm, _official_ufpa_url, _tokens, classify_question
+from minerva_priority_router import (
+    _norm,
+    _official_ufpa_url,
+    _tokens,
+    classify_question,
+    priority_answer,
+)
 
 
 def test_official_ufpa_url_dominio_raiz():
@@ -127,3 +133,73 @@ def test_classify_question_calendario_periodo_letivo():
     # Gap encontrado na mesma varredura: pergunta real do histórico de
     # conversas (2 ocorrências) sem cobertura na rota de calendário.
     assert classify_question("Quando começa e termina o período letivo?") == "calendar"
+
+
+# ----------------------------------------------------------------------
+# Rotas encontradas varrendo os portais FCT/UFPA em busca de lacunas
+# (trancamento, aproveitamento, guia do calouro, atividades complementares)
+# ----------------------------------------------------------------------
+
+def test_classify_question_trancamento_variacoes():
+    variacoes = [
+        "Como eu posso trancar o curso?",
+        "Quero trancar minha matrícula",
+        "Como faço para trancar?",
+    ]
+    for pergunta in variacoes:
+        assert classify_question(pergunta) == "matricula_trancamento", pergunta
+
+
+def test_classify_question_aproveitamento_variacoes():
+    variacoes = [
+        "Como solicitar aproveitamento de disciplinas?",
+        "Quero saber sobre equivalência de disciplinas",
+        "Existe dispensa de disciplina na FCT?",
+    ]
+    for pergunta in variacoes:
+        assert classify_question(pergunta) == "aproveitamento_estudos", pergunta
+
+
+def test_classify_question_guia_calouro_variacoes():
+    variacoes = [
+        "Sou calouro, o que preciso saber?",
+        "Tem algum guia para os calouros?",
+        "Acabei de entrar na FCT",
+    ]
+    for pergunta in variacoes:
+        assert classify_question(pergunta) == "guia_calouro", pergunta
+
+
+def test_classify_question_atividades_complementares():
+    assert (
+        classify_question("Como faço para integralizar atividades complementares?")
+        == "atividades_complementares"
+    )
+
+
+def test_priority_answer_trancamento_cita_regulamento_e_prazo():
+    resposta = priority_answer("Como eu posso trancar o curso?")
+    assert resposta is not None
+    assert "2 períodos letivos consecutivos" in resposta
+    assert "PROEG" in resposta or "regulamento-da-graduacao" in resposta.lower()
+
+
+def test_priority_answer_aproveitamento_cita_regulamento():
+    resposta = priority_answer("como solicitar aproveitamento de disciplinas?")
+    assert resposta is not None
+    assert "AE" in resposta
+
+
+def test_priority_answer_guia_calouro_cita_fonte():
+    resposta = priority_answer("Sou calouro, o que preciso saber?")
+    assert resposta is not None
+    assert "caecomp" in resposta.lower()
+
+
+def test_novas_rotas_nao_regridem_enrollment_nem_internship():
+    # As novas rotas (trancamento, aproveitamento, calouro, atividades
+    # complementares) foram inseridas depois de "enrollment" na ordem do
+    # classify_question — garantindo que não capturam por engano perguntas
+    # já cobertas por rotas anteriores.
+    assert classify_question("Onde posso me matricular?") == "enrollment"
+    assert classify_question("Quais são as regras de estágio?") == "internship"

@@ -70,6 +70,17 @@ FCT_ESTAGIO = (
     "https://fct.ufpa.br/index.php/estagio"
 )
 
+# Guia do Mochileiro de EngComp: material feito pelo Centro Acadêmico
+# (CAECOMP) para calouros, linkado pela página oficial da FCT abaixo.
+FCT_GUIA_CALOURO = (
+    "https://fct.ufpa.br/index.php/guia-para-os-calouros-da-fct"
+)
+GUIA_MOCHILEIRO_CAECOMP = "https://caecomp-ufpa.github.io/guia-fct/"
+
+FCT_ATIVIDADES_COMPLEMENTARES = (
+    "https://fct.ufpa.br/index.php/atividades-complementares"
+)
+
 FCT_HISTORICO = (
     "https://fct.ufpa.br/index.php/historico"
 )
@@ -395,6 +406,91 @@ def classify_question(
         )
     ):
         return "enrollment"
+
+
+    # ------------------------------------------------------------------
+    # 4.6. TRANCAMENTO DE MATRÍCULA
+    #
+    # Encontrada varrendo os portais UFPA/FCT em busca de lacunas (mesma
+    # técnica da rota "enrollment"): tema institucional estável, com regra
+    # exata no Regulamento de Graduação (Art. 24), sem nenhuma rota fixa
+    # até então — caía sempre no RAG genérico.
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "trancar matricula",
+            "trancar a matricula",
+            "trancar o curso",
+            "trancar meu curso",
+            "trancamento de matricula",
+            "trancamento da matricula",
+            "como faco para trancar",
+            "quero trancar",
+            "posso trancar",
+        ),
+    ):
+        return "matricula_trancamento"
+
+
+    # ------------------------------------------------------------------
+    # 4.7. APROVEITAMENTO DE ESTUDOS
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "aproveitamento de estudos",
+            "aproveitamento de disciplina",
+            "aproveitamento de disciplinas",
+            "equivalencia de disciplina",
+            "equivalencia de disciplinas",
+            "dispensa de disciplina",
+            "dispensa de disciplinas",
+            "como solicitar aproveitamento",
+        ),
+    ):
+        return "aproveitamento_estudos"
+
+
+    # ------------------------------------------------------------------
+    # 4.8. GUIA DO CALOURO
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "guia do calouro",
+            "guia para calouros",
+            "guia para os calouros",
+            "guia do mochileiro",
+            "sou calouro",
+            "sou novato",
+            "acabei de entrar na fct",
+            "acabei de entrar na ufpa",
+            "primeiro semestre o que preciso saber",
+            "dicas para calouro",
+            "dicas para calouros",
+        ),
+    ):
+        return "guia_calouro"
+
+
+    # ------------------------------------------------------------------
+    # 4.9. ATIVIDADES COMPLEMENTARES
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "atividades complementares",
+            "atividade complementar",
+            "integralizar atividades complementares",
+            "carga horaria de atividades complementares",
+        ),
+    ):
+        return "atividades_complementares"
 
 
     # ------------------------------------------------------------------
@@ -1203,6 +1299,87 @@ def priority_answer(
             f"Fonte oficial (prazos): {PROEG_CALENDARIO} "
             "| Fonte institucional (passo a passo no sistema): "
             "Manual SIGAA - UFPA (Discentes), documento da base da FCT/UFPA."
+        )
+
+
+    # ------------------------------------------------------------------
+    # TRANCAMENTO DE MATRÍCULA
+    # ------------------------------------------------------------------
+
+    if route == "matricula_trancamento":
+        return (
+            "O trancamento de matrícula é tratado no **Art. 24 do "
+            "Regulamento de Graduação da UFPA**. Pontos principais:\n\n"
+            "- Você requer o trancamento à Faculdade/Escola, informando o "
+            "período letivo e a justificativa do afastamento.\n"
+            "- O pedido é apreciado pela Direção da Faculdade e, se "
+            "deferido, autorizado junto ao CIAC (Centro de Registro e "
+            "Indicadores Acadêmicos).\n"
+            "- O período **cumulativo** de trancamento não pode "
+            "ultrapassar **2 períodos letivos consecutivos ou 4 "
+            "alternados**.\n"
+            "- Esse período conta no prazo de integralização do curso "
+            "(não é tempo \"de graça\" fora do prazo do curso).\n"
+            "- Casos previstos em lei são exceção às regras acima.\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # APROVEITAMENTO DE ESTUDOS
+    # ------------------------------------------------------------------
+
+    if route == "aproveitamento_estudos":
+        return (
+            "O aproveitamento de estudos é tratado nos **Art. 36 e 37 do "
+            "Regulamento de Graduação da UFPA**. Pontos principais:\n\n"
+            "- A solicitação é analisada pelo Conselho da Faculdade/Escola, "
+            "considerando habilidades, competências, conteúdo e carga "
+            "horária da atividade pleiteada.\n"
+            "- Só são validadas atividades cursadas em instituições "
+            "reconhecidas ou autorizadas pelo órgão competente.\n"
+            "- É registrado no histórico com a sigla **AE** e **não entra** "
+            "no cálculo do coeficiente de rendimento.\n"
+            "- Aproveitamento **direto**: quando carga horária e conteúdo "
+            "são idênticos, equivalentes ou superiores aos da disciplina "
+            "pleiteada.\n"
+            "- Aproveitamento **com complementação**: quando o conteúdo "
+            "cursado é inferior ao pleiteado em até 30% — a Subunidade "
+            "pode exigir avaliação especial ou estudos complementares do "
+            "que faltou.\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # GUIA DO CALOURO
+    # ------------------------------------------------------------------
+
+    if route == "guia_calouro":
+        return (
+            "Para quem está começando na FCT, o Centro Acadêmico de "
+            "Engenharia da Computação (CAECOMP) mantém o **Guia do "
+            "Mochileiro de EngComp** — material feito por alunos para "
+            "alunos, cobrindo direitos do aluno, locais importantes do "
+            "campus, como se formar e oportunidades acadêmicas.\n\n"
+            f"Acesse o guia completo: {GUIA_MOCHILEIRO_CAECOMP}\n"
+            f"Página oficial da FCT que indica o guia: {FCT_GUIA_CALOURO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # ATIVIDADES COMPLEMENTARES
+    # ------------------------------------------------------------------
+
+    if route == "atividades_complementares":
+        return (
+            "Atividades complementares têm resolução própria (Resolução "
+            "FCT 01/2013) e um passo a passo de integralização "
+            "disponibilizado pela FCT. A página oficial não detalha carga "
+            "horária/prazos diretamente — o documento de passo a passo "
+            "linkado nela é a fonte definitiva.\n\n"
+            f"Página oficial: {FCT_ATIVIDADES_COMPLEMENTARES}\n"
+            f"Documentação geral da FCT (resoluções e formulários): {FCT_DOCUMENTACAO}"
         )
 
 
