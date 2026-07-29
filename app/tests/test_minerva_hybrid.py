@@ -1,4 +1,5 @@
 from minerva_hybrid import (
+    _chunk_bate_multiplos_termos,
     _expandir_termo,
     _fusao_rrf,
     _grupo_tsquery,
@@ -114,3 +115,34 @@ def test_fusao_rrf_prioriza_item_bem_ranqueado_nas_duas_listas():
 
 def test_fusao_rrf_listas_vazias():
     assert _fusao_rrf([], [], limite=5) == []
+
+
+# ----------------------------------------------------------------------
+# Filtro de relevância do fallback OU da busca léxica
+# ----------------------------------------------------------------------
+
+def test_chunk_bate_multiplos_termos_exige_dois_termos_no_fallback_or():
+    # Bug real: "Quem foi Dom Pedro I do Brasil?" (termos relevantes:
+    # foi, dom, pedro, brasil) casava com QUALQUER chunk institucional
+    # que só contivesse "Brasil" em algum lugar — palavra genérica demais
+    # para ser sinal de relevância sozinha.
+    termos = ["foi", "dom", "pedro", "brasil"]
+    trecho_so_brasil = "Universidade Federal do Pará, Brasil, campus Belém."
+    assert not _chunk_bate_multiplos_termos(trecho_so_brasil, termos)
+
+    trecho_dois_termos = "Dom Pedro foi imperador do Brasil em 1822."
+    assert _chunk_bate_multiplos_termos(trecho_dois_termos, termos)
+
+
+def test_chunk_bate_multiplos_termos_um_termo_so_sempre_passa():
+    # Pergunta com um único termo relevante ("trancamento?") não tem como
+    # exigir 2 — a checagem vira permissiva de propósito nesse caso.
+    assert _chunk_bate_multiplos_termos("texto sobre trancamento de matricula", ["trancamento"])
+
+
+def test_chunk_bate_multiplos_termos_usa_sinonimos():
+    # "cancelar" é sinônimo de "trancar" (SINONIMOS_INSTITUCIONAIS) — o
+    # trecho não precisa repetir a palavra exata da pergunta.
+    termos = ["cancelar", "matricula"]
+    trecho = "O discente pode requerer o trancamento de sua matrícula."
+    assert _chunk_bate_multiplos_termos(trecho, termos)

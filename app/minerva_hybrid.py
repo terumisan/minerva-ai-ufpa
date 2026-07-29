@@ -186,6 +186,41 @@ def _get_embedding_model():
     return _embedding_model
 
 
+def _chunk_bate_multiplos_termos(trecho: str, termos: list[str]) -> bool:
+    """Exige pelo menos 2 termos distintos da pergunta (ou 1, se a
+    pergunta só tinha 1 termo relevante) presentes no trecho.
+
+    Bug real: o fallback OU do tsquery abaixo (necessário para achar
+    "cancelar matrícula" quando só "trancamento" bate) também deixava
+    passar chunks que só compartilham UMA palavra genérica com a
+    pergunta — ex.: "Quem foi Dom Pedro I do Brasil?" casava qualquer
+    chunk institucional só por conter "Brasil" em algum lugar, mesmo
+    sendo um trecho sobre calendário acadêmico sem nenhuma relação com a
+    pergunta. Essa checagem roda em Python (não dá pra expressar
+    "N de M termos" direto num único operador tsquery) sobre os
+    candidatos já trazidos pelo Postgres, sem round-trip extra.
+    """
+    if len(termos) <= 1:
+        return True
+
+    baixo = _sem_acento(trecho.lower())
+    grupos_no_trecho = sum(
+        1
+        for termo in termos
+        if any(
+            # \b nos dois lados: sem o \b final, "dom" batia como PREFIXO
+            # de "domicílio"/"domingo" (bug real, achado testando com
+            # "Quem foi Dom Pedro I do Brasil?" — "dom" contava como
+            # termo presente num trecho sobre mobilidade entre campi só
+            # por causa de "domicílio").
+            re.search(rf"\b{re.escape(variante)}\b", baixo)
+            for variante in _expandir_termo(termo)
+        )
+    )
+
+    return grupos_no_trecho >= 2
+
+
 def _buscar_lexico(conn, pergunta, limite=10):
     termos = _termos_relevantes(pergunta)
 
@@ -215,7 +250,11 @@ def _buscar_lexico(conn, pergunta, limite=10):
     tsquery_and = " & ".join(tsquery_grupos)
     tsquery_or = " | ".join(tsquery_grupos)
 
-    for tsquery_texto in (tsquery_and, tsquery_or) if tsquery_and != tsquery_or else (tsquery_and,):
+    for eh_fallback_or, tsquery_texto in (
+        [(False, tsquery_and), (True, tsquery_or)]
+        if tsquery_and != tsquery_or
+        else [(False, tsquery_and)]
+    ):
         try:
             cur = conn.cursor()
             cur.execute(sql, (tsquery_texto, tsquery_texto, limite))
@@ -229,13 +268,43 @@ def _buscar_lexico(conn, pergunta, limite=10):
             rows = []
 
         if rows:
-            return [
+            candidatos = [
                 {"id": r[0], "titulo": r[1], "trecho": r[2]}
                 for r in rows
                 if r and len(r) >= 3 and r[2]
             ]
 
+            # No fallback OU (mais permissivo — casa se QUALQUER termo
+            # bater), exige que pelo menos 2 termos distintos apareçam de
+            # verdade no trecho, não só o mais genérico dos dois. A busca
+            # com E já é seletiva o bastante para não precisar disso.
+            if eh_fallback_or:
+                candidatos = [
+                    c for c in candidatos
+                    if _chunk_bate_multiplos_termos(c["trecho"], termos)
+                ]
+
+            if candidatos:
+                return candidatos
+
     return []
+
+
+# Distância de cosseno (pgvector "<=>": 0 = idêntico, mais alto = mais
+# distante) acima da qual um chunk é tratado como "não relevante" em vez
+# de contexto para o LLM. Calibrado com perguntas reais do histórico da
+# Minerva (embedding paraphrase-multilingual-mpnet-base-v2, query_embed):
+# perguntas institucionais genuínas ficaram todas em 0.28-0.43
+# ("Como funciona o estágio supervisionado?", "Quais as regras de
+# trancamento de matrícula?"...); perguntas fora de escopo ficaram todas
+# acima de 0.55 ("Quem foi Dom Pedro I do Brasil?", "Qual o time de
+# futebol mais forte do Pará?"...). Sem esse corte, a busca semântica
+# (ORDER BY ... LIMIT N, sem WHERE) sempre devolve os N chunks mais
+# próximos não importa quão distantes estejam de verdade — perguntas sem
+# nenhuma relação com a FCT/UFPA acabavam gerando contexto (mesmo que
+# ruim) e sendo mandadas ao LLM local, queimando os 2-5min de geração à
+# toa numa pergunta que devia cair direto no fallback "não localizei".
+SEMANTIC_DISTANCE_MAX = 0.50
 
 
 def _buscar_semantico(conn, pergunta, limite=10):
@@ -254,10 +323,11 @@ def _buscar_semantico(conn, pergunta, limite=10):
         SELECT
             id,
             nome_arquivo AS titulo,
-            LEFT(conteudo, 2500) AS trecho
+            LEFT(conteudo, 2500) AS trecho,
+            embedding <=> %s::vector AS distancia
         FROM documentos_ufpa
         WHERE embedding IS NOT NULL
-        ORDER BY embedding <=> %s::vector
+        ORDER BY distancia
         LIMIT %s
     """
 
@@ -276,7 +346,7 @@ def _buscar_semantico(conn, pergunta, limite=10):
     return [
         {"id": r[0], "titulo": r[1], "trecho": r[2]}
         for r in rows
-        if r and len(r) >= 3 and r[2]
+        if r and len(r) >= 3 and r[2] and r[3] <= SEMANTIC_DISTANCE_MAX
     ]
 
 
