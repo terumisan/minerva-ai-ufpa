@@ -14,6 +14,22 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - pgdata_rag:/var/lib/postgresql/data
+    # Base pequena (dezenas de MB hoje) — 1g é folga generosa, não um
+    # limite apertado. Sem isso, um pico de query (ex.: ORDER BY embedding
+    # <=> vetor sem índice ainda) não tem teto e compete por RAM do host
+    # sem controle.
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-ufpa_rag}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   ufpa_rag_ui:
     build: ./app
@@ -35,6 +51,29 @@ services:
     depends_on:
       - ufpa_rag_db
       - ufpa_rag_llm
+    # Streamlit + modelo de embedding (mpnet, carregado em memória no
+    # processo) observados em ~1.4GB de uso real — 2g dá folga sem deixar
+    # em aberto.
+    mem_limit: 2g
+    # Imagem base (python:3.10-slim) não tem curl — usa urllib da stdlib
+    # em vez de adicionar uma dependência só pro healthcheck.
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Modelo local gratuito, isolado do chat_llm de outro projeto. Só a
   # Minerva usa este container, na porta 8002.
@@ -91,6 +130,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    # Uso real observado ~3.5GB (modelo de 4.4GB travado em RAM via
+    # --mlock acima). 6g dá margem sobre o normal, mas ainda contém o
+    # vazamento de memória conhecido (ver restart diário via systemd
+    # timer, memória do projeto) — sem teto, o vazamento podia crescer
+    # até o host inteiro ficar sem RAM disponível.
+    #
+    # IMPORTANTE: --mlock trava páginas na RAM (não podem ser trocadas
+    # para swap sob pressão) — um mem_limit MENOR que o footprint real do
+    # modelo faria o container ser OOM-killed no próprio carregamento.
+    # Se trocar de modelo (ver histórico acima), ajuste este limite
+    # proporcionalmente ao tamanho do novo .gguf.
+    mem_limit: 6g
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   pgdata_rag:

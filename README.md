@@ -14,11 +14,12 @@ Assistente virtual acadêmica da **Faculdade de Computação e Telecomunicaçõe
 - [Stack técnica](#stack-técnica)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Como rodar](#como-rodar)
-- [Exposição pública (Cloudflare Tunnel)](#exposição-pública-cloudflare-tunnel)
+- [Exposição pública (ngrok, domínio fixo)](#exposição-pública-ngrok-domínio-fixo)
 - [Configuração](#configuração)
 - [Ingestão de documentos](#ingestão-de-documentos)
 - [Desenvolvimento](#desenvolvimento)
 - [Segurança](#segurança)
+- [Operação e infraestrutura](#operação-e-infraestrutura)
 - [Limitações conhecidas](#limitações-conhecidas)
 
 ---
@@ -247,6 +248,21 @@ Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de c
 - Postgres não é exposto além de `127.0.0.1`.
 - *Web scraping* dinâmico (`minerva_priority_router.py`, `minerva_basic_facts.py`) só aceita domínios `*.ufpa.br` (allowlist), inclusive checando o domínio final após redirecionamento.
 - Toda resposta passa por uma barreira pós-geração que bloqueia associação com instituições externas, mesmo que o modelo tente gerar isso.
+
+## Operação e infraestrutura
+
+- **Backup diário do Postgres**: `scripts/backup_postgres.sh` (`pg_dump` gzipado, rotação de 14 dias) roda via timer systemd de usuário (`ufpa_rag_backup_postgres.timer`, 03h30, antes do restart do LLM às 4h). Os dumps ficam em `~/ufpa_rag_backups/`, **fora do repositório git** — contêm dado real de aluno (perguntas do chat, respostas abertas do formulário de avaliação) e nunca devem ser versionados. Rodar manualmente: `./scripts/backup_postgres.sh`. Restaurar: `gunzip -c ~/ufpa_rag_backups/ufpa_rag_AAAAMMDD_HHMMSS.sql.gz | docker exec -i ufpa_rag_db psql -U admin ufpa_rag`.
+- **Limites de memória** (`mem_limit` no `docker-compose.yml`): `ufpa_rag_llm` 6g, `ufpa_rag_ui` 2g, `ufpa_rag_db` 1g — calibrados com uso real observado, contendo o vazamento de memória conhecido do LLM (ver Limitações abaixo) num teto por container em vez de deixar em aberto. Ao trocar de modelo `.gguf`, ajuste o limite do `ufpa_rag_llm` proporcionalmente ao tamanho do arquivo (o `--mlock` do llama.cpp trava páginas na RAM — um limite menor que o footprint real do modelo o mata no próprio carregamento).
+- **Healthcheck nos 3 containers**: `ufpa_rag_db` (`pg_isready`), `ufpa_rag_ui` (`urllib` contra `/_stcore/health` — a imagem `python:3.10-slim` não tem `curl`) e `ufpa_rag_llm` (`curl` contra `/health`, já existia). `docker compose ps` mostra o status real de cada um.
+- **Rotação de log** nos 3 serviços (`logging.max-size: 10m`, `max-file: 3`) — sem isso, o log do `ufpa_rag_llm` (uma linha de timing por token gerado) cresce sem limite em produção de longa duração.
+- **Rastreamento de rota/latência**: cada linha de `historico_minerva` grava `rota` (qual camada respondeu — nome da rota do `priority_router`, `dataset_ou_basico`, `barreira_institucional` ou `rag_generico`) e `latencia_ms`. Permite medir cobertura de rotas e tempo de resposta direto no banco, sem varredura manual:
+  ```sql
+  SELECT rota, COUNT(*), ROUND(AVG(latencia_ms)) AS media_ms
+  FROM historico_minerva
+  WHERE rota IS NOT NULL
+  GROUP BY rota
+  ORDER BY COUNT(*) DESC;
+  ```
 
 ## Limitações conhecidas
 
