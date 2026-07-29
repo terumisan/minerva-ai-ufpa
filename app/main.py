@@ -2,12 +2,13 @@
 from __future__ import annotations
 # MINERVA_PRIORITY_ROUTER_IMPORT_BEGIN
 try:
-    from .minerva_priority_router import priority_answer
+    from .minerva_priority_router import classify_question, priority_answer
 except (ImportError, ValueError):
-    from minerva_priority_router import priority_answer
+    from minerva_priority_router import classify_question, priority_answer
 # MINERVA_PRIORITY_ROUTER_IMPORT_END
 
 from minerva_hybrid import responder_minerva
+import time
 import uuid
 
 import streamlit as st
@@ -450,6 +451,13 @@ def processar_pergunta(pergunta, stream_area=None):
     SSE — ver consultar_modelo_local). As rotas fixas continuam respondendo
     de uma vez, já que são instantâneas.
 
+    Devolve (resposta, rota): "rota" identifica qual camada respondeu
+    (nome da rota do priority_router, "dataset_ou_basico" quando uma
+    rota fixa respondeu sem bater em nenhuma classify_question nomeada,
+    "barreira_institucional" ou "rag_generico") — salvo no histórico
+    (ver db.salvar_no_historico) pra medir cobertura de rotas e latência
+    sem precisar de varredura manual.
+
     Passo a passo (a primeira camada que responder encerra o fluxo):
 
     1. ROTAS FIXAS — priority_answer() (minerva_priority_router.py) resolve
@@ -471,7 +479,8 @@ def processar_pergunta(pergunta, stream_area=None):
     # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
     _minerva_priority_result = priority_answer(pergunta)
     if _minerva_priority_result is not None:
-        return _minerva_priority_result
+        rota = classify_question(pergunta) or "dataset_ou_basico"
+        return _minerva_priority_result, rota
     # MINERVA_PRIORITY_ROUTER_GUARD_END
 
     # Checagem de instituição externa feita aqui, sobre a pergunta CRUA do
@@ -484,7 +493,7 @@ def processar_pergunta(pergunta, stream_area=None):
             "**Universidade Federal do Pará (UFPA)**. "
             "Não utilizo informações de outras universidades para responder "
             "como se fossem dados da UFPA."
-        )
+        ), "barreira_institucional"
 
     # Bug real: este trecho procurava por get_connection/conectar_postgres/
     # conectar_banco, nenhuma das quais existe neste módulo (main.py usa
@@ -520,7 +529,7 @@ def processar_pergunta(pergunta, stream_area=None):
             pergunta=pergunta,
             conn=conn,
             llm_func=llm_func
-        )
+        ), "rag_generico"
     finally:
         if conn:
             try:
@@ -539,15 +548,25 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
         # o primeiro token chega, o texto começa a crescer abaixo dele.
         stream_area = st.empty()
 
+        _inicio = time.perf_counter()
+
         with st.spinner("Consultando fontes oficiais da FCT/UFPA..."):
-            nova_msg = processar_pergunta(ultima_pergunta, stream_area=stream_area)
+            nova_msg, rota_resposta = processar_pergunta(ultima_pergunta, stream_area=stream_area)
+
+        latencia_ms = int((time.perf_counter() - _inicio) * 1000)
 
         # O st.rerun() abaixo redesenha tudo via render_chat_history();
         # limpar aqui evita a resposta duplicada (parcial + final) no
         # instante entre o fim da geração e o rerun.
         stream_area.empty()
 
-    salvar_no_historico(st.session_state.conversa_id, ultima_pergunta, mensagem_content(nova_msg))
+    salvar_no_historico(
+        st.session_state.conversa_id,
+        ultima_pergunta,
+        mensagem_content(nova_msg),
+        rota=rota_resposta,
+        latencia_ms=latencia_ms,
+    )
 
     st.session_state.messages.append(normalizar_mensagem_historico(nova_msg, role_padrao="assistant"))
     st.rerun()

@@ -156,6 +156,22 @@ def inicializar_banco() -> None:
         commit=True,
     )
 
+    # Qual camada respondeu (rota fixa, dataset, RAG genérico, barreira
+    # institucional) e quanto tempo levou. NULL = pergunta salva antes
+    # desta coluna existir (sem backfill possível — a informação não foi
+    # capturada na época). Existe pra medir cobertura de rotas e latência
+    # de forma automática, em vez de varredura manual do histórico (ver
+    # conversa) toda vez que se quer saber o que ainda cai no RAG lento.
+    executar_query(
+        "ALTER TABLE historico_minerva ADD COLUMN IF NOT EXISTS rota TEXT;",
+        commit=True,
+    )
+
+    executar_query(
+        "ALTER TABLE historico_minerva ADD COLUMN IF NOT EXISTS latencia_ms INTEGER;",
+        commit=True,
+    )
+
     # Respostas do formulário de avaliação (minerva_avaliacao.py). Colunas
     # fixas só para o que se consulta direto (score SUS, curso); o restante
     # do formulário vai íntegro no JSONB — adicionar pergunta nova ao
@@ -175,14 +191,32 @@ def inicializar_banco() -> None:
     )
 
 
-def salvar_no_historico(conversa_id: str, pergunta: str, resposta: str) -> None:
-    """Salva pergunta e resposta na conversa indicada, dentro da sessão atual."""
+def salvar_no_historico(
+    conversa_id: str,
+    pergunta: str,
+    resposta: str,
+    rota: str | None = None,
+    latencia_ms: int | None = None,
+) -> None:
+    """Salva pergunta e resposta na conversa indicada, dentro da sessão atual.
+
+    rota/latencia_ms são opcionais (default None) pra não quebrar nenhuma
+    chamada existente que ainda não tenha essa informação disponível.
+    """
     executar_query(
         """
-        INSERT INTO historico_minerva (session_id, conversa_id, pergunta, resposta)
-        VALUES (%s, %s, %s, %s);
+        INSERT INTO historico_minerva
+            (session_id, conversa_id, pergunta, resposta, rota, latencia_ms)
+        VALUES (%s, %s, %s, %s, %s, %s);
         """,
-        params=(st.session_state.session_id, conversa_id, pergunta, resposta),
+        params=(
+            st.session_state.session_id,
+            conversa_id,
+            pergunta,
+            resposta,
+            rota,
+            latencia_ms,
+        ),
         commit=True,
     )
 
