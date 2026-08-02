@@ -338,6 +338,27 @@ def aplicar_css(tema: str = "auto") -> None:
             border: 1px solid var(--minerva-border);
         }
 
+        /* Bug real (achado com print do app em produção, modo escuro):
+           o texto do conteúdo das mensagens (parágrafos, listas, negrito)
+           ficava com a cor FIXA de config.toml (textColor="#0F172A",
+           tema base "light" do próprio Streamlit — não muda com
+           prefers-color-scheme). No modo escuro isso é texto quase-preto
+           sobre balão quase-preto: ilegível. Mesmo padrão já usado na
+           sidebar (seletor "* { color: ... !important }") — precisa
+           mirar explicitamente nos elementos de texto do markdown pra
+           vencer a cor fixa que o Streamlit aplica neles. */
+        div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"],
+        div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] * {
+            color: var(--minerva-text) !important;
+        }
+
+        /* Links (ex.: "Fonte oficial: ...") continuam na cor de destaque —
+           a regra "*" acima, sem esta exceção, apagava a diferença visual
+           entre link clicável e texto normal. */
+        div[data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] a {
+            color: var(--minerva-blue) !important;
+        }
+
         [data-testid="stChatInput"] {
             max-width: 860px;
             margin: auto;
