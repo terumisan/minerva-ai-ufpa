@@ -376,19 +376,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # key="tema_ui" liga o widget direto ao session_state lido no topo do
-    # arquivo (antes de aplicar_css()) — trocar aqui já reflete no próximo
-    # rerun, sem precisar de callback manual.
-    st.segmented_control(
-        "Tema",
-        options=["auto", "claro", "escuro"],
-        format_func=lambda v: {"auto": "🖥️ Auto", "claro": "🌞 Claro", "escuro": "🌙 Escuro"}[v],
-        key="tema_ui",
-        label_visibility="collapsed",
-    )
-
-    st.markdown("---")
-
     st.caption(
         "**M.I.N.E.R.V.A.** – Módulo Inteligente de Navegação e "
         "Ensino de Recursos Virtuais Acadêmicos. Assistente "
@@ -400,19 +387,37 @@ with st.sidebar:
 
 # CABECALHO NATIVO MINERVA V4
 # Usa componentes Streamlit para evitar HTML aparecendo como texto.
-_header_logo, _header_texto = st.columns([1, 12], gap="small")
-
-with _header_logo:
-    st.image(
-        UFPA_LOGO_URL,
-        width=56,
+# border=True: agrupa logo + título + seletor de tema num único cartão
+# visual (mesmo estilo do card de boas-vindas "Olá, sou a Minerva"
+# abaixo), em vez de dois elementos soltos separados por st.divider().
+with st.container(border=True):
+    _header_logo, _header_texto, _header_tema = st.columns(
+        [1, 8, 3], gap="small", vertical_alignment="center"
     )
 
-with _header_texto:
-    st.markdown("## Minerva AI")
-    st.caption("Orientação acadêmica da FCT/UFPA")
+    with _header_logo:
+        st.image(
+            UFPA_LOGO_URL,
+            width=56,
+        )
 
-st.divider()
+    with _header_texto:
+        st.markdown("## Minerva AI")
+        st.caption("Orientação acadêmica da FCT/UFPA")
+
+    with _header_tema:
+        # key="tema_ui" liga o widget direto ao session_state lido no topo
+        # do arquivo (antes de aplicar_css()) — trocar aqui já reflete no
+        # próximo rerun, sem precisar de callback manual. Movido da
+        # sidebar pro cabeçalho a pedido do usuário — mais visível e
+        # acessível sem precisar abrir a sidebar.
+        st.segmented_control(
+            "Tema",
+            options=["auto", "claro", "escuro"],
+            format_func=lambda v: {"auto": "🖥️", "claro": "🌞", "escuro": "🌙"}[v],
+            key="tema_ui",
+            label_visibility="collapsed",
+        )
 # FIM CABECALHO NATIVO MINERVA V4
 
 
