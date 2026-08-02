@@ -47,6 +47,17 @@ FCT_CONTATO = (
     "https://fct.ufpa.br/index.php/contato"
 )
 
+# Dados fixos de localização/telefone (perfil oficial da FCT no Google Maps,
+# checado manually). A página FCT_CONTATO só expõe telefone/e-mail via
+# _label_value — não tem endereço estruturado para extrair ao vivo, então
+# esses dois campos abaixo ficam como valor conhecido, usados como
+# complemento (endereço) e fallback (telefone) na rota "contact". Não inclui
+# horário de funcionamento aqui: o horário do Google Maps é um status
+# dinâmico ("Fechado · Abre qui. às 08:00" no momento da consulta), não um
+# fato fixo — hardcodar ficaria errado em poucos dias.
+FCT_ENDERECO = "Instituto de Tecnologia (ITEC), Universitário, Belém - PA"
+FCT_TELEFONE_CONHECIDO = "(91) 3201-7901"
+
 FCT_DOCENTES = (
     "https://fct.ufpa.br/index.php/corpo-docente"
 )
@@ -57,6 +68,91 @@ FCT_DOCUMENTACAO = (
 
 FCT_ESTAGIO = (
     "https://fct.ufpa.br/index.php/estagio"
+)
+
+# Guia do Mochileiro de EngComp: material feito pelo Centro Acadêmico
+# (CAECOMP) para calouros, linkado pela página oficial da FCT abaixo.
+FCT_GUIA_CALOURO = (
+    "https://fct.ufpa.br/index.php/guia-para-os-calouros-da-fct"
+)
+GUIA_MOCHILEIRO_CAECOMP = "https://caecomp-ufpa.github.io/guia-fct/"
+
+FCT_ATIVIDADES_COMPLEMENTARES = (
+    "https://fct.ufpa.br/index.php/atividades-complementares"
+)
+
+FCT_LABORATORIOS_PESQUISA = (
+    "https://fct.ufpa.br/index.php/laboratorios-de-pesquisa"
+)
+
+FCT_LABORATORIOS_ENSINO = (
+    "https://fct.ufpa.br/index.php/laboratorios-de-ensino"
+)
+
+PPGCC_HOME = (
+    "http://www.ppgcc.propesp.ufpa.br/index.php/br/"
+)
+
+# Laboratórios de pesquisa vinculados à FCT (conteúdo verificado direto na
+# página oficial acima antes de escrever qualquer texto — sem fabricação).
+# Cada entrada permite tanto "quais laboratórios de pesquisa a FCT tem?"
+# (lista geral) quanto "o que é o GERCOM?" (consulta pontual por sigla).
+LABORATORIOS_PESQUISA: dict[str, dict[str, str]] = {
+    "GERCOM": {
+        "nome": "Grupo de Estudos em Redes de Computadores e Comunicação Multimídia",
+        "foco": (
+            "redes óticas, redes sem fio, redes de sensores, segurança, "
+            "redes tolerantes a falhas e desconexões, gerência de rede, "
+            "aplicações para cidades inteligentes e sistemas multimídia"
+        ),
+    },
+    "LAMIC": {
+        "nome": "Laboratório de Modelagem e Inteligência Computacional",
+        "foco": (
+            "monitoramento inteligente de processos, domótica, aquisição "
+            "de dados em bioengenharia, smart grids, comunicação com/sem "
+            "fio e serviços web"
+        ),
+    },
+    "LASSE": {
+        # A página oficial não especifica o nome por extenso da sigla —
+        # não inventamos uma expansão que ela mesma não confirma.
+        "nome": "laboratório de pesquisa da FCT (nome por extenso não detalhado na fonte oficial)",
+        "foco": (
+            "circuitos digitais usando FPGAs, microcontroladores, redes "
+            "de sensores sem fio e monitoramento remoto"
+        ),
+    },
+    "LCT": {
+        "nome": "Laboratório de Computação e Telecomunicações",
+        "foco": (
+            "cobertura de rádio/TV digital, redes móveis (WiMAX, WLAN, "
+            "celulares) e compatibilidade eletromagnética"
+        ),
+    },
+    "LINC": {
+        "nome": "Laboratório de Inteligência Computacional e Pesquisa Operacional",
+        "foco": (
+            "modelos matemáticos, otimização, sistemas de suporte à "
+            "decisão, mineração de dados e business intelligence"
+        ),
+    },
+    "LPRAD": {
+        "nome": "Laboratório de Planejamento de Redes de Alto Desempenho",
+        "foco": (
+            "planejamento de redes cabeadas/sem fio, TV digital, "
+            "desenvolvimento de software, infraestrutura de Internet e "
+            "segurança da informação"
+        ),
+    },
+    "LEA": {
+        "nome": "Laboratório de Eletromagnetismo Aplicado",
+        "foco": "telecomunicações, optoeletrônica e eletromagnetismo aplicado",
+    },
+}
+
+_LABORATORIOS_PESQUISA_REGEX = re.compile(
+    r"\b(" + "|".join(LABORATORIOS_PESQUISA.keys()).lower() + r")\b"
 )
 
 FCT_HISTORICO = (
@@ -140,6 +236,11 @@ UFPA_LEGISLACAO = (
     "https://portal.ufpa.br/index.php/"
     "sig-ufpa/2-uncategorised/77-legislacao"
 )
+
+# Portal público do sistema acadêmico — mesmo sistema descrito no documento
+# institucional "ManualAlunoSIGAA.pdf" já ingerido na base (ver rota
+# "enrollment" abaixo).
+SIGAA_URL = "https://sigaa.ufpa.br"
 
 
 TIMEOUT = 10
@@ -324,6 +425,254 @@ def classify_question(
 
 
     # ------------------------------------------------------------------
+    # 4.5. MATRÍCULA
+    #
+    # Bug real (achado por medição de latência): "onde/como posso me
+    # matricular" — uma das perguntas mais previsíveis e mais frequentes
+    # que existem — não tinha NENHUMA rota fixa, então caía sempre no RAG
+    # genérico (2-5min no Qwen2.5-7B em CPU) mesmo tendo resposta
+    # institucional estável.
+    #
+    # Fraseado por frase (não "matricul" substring solto): um match
+    # genérico demais interceptaria também perguntas específicas já
+    # cobertas por entradas RESPOSTA_LITERAL do dataset (ex.: "O que
+    # acontece após a solicitação de matrícula?", que tem resposta própria
+    # mais detalhada em minerva_dataset.json) ANTES de chegarem lá — o
+    # priority_router roda antes do dataset no pipeline (ver
+    # priority_answer no fim do arquivo).
+    # ------------------------------------------------------------------
+
+    if (
+        q in ("matricula", "matricular")
+        or _has_any(
+            q,
+            (
+                "onde posso me matricular",
+                "como posso me matricular",
+                "como faco para me matricular",
+                "como faco minha matricula",
+                "como faco a matricula",
+                "onde faco a matricula",
+                "onde faco minha matricula",
+                "como e feita a matricula",
+                "como funciona a matricula",
+                "onde fica a matricula",
+                "quero me matricular",
+                "como me matriculo",
+                "onde me matriculo",
+                "como me matricular",
+                "onde me matricular",
+                "me matricular na ufpa",
+                "me matricular na fct",
+                "como se matricula",
+                "como se faz a matricula",
+                "onde se matricula",
+                "onde e a matricula",
+                # Encontrada por medição de latência real: "Quando posso me
+                # matricular?" apareceu no histórico de conversas e não
+                # batia em nenhuma frase acima (só cobria onde/como).
+                "quando posso me matricular",
+                "quando e a matricula",
+                "quando comeca a matricula",
+                "quando abre a matricula",
+                "quando me matriculo",
+            ),
+        )
+    ):
+        return "enrollment"
+
+
+    # ------------------------------------------------------------------
+    # 4.6. TRANCAMENTO DE MATRÍCULA
+    #
+    # Encontrada varrendo os portais UFPA/FCT em busca de lacunas (mesma
+    # técnica da rota "enrollment"): tema institucional estável, com regra
+    # exata no Regulamento de Graduação (Art. 24), sem nenhuma rota fixa
+    # até então — caía sempre no RAG genérico.
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "trancar matricula",
+            "trancar a matricula",
+            "trancar o curso",
+            "trancar meu curso",
+            "trancamento de matricula",
+            "trancamento da matricula",
+            "como faco para trancar",
+            "quero trancar",
+            "posso trancar",
+        ),
+    ):
+        return "matricula_trancamento"
+
+
+    # ------------------------------------------------------------------
+    # 4.7. APROVEITAMENTO DE ESTUDOS
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "aproveitamento de estudos",
+            "aproveitamento de disciplina",
+            "aproveitamento de disciplinas",
+            "equivalencia de disciplina",
+            "equivalencia de disciplinas",
+            "dispensa de disciplina",
+            "dispensa de disciplinas",
+            "como solicitar aproveitamento",
+        ),
+    ):
+        return "aproveitamento_estudos"
+
+
+    # ------------------------------------------------------------------
+    # 4.8. GUIA DO CALOURO
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "guia do calouro",
+            "guia para calouros",
+            "guia para os calouros",
+            "guia do mochileiro",
+            "sou calouro",
+            "sou novato",
+            "acabei de entrar na fct",
+            "acabei de entrar na ufpa",
+            "primeiro semestre o que preciso saber",
+            "dicas para calouro",
+            "dicas para calouros",
+        ),
+    ):
+        return "guia_calouro"
+
+
+    # ------------------------------------------------------------------
+    # 4.9. ATIVIDADES COMPLEMENTARES
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "atividades complementares",
+            "atividade complementar",
+            "integralizar atividades complementares",
+            "carga horaria de atividades complementares",
+        ),
+    ):
+        return "atividades_complementares"
+
+
+    # ------------------------------------------------------------------
+    # 4.10. LABORATÓRIOS DE PESQUISA
+    #
+    # Encontrada continuando a varredura de portais UFPA/FCT (pedido do
+    # usuário: laboratórios). Cobre tanto "quais laboratórios de pesquisa
+    # a FCT tem?" (lista) quanto "o que é o GERCOM?" (sigla específica —
+    # regex com \b para não casar substring dentro de outra palavra).
+    # ------------------------------------------------------------------
+
+    if (
+        _has_any(
+            q,
+            (
+                "laboratorios de pesquisa",
+                "laboratorio de pesquisa",
+                "grupos de pesquisa da fct",
+                "grupo de pesquisa da fct",
+            ),
+        )
+        or _LABORATORIOS_PESQUISA_REGEX.search(q)
+    ):
+        return "laboratorios_pesquisa"
+
+
+    # ------------------------------------------------------------------
+    # 4.11. LABORATÓRIOS DE ENSINO (LABCOM I / II)
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "laboratorio de ensino",
+            "laboratorios de ensino",
+            "labcom",
+            "laboratorio de computacao i",
+            "laboratorio de computacao ii",
+        ),
+    ):
+        return "laboratorios_ensino"
+
+
+    # ------------------------------------------------------------------
+    # 4.12. PPGCC
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "ppgcc",
+            "mestrado em ciencia da computacao",
+            "pos graduacao em ciencia da computacao",
+            "pos-graduacao em ciencia da computacao",
+        ),
+    ):
+        return "ppgcc"
+
+
+    # ------------------------------------------------------------------
+    # 4.13. SEGUNDA CHAMADA
+    #
+    # A própria sidebar (CATEGORIAS_MINERVA em ui.py) já promete essa
+    # resposta na descrição da categoria "Graduação" ("Trancamento,
+    # disciplina, segunda chamada e aproveitamento") — mas até agora não
+    # existia rota nenhuma pra ela, caía direto no RAG genérico.
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "segunda chamada",
+            "faltei a uma prova",
+            "faltei na prova",
+            "perdi uma avaliacao",
+            "perdi a prova",
+            "nao pude fazer a prova",
+            "nao pude fazer a avaliacao",
+        ),
+    ):
+        return "segunda_chamada"
+
+
+    # ------------------------------------------------------------------
+    # 4.14. REVISÃO DE CONCEITO
+    # ------------------------------------------------------------------
+
+    if (
+        _has_any(
+            q,
+            (
+                "revisao de conceito",
+                "revisao de nota",
+                "discordo da minha nota",
+                "quero revisar minha nota",
+            ),
+        )
+        # "contestar minha nota"/"contestar a nota" etc.: frase exata era
+        # frágil demais (não casava "contestar minha nota", só "contestar
+        # nota" grudado) — "contestar" + "nota"/"conceito" em qualquer
+        # ordem/distância cobre as variações reais sem precisar listar
+        # cada combinação de pronome/artigo no meio.
+        or ("contestar" in q and ("nota" in q or "conceito" in q))
+    ):
+        return "revisao_conceito"
+
+
+    # ------------------------------------------------------------------
     # 5. REGULAMENTO DA GRADUAÇÃO
     # ------------------------------------------------------------------
 
@@ -485,6 +834,13 @@ def classify_question(
                 "quando comecam as aulas",
                 "inicio das aulas",
                 "fim do semestre",
+                # Encontrada por medição de latência real: "quando começa
+                # e termina o período letivo" apareceu 2x no histórico de
+                # conversas e não batia em nenhuma frase acima.
+                "quando comeca e termina o periodo letivo",
+                "quando termina o periodo letivo",
+                "quando comeca o periodo letivo",
+                "inicio e fim do periodo letivo",
             ),
         )
     ):
@@ -1003,11 +1359,30 @@ def _menu_today() -> str:
 # RESPOSTAS
 # ======================================================================
 
+# Bug real (achado analisando por que "Quem é a atual direção do FCT?"
+# caía no RAG genérico apesar de a rota "leadership" abaixo cobrir
+# "direcao"): o bloco MINERVA_BASIC_FACTS no fim do arquivo REBINDA o nome
+# global "classify_question" para uma versão que checa siglas/fatos
+# básicos primeiro. Como priority_answer() abaixo chama "classify_question"
+# pelo nome (resolvido a cada chamada, não no momento da definição —
+# late binding), depois que o rebind acontece, toda chamada aqui também
+# passa pela checagem básica primeiro. Se essa checagem básica reivindica
+# a pergunta (ex.: extrai "FCT" como sigla) mas falha ao gerar resposta
+# (ex.: extração de sigla erra e pega outra palavra), a rota devolve uma
+# categoria ("basic_acronym") que este priority_answer não reconhece em
+# nenhum "if route ==" abaixo — a função cai até o fim e devolve None,
+# mesmo com uma rota específica (leadership, contact etc.) que bateria
+# perfeitamente. _classify_question_base é uma referência fixa à função
+# ORIGINAL definida acima, capturada aqui — antes do rebind acontecer —
+# para este fallback nunca ser sequestrado pela camada básica.
+_classify_question_base = classify_question
+
+
 def priority_answer(
     question: str,
 ) -> Optional[str]:
 
-    route = classify_question(
+    route = _classify_question_base(
         question
     )
 
@@ -1080,6 +1455,217 @@ def priority_answer(
             "a Minerva deve consultar primeiro essa orientação da FCT e "
             "complementar com a documentação institucional disponível na base. "
             f"Fonte oficial FCT: {FCT_ESTAGIO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # MATRÍCULA
+    # ------------------------------------------------------------------
+
+    if route == "enrollment":
+        return (
+            "A matrícula na UFPA é feita pelo **SIGAA** (Sistema Integrado "
+            "de Gestão de Atividades Acadêmicas), o sistema acadêmico "
+            "oficial da universidade — acesse pelo portal da UFPA ou "
+            f"diretamente em {SIGAA_URL}, com seu login institucional.\n\n"
+            "O processo tem duas etapas: você faz a **solicitação** de "
+            "matrícula nas turmas desejadas dentro do prazo do calendário "
+            "acadêmico; só depois, quando o sistema roda o processamento, "
+            "a matrícula é efetivamente confirmada nas turmas, conforme as "
+            "regras do Regulamento de Graduação — a solicitação sozinha "
+            "não garante a vaga.\n\n"
+            "Os prazos de matrícula constam no calendário acadêmico. "
+            f"Fonte oficial (prazos): {PROEG_CALENDARIO} "
+            "| Fonte institucional (passo a passo no sistema): "
+            "Manual SIGAA - UFPA (Discentes), documento da base da FCT/UFPA."
+        )
+
+
+    # ------------------------------------------------------------------
+    # TRANCAMENTO DE MATRÍCULA
+    # ------------------------------------------------------------------
+
+    if route == "matricula_trancamento":
+        return (
+            "O trancamento de matrícula é tratado no **Art. 24 do "
+            "Regulamento de Graduação da UFPA**. Pontos principais:\n\n"
+            "- Você requer o trancamento à Faculdade/Escola, informando o "
+            "período letivo e a justificativa do afastamento.\n"
+            "- O pedido é apreciado pela Direção da Faculdade e, se "
+            "deferido, autorizado junto ao CIAC (Centro de Registro e "
+            "Indicadores Acadêmicos).\n"
+            "- O período **cumulativo** de trancamento não pode "
+            "ultrapassar **2 períodos letivos consecutivos ou 4 "
+            "alternados**.\n"
+            "- Esse período conta no prazo de integralização do curso "
+            "(não é tempo \"de graça\" fora do prazo do curso).\n"
+            "- Casos previstos em lei são exceção às regras acima.\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # APROVEITAMENTO DE ESTUDOS
+    # ------------------------------------------------------------------
+
+    if route == "aproveitamento_estudos":
+        return (
+            "O aproveitamento de estudos é tratado nos **Art. 36 e 37 do "
+            "Regulamento de Graduação da UFPA**. Pontos principais:\n\n"
+            "- A solicitação é analisada pelo Conselho da Faculdade/Escola, "
+            "considerando habilidades, competências, conteúdo e carga "
+            "horária da atividade pleiteada.\n"
+            "- Só são validadas atividades cursadas em instituições "
+            "reconhecidas ou autorizadas pelo órgão competente.\n"
+            "- É registrado no histórico com a sigla **AE** e **não entra** "
+            "no cálculo do coeficiente de rendimento.\n"
+            "- Aproveitamento **direto**: quando carga horária e conteúdo "
+            "são idênticos, equivalentes ou superiores aos da disciplina "
+            "pleiteada.\n"
+            "- Aproveitamento **com complementação**: quando o conteúdo "
+            "cursado é inferior ao pleiteado em até 30% — a Subunidade "
+            "pode exigir avaliação especial ou estudos complementares do "
+            "que faltou.\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # GUIA DO CALOURO
+    # ------------------------------------------------------------------
+
+    if route == "guia_calouro":
+        return (
+            "Para quem está começando na FCT, o Centro Acadêmico de "
+            "Engenharia da Computação (CAECOMP) mantém o **Guia do "
+            "Mochileiro de EngComp** — material feito por alunos para "
+            "alunos, cobrindo direitos do aluno, locais importantes do "
+            "campus, como se formar e oportunidades acadêmicas.\n\n"
+            f"Acesse o guia completo: {GUIA_MOCHILEIRO_CAECOMP}\n"
+            f"Página oficial da FCT que indica o guia: {FCT_GUIA_CALOURO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # ATIVIDADES COMPLEMENTARES
+    # ------------------------------------------------------------------
+
+    if route == "atividades_complementares":
+        return (
+            "Atividades complementares têm resolução própria (Resolução "
+            "FCT 01/2013) e um passo a passo de integralização "
+            "disponibilizado pela FCT. A página oficial não detalha carga "
+            "horária/prazos diretamente — o documento de passo a passo "
+            "linkado nela é a fonte definitiva.\n\n"
+            f"Página oficial: {FCT_ATIVIDADES_COMPLEMENTARES}\n"
+            f"Documentação geral da FCT (resoluções e formulários): {FCT_DOCUMENTACAO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # LABORATÓRIOS DE PESQUISA
+    # ------------------------------------------------------------------
+
+    if route == "laboratorios_pesquisa":
+        q_lab = _norm(question)
+        casado = _LABORATORIOS_PESQUISA_REGEX.search(q_lab)
+
+        if casado:
+            sigla = casado.group(1).upper()
+            info = LABORATORIOS_PESQUISA[sigla]
+
+            return (
+                f"**{sigla}** — {info['nome']}.\n\n"
+                f"Foco de pesquisa: {info['foco']}.\n\n"
+                f"Fonte oficial: {FCT_LABORATORIOS_PESQUISA}"
+            )
+
+        lista = "\n".join(
+            f"- **{sigla}** ({info['nome']}): {info['foco']}"
+            for sigla, info in LABORATORIOS_PESQUISA.items()
+        )
+
+        return (
+            "A FCT tem 7 laboratórios/grupos de pesquisa:\n\n"
+            f"{lista}\n\n"
+            f"Fonte oficial: {FCT_LABORATORIOS_PESQUISA}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # LABORATÓRIOS DE ENSINO (LABCOM I / II)
+    # ------------------------------------------------------------------
+
+    if route == "laboratorios_ensino":
+        return (
+            "A FCT mantém dois laboratórios de ensino para os cursos de "
+            "Engenharia da Computação, Engenharia de Telecomunicações e "
+            "Engenharia Elétrica:\n\n"
+            "- **Laboratório de Computação I** — uso geral, com agenda "
+            "online via Google Calendar.\n"
+            "- **Laboratório de Computação II** — mesma finalidade, mas "
+            "com ambiente Linux adicional (Matlab, Android Studio, entre "
+            "outros softwares não disponíveis no Windows do Labcom I).\n\n"
+            "Softwares disponíveis nos dois: Arduino, Blender, Codeblocks, "
+            "Java JDK, NetBeans, Quartus, PSpice, entre outros.\n\n"
+            f"Fonte oficial: {FCT_LABORATORIOS_ENSINO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # PPGCC
+    # ------------------------------------------------------------------
+
+    if route == "ppgcc":
+        return (
+            "O **PPGCC** (Programa de Pós-Graduação em Ciência da "
+            "Computação) da UFPA oferece curso de **mestrado**. Nasceu de "
+            "uma cooperação entre a Faculdade de Computação e a área de "
+            "concentração em Computação Aplicada da Engenharia Elétrica, "
+            "com o objetivo de ampliar a produção científica regional na "
+            "área.\n\n"
+            f"Site oficial: {PPGCC_HOME}\n"
+            f"Contato geral da FCT: {FCT_CONTATO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # SEGUNDA CHAMADA
+    # ------------------------------------------------------------------
+
+    if route == "segunda_chamada":
+        return (
+            "A segunda chamada é tratada no **Art. 102 do Regulamento de "
+            "Graduação da UFPA**:\n\n"
+            "- Vale para quem faltou a uma avaliação por **impedimento "
+            "legal, doença atestada por serviço médico de saúde ou motivo "
+            "de força maior**, devidamente comprovado.\n"
+            "- O requerimento é feito à **direção da Subunidade Acadêmica** "
+            "(a Faculdade/Escola do seu curso).\n"
+            "- Prazo: até **72 horas úteis** após a realização da "
+            "primeira chamada.\n\n"
+            "Atenção: a **Avaliação Substitutiva** (outra modalidade, "
+            "Art. 98) é diferente e **não tem** segunda chamada própria "
+            "(§4º do Art. 98).\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # REVISÃO DE CONCEITO
+    # ------------------------------------------------------------------
+
+    if route == "revisao_conceito":
+        return (
+            "A revisão de conceito (nota) é tratada nos **Art. 103 e 104 "
+            "do Regulamento de Graduação da UFPA**:\n\n"
+            "- Deve ser solicitada por **requerimento formalizado** junto "
+            "à Subunidade Acadêmica, em até **3 dias** após a divulgação "
+            "do conceito, conforme o Regimento Geral da UFPA.\n"
+            "- O processo é analisado por uma **Comissão de 3 docentes**, "
+            "nomeada pelo Diretor da Faculdade/Escola — o professor da "
+            "disciplina envolvida é excluído dessa comissão.\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
         )
 
 
@@ -1237,6 +1823,18 @@ def priority_answer(
             ["E-mail", "Email"],
         )
 
+        # Bug real: na página de contato da FCT, "E-mail" é o rótulo de um
+        # ITEM DE MENU (Serviços: Secretaria / E-mail / Sigaa / Contato...),
+        # não um par rótulo-valor. _label_value pegava a linha seguinte do
+        # menu ("Sigaa") como se fosse o e-mail. Só aceita o valor extraído
+        # se realmente parecer um e-mail.
+        if email and "@" not in email:
+            email = None
+
+        # FCT_CONTATO não expõe endereço estruturado para extrair ao vivo, e
+        # o telefone às vezes não está presente na página no formato que
+        # _label_value reconhece — usa o telefone/endereço conhecidos
+        # (FCT_ENDERECO/FCT_TELEFONE_CONHECIDO) como complemento/fallback.
         values: List[str] = []
 
         if email:
@@ -1244,18 +1842,20 @@ def priority_answer(
                 f"e-mail {email}"
             )
 
-        if phone:
-            values.append(
-                f"telefone {phone}"
-            )
+        values.append(
+            f"telefone {phone or FCT_TELEFONE_CONHECIDO}"
+        )
 
-        if values:
-            return (
-                "Os dados oficiais de contato localizados são: "
-                + "; ".join(values)
-                + ". "
-                + f"Fonte oficial: {FCT_CONTATO}"
-            )
+        values.append(
+            f"localização {FCT_ENDERECO}"
+        )
+
+        return (
+            "Os dados oficiais de contato/localização da FCT/UFPA são: "
+            + "; ".join(values)
+            + ". "
+            + f"Fonte oficial: {FCT_CONTATO}"
+        )
 
         return (
             "Os dados institucionais de contato estão disponíveis "
@@ -1437,6 +2037,15 @@ def classify_question(question: str):
 
     Perguntas complexas permanecem no router anterior.
     """
+
+    # Bug real (achado por teste automatizado): esta função substitui o
+    # classify_question original no namespace do módulo (late binding — todo
+    # chamador, inclusive dentro do router "anterior", passa a resolver para
+    # esta versão). O guard contra input não-string existia no original e
+    # não tinha sido repetido aqui, então debug_route(question=None) ou
+    # qualquer entrada não-string quebrava com TypeError em vez de None.
+    if not isinstance(question, str):
+        return None
 
     basic_route = _minerva_classify_basic_question(
         question

@@ -4,18 +4,43 @@ services:
     container_name: ufpa_rag_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ufpa_rag
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ufpa_senha_123
+      POSTGRES_DB: ${DB_NAME:-ufpa_rag}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
     ports:
-      - "5432:5432"
+      # Só localhost: antes era "5432:5432" (0.0.0.0), expondo o Postgres a
+      # qualquer host na mesma rede. Acesso local via psql/pgAdmin continua
+      # funcionando normalmente em 127.0.0.1:5432.
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata_rag:/var/lib/postgresql/data
+    # Base pequena (dezenas de MB hoje) — 1g é folga generosa, não um
+    # limite apertado. Sem isso, um pico de query (ex.: ORDER BY embedding
+    # <=> vetor sem índice ainda) não tem teto e compete por RAM do host
+    # sem controle.
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-ufpa_rag}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   ufpa_rag_ui:
     build: ./app
     container_name: ufpa_rag_ui
     restart: unless-stopped
+    environment:
+      DB_HOST: ufpa_rag_db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-ufpa_rag}
+      DB_USER: ${DB_USER:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
     ports:
       - "8501:8501"
     volumes:
@@ -26,32 +51,70 @@ services:
     depends_on:
       - ufpa_rag_db
       - ufpa_rag_llm
+    # Streamlit + modelo de embedding (mpnet, carregado em memória no
+    # processo) observados em ~1.4GB de uso real — 2g dá folga sem deixar
+    # em aberto.
+    mem_limit: 2g
+    # Imagem base (python:3.10-slim) não tem curl — usa urllib da stdlib
+    # em vez de adicionar uma dependência só pro healthcheck.
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=5)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Modelo local gratuito (Llama-3.2-3B-Instruct), isolado do chat_llm de
-  # outro projeto. Só a Minerva usa este container, na porta 8002.
+  # Modelo local gratuito, isolado do chat_llm de outro projeto. Só a
+  # Minerva usa este container, na porta 8002.
   # Histórico de modelos testados (arquivos .gguf ficam em models/ caso
-  # queira voltar a algum): Qwen2.5-7B (melhor precisão, mais lento) ->
-  # Llama-3.2-3B (mais rápido, ativo agora) -> Gemma 4 E4B (QAT, pensa
-  # demais por padrão e alucina sem grounding — ver conversa).
+  # queira voltar a algum): Qwen2.5-7B (ativo) -> Llama-3.2-3B (mais rápido,
+  # porém respostas mais pobres) -> Gemma 4 E4B (QAT, pensa demais por
+  # padrão e alucina sem grounding — ver conversa) -> Qwen3-4B-Instruct-2507
+  # (testado jul/2026, ~2x mais rápido isolado e qualidade comparável, mas
+  # revertido a pedido do usuário — ver memória/conversa).
   ufpa_rag_llm:
     image: ghcr.io/ggml-org/llama.cpp:server
     container_name: ufpa_rag_llm
     restart: unless-stopped
     command:
       - "-m"
-      - "/models/Llama-3.2-3B-Instruct-Q5_K_M.gguf"
+      - "/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
       - "--host"
       - "0.0.0.0"
       - "--port"
       - "8002"
       - "-c"
       - "8192"
+      # --threads (geração/decode): limitado por banda de memória, não por
+      # núcleos — medido no i5-1245U (12 threads lógicos): 10 threads gerava
+      # a ~6,86 tok/s, 12 threads CAIU para ~6,13 tok/s (mais threads geram
+      # overhead de sincronização sem ganho na fase memory-bound). 8 é o
+      # meio-termo testado que recupera a velocidade de geração.
       - "--threads"
-      - "10"
+      - "8"
+      # --threads-batch (leitura do prompt/prefill): fase compute-bound,
+      # escala bem com mais núcleos — medido 20,6 tok/s (10 threads) ->
+      # 26,7 tok/s (12 threads), ~30% mais rápido. Maior impacto real na
+      # latência: com 6 chunks de contexto (~1400 tokens), a leitura do
+      # prompt é a maior fatia do tempo total de resposta, não a geração.
       - "--threads-batch"
-      - "10"
+      - "12"
       - "--parallel"
       - "1"
+      # Trava o modelo na RAM (evita page-out que degrada a geração quando
+      # outros containers disputam memória).
+      - "--mlock"
     ports:
       - "8002:8002"
     volumes:
@@ -67,6 +130,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    # Uso real observado ~3.5GB (modelo de 4.4GB travado em RAM via
+    # --mlock acima). 6g dá margem sobre o normal, mas ainda contém o
+    # vazamento de memória conhecido (ver restart diário via systemd
+    # timer, memória do projeto) — sem teto, o vazamento podia crescer
+    # até o host inteiro ficar sem RAM disponível.
+    #
+    # IMPORTANTE: --mlock trava páginas na RAM (não podem ser trocadas
+    # para swap sob pressão) — um mem_limit MENOR que o footprint real do
+    # modelo faria o container ser OOM-killed no próprio carregamento.
+    # Se trocar de modelo (ver histórico acima), ajuste este limite
+    # proporcionalmente ao tamanho do novo .gguf.
+    mem_limit: 6g
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   pgdata_rag:

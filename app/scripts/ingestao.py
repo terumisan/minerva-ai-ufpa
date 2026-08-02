@@ -1,15 +1,55 @@
 import os
+import re
+
 import psycopg2
 from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from fastembed import TextEmbedding
+
+# Mesmo modelo usado em minerva_hybrid.py para buscar — embeddings de
+# ingestão e de pergunta precisam vir do mesmo modelo para a distância de
+# cosseno fazer sentido.
+#
+# mpnet-base-v2 substituiu o MiniLM-L12 (medido com comparar_embeddings.py
+# contra as 720 perguntas de app/tests/data/eval_minerva_qa.json, comparando
+# só a busca semântica): hit@1 18,3%->30,8%, hit@3 32,9%->47,4%,
+# hit@6 44,2%->57,4%. O multilingual-e5-large media ainda melhor
+# (hit@6 66,1%) mas é 2,3GB (vs 1GB do mpnet) — descartado pelo risco de
+# memória nesta máquina (12-14GB RAM, já teve um incidente de swap com o
+# container do LLM).
+EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+EMBEDDING_DIM = 768
+EMBEDDING_CACHE_DIR = "/app/.fastembed_cache"
+
+# Marcadores estruturais típicos de regulamentos/resoluções da UFPA. Forçar
+# uma quebra de parágrafo antes de cada um (quando ainda não há uma) dá ao
+# RecursiveCharacterTextSplitter uma fronteira natural para cortar — antes,
+# o texto extraído do PDF perdia toda quebra de linha ("\n" virava espaço"),
+# então um artigo podia ser cortado no meio de qualquer chunk de 700
+# caracteres, mesmo com overlap.
+_MARCADORES_ESTRUTURAIS = re.compile(
+    r"(?<!\n)\s*(?=("
+    r"Art\.?\s*\d+|"
+    r"CAP[ÍI]TULO\s+[IVXLCDM]+|"
+    r"SE[ÇC][ÃA]O\s+[IVXLCDM]+|"
+    r"T[ÍI]TULO\s+[IVXLCDM]+|"
+    r"§\s*\d+"
+    r"))",
+    flags=re.IGNORECASE,
+)
+
 
 def conectar_banco():
     return psycopg2.connect(
-        host="ufpa_rag_db",
-        database="ufpa_rag",
-        user="admin",
-        password="ufpa_senha_123"
+        host=os.getenv("DB_HOST", "ufpa_rag_db"),
+        port=os.getenv("DB_PORT", "5432"),
+        database=os.getenv("DB_NAME", "ufpa_rag"),
+        user=os.getenv("DB_USER", "admin"),
+        # Sem default: credencial real deve vir do .env (ver .env.example),
+        # consumido pelo docker-compose.yml como env var do container.
+        password=os.environ["DB_PASSWORD"],
     )
+
 
 def criar_tabela():
     conn = conectar_banco()
@@ -17,7 +57,7 @@ def criar_tabela():
     # Ativa extensões necessárias
     cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
     cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;") # Ajuda na indexação textual complementar
-    
+
     # Cria a tabela evoluída com índice de texto completo
     cur.execute("""
         CREATE TABLE IF NOT EXISTS documentos_ufpa (
@@ -26,6 +66,14 @@ def criar_tabela():
             conteudo TEXT
         );
     """)
+    # Coluna de embedding semântico (busca híbrida em minerva_hybrid.py).
+    # DROP+ADD em vez de "ADD COLUMN IF NOT EXISTS": ao trocar de modelo de
+    # embedding (dimensão diferente), "IF NOT EXISTS" seria um no-op sobre a
+    # coluna já existente e deixaria a dimensão antiga — como toda ingestão
+    # já faz TRUNCATE da tabela de qualquer forma, recriar a coluna aqui é
+    # seguro e permite mudar EMBEDDING_DIM sem migração manual.
+    cur.execute("ALTER TABLE documentos_ufpa DROP COLUMN IF EXISTS embedding;")
+    cur.execute(f"ALTER TABLE documentos_ufpa ADD COLUMN embedding vector({EMBEDDING_DIM});")
     # Cria um índice de busca avançada para acelerar e dar inteligência ao Postgres
     cur.execute("CREATE INDEX IF NOT EXISTS idx_conteudo_trgm ON documentos_ufpa USING gin (conteudo gin_trgm_ops);")
     # Índice para a busca full-text (to_tsvector/to_tsquery) usada por
@@ -40,41 +88,80 @@ def criar_tabela():
     conn.close()
     print("🤖 [BANCO] Nova estrutura de tabela otimizada criada!")
 
+
 def extrair_e_salvar_texto():
     pasta_docs = "/documentos"
     if not os.path.exists(pasta_docs) or not os.listdir(pasta_docs):
         print("❌ [ERRO] Nenhum PDF encontrado.")
         return
 
-    # Otimização do fatiador: chunks ligeiramente menores para focar na resposta exata
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=700, chunk_overlap=120)
+    # chunk_size um pouco maior que antes (900): com fronteiras estruturais
+    # reais (Art./Capítulo/Seção) para o splitter preferir, cortes no meio
+    # de frase ficam mais raros mesmo com chunks levemente maiores.
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=900,
+        chunk_overlap=150,
+        separators=["\n\n", "\n", ". ", " ", ""],
+    )
+
+    modelo_embedding = TextEmbedding(
+        model_name=EMBEDDING_MODEL,
+        cache_dir=EMBEDDING_CACHE_DIR,
+    )
 
     conn = conectar_banco()
     cur = conn.cursor()
-    cur.execute("TRUNCATE TABLE documentos_ufpa;") 
+    cur.execute("TRUNCATE TABLE documentos_ufpa;")
 
     for arquivo in os.listdir(pasta_docs):
         if arquivo.endswith(".pdf"):
             caminho_completo = os.path.join(pasta_docs, arquivo)
-            
+
             try:
                 reader = PdfReader(caminho_completo)
-                texto_completo = ""
+                paginas = []
                 for pagina in reader.pages:
-                    # Limpeza básica de quebras de linha órfãs que quebram o entendimento da IA
                     texto_extraido = pagina.extract_text() or ""
-                    texto_completo += " " + texto_extraido.replace("\n", " ")
-                
+                    # Colapsa espaços internos mas preserva a quebra de linha
+                    # como fronteira de parágrafo (ao contrário da versão
+                    # anterior, que substituía "\n" por " " e apagava toda
+                    # estrutura do documento antes mesmo de fatiar).
+                    texto_extraido = re.sub(r"[ \t]+", " ", texto_extraido)
+                    paginas.append(texto_extraido.strip())
+
+                texto_completo = "\n\n".join(p for p in paginas if p)
+                texto_completo = _MARCADORES_ESTRUTURAIS.sub("\n\n", texto_completo)
+
                 chunks = text_splitter.split_text(texto_completo)
-                
-                for chunk in chunks:
-                    texto_limpo = " ".join(chunk.split()) # Remove espaços duplos
-                    if len(texto_limpo) > 20: # Ignora pedaços insignificantes
-                        cur.execute(
-                            "INSERT INTO documentos_ufpa (nome_arquivo, conteudo) VALUES (%s, %s);",
-                            (arquivo, texto_limpo)
-                        )
-                print(f"✔️ {arquivo} indexado com sucesso!")
+                chunks_validos = [
+                    " ".join(chunk.split())
+                    for chunk in chunks
+                    if len(" ".join(chunk.split())) > 20
+                ]
+
+                if not chunks_validos:
+                    print(f"⚠️ {arquivo}: nenhum chunk válido extraído.")
+                    continue
+
+                # passage_embed (não embed genérico): modelos assimétricos
+                # como o E5 (considerado e descartado — ver comentário em
+                # EMBEDDING_MODEL) exigem prefixo diferente para texto
+                # indexado vs. pergunta; passage_embed/query_embed é a API
+                # correta do fastembed para isso, e é um no-op seguro para
+                # modelos simétricos como o mpnet atual.
+                embeddings = list(modelo_embedding.passage_embed(chunks_validos))
+
+                for texto_limpo, vetor in zip(chunks_validos, embeddings, strict=True):
+                    # psycopg2 não conhece o tipo "vector" nativamente — sem o
+                    # pacote adaptador pgvector, formata como texto "[v1,v2,...]"
+                    # e deixa o Postgres fazer o cast (::vector).
+                    vetor_literal = "[" + ",".join(f"{v:.6f}" for v in vetor.tolist()) + "]"
+                    cur.execute(
+                        "INSERT INTO documentos_ufpa (nome_arquivo, conteudo, embedding) "
+                        "VALUES (%s, %s, %s::vector);",
+                        (arquivo, texto_limpo, vetor_literal),
+                    )
+                print(f"✔️ {arquivo} indexado com sucesso! ({len(chunks_validos)} chunks)")
             except Exception as e:
                 print(f"⚠️ Erro ao processar {arquivo}: {e}")
 
@@ -82,6 +169,7 @@ def extrair_e_salvar_texto():
     cur.close()
     conn.close()
     print("🚀 [SUCESSO] Base de dados limpa e reindexada!")
+
 
 if __name__ == "__main__":
     criar_tabela()

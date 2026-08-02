@@ -23,6 +23,11 @@ except (ImportError, ValueError):
 # pergunta, variacoes, entidades, palavras_chave, url_oficial,
 # estrategia_recuperacao, prioridade, ativo, etc.
 #
+# estrategia_recuperacao == "RESPOSTA_LITERAL": além dos campos acima, usa
+# resposta_literal (texto fixo, extraído de um documento já ingerido) e
+# fonte_documento (nome do PDF, citado ao final da resposta). Ver
+# _resposta_literal() abaixo e app/scripts/promover_eval_dataset.py.
+#
 # Prioridade "Baixa" por padrão: este dataset só entra como último recurso,
 # depois de todo o roteamento fixo já existente (minerva_priority_router +
 # minerva_basic_facts). Entradas aqui não substituem uma rota já correta —
@@ -101,6 +106,25 @@ def _resposta_conhecida(entrada: dict) -> Optional[str]:
     return None
 
 
+def _resposta_literal(entrada: dict) -> Optional[str]:
+    """RESPOSTA_LITERAL: resposta fixa extraída de um documento oficial já
+    ingerido (ver app/scripts/gerar_eval_dataset.py + promocao_eval_dataset.py),
+    para perguntas de alto valor que o RAG genérico já demonstrou responder
+    bem, mas que valem a pena responder sem esperar o LLM local (2-5min/CPU).
+    """
+    resposta = str(entrada.get("resposta_literal", "")).strip()
+
+    if not resposta:
+        return None
+
+    fonte = str(entrada.get("fonte_documento", "")).strip()
+
+    if fonte:
+        resposta += f"\n\nFonte: {fonte}"
+
+    return resposta
+
+
 def _resposta_via_fetch(entrada: dict) -> Optional[str]:
     """RAG_WEB_CONTROLADO: só confirma que a fonte oficial existe e cita ela.
 
@@ -140,7 +164,11 @@ def resposta_dataset(pergunta: str) -> Optional[str]:
         if not _pergunta_bate(pergunta_norm, entrada):
             continue
 
-        resposta = _resposta_conhecida(entrada) or _resposta_via_fetch(entrada)
+        resposta = (
+            _resposta_conhecida(entrada)
+            or _resposta_literal(entrada)
+            or _resposta_via_fetch(entrada)
+        )
 
         if resposta:
             return resposta
