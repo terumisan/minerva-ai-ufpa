@@ -289,10 +289,19 @@ with st.sidebar:
         iniciar_nova_conversa()
         st.rerun()
 
-    conversas = listar_conversas_dispositivo()
+    # "Mostrar mais" cresce em passos de 15 (mesmo valor do default
+    # anterior de listar_conversas_dispositivo). Busca +1 além do limite
+    # atual só pra saber se AINDA existe mais alguma coisa além da página
+    # carregada, sem precisar de um COUNT(*) separado.
+    st.session_state.setdefault("conversas_limite", 15)
+    conversas_pagina = listar_conversas_dispositivo(
+        limite=st.session_state.conversas_limite + 1
+    )
+    tem_mais_conversas = len(conversas_pagina) > st.session_state.conversas_limite
+    conversas_pagina = conversas_pagina[: st.session_state.conversas_limite]
 
     # Lista de conversas aparece somente quando existe alguma.
-    if conversas:
+    if conversas_pagina:
 
         st.markdown(
             '<div class="minerva-v2-history-title">'
@@ -301,7 +310,35 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
+        busca_conversa = st.text_input(
+            "Buscar conversa",
+            key="busca_conversas",
+            placeholder="🔎 Buscar conversa...",
+            label_visibility="collapsed",
+        ).strip().lower()
+
+        # Filtro roda só sobre a página já carregada — buscar um termo
+        # que só existe numa conversa antiga além do limite atual exige
+        # "Mostrar mais" primeiro. Troca simples, aceitável pro tamanho
+        # real dessas listas (por navegador, não a base toda).
+        conversas = (
+            [c for c in conversas_pagina if busca_conversa in (c[1] or "").lower()]
+            if busca_conversa
+            else conversas_pagina
+        )
+
+        if busca_conversa and not conversas:
+            st.caption("Nenhuma conversa encontrada com esse termo.")
+
         render_lista_conversas(conversas)
+
+        if tem_mais_conversas and not busca_conversa and st.button(
+            "Mostrar mais conversas",
+            key="sidebar_v2_mostrar_mais",
+            use_container_width=True,
+        ):
+            st.session_state.conversas_limite += 15
+            st.rerun()
 
         st.markdown("---")
 
