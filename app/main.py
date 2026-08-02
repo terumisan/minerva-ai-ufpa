@@ -390,7 +390,7 @@ with st.sidebar:
 # border=True: agrupa logo + título + seletor de tema num único cartão
 # visual (mesmo estilo do card de boas-vindas "Olá, sou a Minerva"
 # abaixo), em vez de dois elementos soltos separados por st.divider().
-with st.container(border=True):
+with st.container(border=True, key="header_card"):
     _header_logo, _header_texto, _header_tema = st.columns(
         [1, 8, 3], gap="small", vertical_alignment="center"
     )

@@ -107,10 +107,30 @@ def aplicar_css(tema: str = "auto") -> None:
             background: transparent !important;
         }
 
+        /* Barra fixa do st.chat_input (rodapé): bug real visto em produção
+           — o Streamlit pinta o wrapper interno dessa barra com uma cor
+           quase-branca fixa própria (rgb(247,249,252), nem transparente
+           nem usando tema), sem nenhum data-testid dedicado nele pra
+           mirar por nome. Vira uma faixa branca destoante colada embaixo
+           da tela inteira no modo escuro. O seletor por posição (filho
+           direto de stBottom) é o único jeito de alcançá-lo. */
+        [data-testid="stBottom"],
+        [data-testid="stBottom"] > div {
+            background: var(--minerva-bg) !important;
+        }
+
+        [data-testid="stBottom"] {
+            border-top: 1px solid var(--minerva-border);
+        }
+
         .block-container {
             max-width: 860px !important;
-            padding-top: 1.1rem !important;
-            padding-bottom: 6rem !important;
+            padding-top: 0.6rem !important;
+            /* Espaço só o suficiente pra última mensagem não ficar atrás
+               da barra fixa do chat_input — 6rem era generoso demais e
+               empurrava a tela a precisar de scroll mesmo com pouco
+               conteúdo (relatado pelo usuário). */
+            padding-bottom: 2.5rem !important;
         }
 
         /* Sidebar */
@@ -177,13 +197,23 @@ def aplicar_css(tema: str = "auto") -> None:
             font-size: 0.88rem;
         }
 
+        /* Cartão do cabeçalho (logo+título+tema — key="header_card" no
+           st.container(border=True) em main.py): o padding default do
+           Streamlit pra container com borda (~1rem em todo lado) deixa o
+           cabeçalho mais alto que o necessário, empurrando o resto da
+           tela pra baixo e forçando scroll cedo demais (relatado pelo
+           usuário). Aperta só este container específico. */
+        .st-key-header_card > div {
+            padding: 0.75rem 1rem !important;
+        }
+
         /* Boas-vindas (tela sem mensagens) */
         .minerva-v2-intro {
             border: 1px solid var(--minerva-border);
             border-radius: 18px;
             background: var(--minerva-white);
-            padding: 20px 22px;
-            margin: 0 0 18px 0;
+            padding: 16px 22px;
+            margin: 10px 0 14px 0;
         }
 
         .minerva-v2-intro h2 {
