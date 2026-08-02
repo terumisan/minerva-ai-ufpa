@@ -241,11 +241,18 @@ if "messages" not in st.session_state:
 
     registros_passados = carregar_historico_conversa(st.session_state.conversa_id)
 
-    for pergunta, resposta in registros_passados:
+    for historico_id, pergunta, resposta, feedback in registros_passados:
         st.session_state.messages.append({"role": "user", "content": pergunta})
 
         nome_arq, texto_raw = buscar_contexto_e_arquivo(pergunta)
-        msg_dict = {"role": "assistant", "content": resposta}
+        # historico_id/feedback alimentam os botões de ação por mensagem
+        # (👍/👎/copiar/regenerar — ver render_chat_history em ui.py).
+        msg_dict = {
+            "role": "assistant",
+            "content": resposta,
+            "historico_id": historico_id,
+            "feedback": feedback,
+        }
 
         if nome_arq:
             texto_formatado = formatar_documento_para_download(texto_raw, nome_arq)
@@ -578,7 +585,7 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
         # instante entre o fim da geração e o rerun.
         stream_area.empty()
 
-    salvar_no_historico(
+    novo_historico_id = salvar_no_historico(
         st.session_state.conversa_id,
         ultima_pergunta,
         mensagem_content(nova_msg),
@@ -586,5 +593,11 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
         latencia_ms=latencia_ms,
     )
 
-    st.session_state.messages.append(normalizar_mensagem_historico(nova_msg, role_padrao="assistant"))
+    # historico_id alimenta os botões de ação por mensagem (👍/👎/copiar/
+    # regenerar — ver render_chat_history em ui.py); feedback começa vazio,
+    # já que a resposta acabou de ser gerada.
+    mensagem_final = normalizar_mensagem_historico(nova_msg, role_padrao="assistant")
+    mensagem_final["historico_id"] = novo_historico_id
+    mensagem_final["feedback"] = None
+    st.session_state.messages.append(mensagem_final)
     st.rerun()

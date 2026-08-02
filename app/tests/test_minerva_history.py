@@ -13,6 +13,32 @@ def test_normalizar_dict_padrao():
 
 def test_normalizar_dict_chaves_alternativas():
     msg = normalizar_mensagem_historico({"tipo": "assistente", "resposta": "Olá"})
+    assert msg["role"] == "assistant"
+    assert msg["content"] == "Olá"
+
+
+def test_normalizar_dict_preserva_chaves_extras():
+    # Bug real: dict de entrada com chaves além de role/content (ex.:
+    # historico_id, feedback, download_file — ver main.py/ui.py) perdia
+    # tudo, porque a função sempre devolvia um literal novo só com
+    # role/content. normalizar_lista_mensagens() chama esta função a cada
+    # rerun do Streamlit (via normalizar_historico_session_state), então
+    # isso apagava dado real da sessão em uso, não só de histórico salvo.
+    msg = normalizar_mensagem_historico(
+        {"role": "assistant", "content": "Olá", "historico_id": 42, "feedback": None}
+    )
+    assert msg == {
+        "role": "assistant",
+        "content": "Olá",
+        "historico_id": 42,
+        "feedback": None,
+    }
+
+
+def test_normalizar_string_nao_ganha_chaves_extras():
+    # Só dict de entrada preserva chaves extras — string/tupla/None não
+    # têm de onde herdar nada além de role/content.
+    msg = normalizar_mensagem_historico("Olá", role_padrao="assistant")
     assert msg == {"role": "assistant", "content": "Olá"}
 
 

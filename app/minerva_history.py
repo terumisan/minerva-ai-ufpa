@@ -140,6 +140,22 @@ def normalizar_mensagem_historico(msg, role_padrao="assistant"):
         )
 
 
+    # Bug real: esta função sempre devolvia um dict NOVO com só role/content,
+    # mesmo quando "msg" já era um dict com chaves extras (historico_id,
+    # feedback, download_file, pdf_bytes, docx_bytes — ver main.py/ui.py).
+    # normalizar_lista_mensagens() chama esta função pra cada mensagem em
+    # normalizar_historico_session_state(), que roda em TODO rerun do
+    # Streamlit (não só uma vez) — então essas chaves extras desapareciam
+    # de qualquer mensagem gerada na sessão atual assim que o próximo
+    # widget fosse clicado (ex.: o próprio botão de feedback), quebrando
+    # o botão no primeiro clique. Preserva as chaves extras copiando o
+    # dict original em vez de descartá-lo.
+    if isinstance(msg, dict):
+        resultado = dict(msg)
+        resultado["role"] = role
+        resultado["content"] = str(content or "")
+        return resultado
+
     return {
         "role": role,
         "content": str(content or "")

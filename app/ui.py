@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import base64
 import uuid
 from pathlib import Path
 from typing import Any
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 # MINERVA_UI_HISTORY_IMPORT_BEGIN
 try:
@@ -23,9 +25,9 @@ except (ImportError, ValueError):
 
 # MINERVA_UI_DB_IMPORT_BEGIN
 try:
-    from .db import renomear_conversa, excluir_conversa
+    from .db import renomear_conversa, excluir_conversa, registrar_feedback
 except (ImportError, ValueError):
-    from db import renomear_conversa, excluir_conversa
+    from db import renomear_conversa, excluir_conversa, registrar_feedback
 # MINERVA_UI_DB_IMPORT_END
 
 
@@ -864,6 +866,100 @@ def render_downloads(msg: dict[str, Any], idx: int) -> None:
         )
 
 
+def render_acoes_resposta(msg: dict[str, Any], idx: int) -> None:
+    """Botões de ação sob uma resposta do assistente: feedback (👍/👎),
+    copiar e regenerar (só na última mensagem — ver comentário abaixo).
+    """
+    historico_id = msg.get("historico_id")
+    feedback_atual = msg.get("feedback")
+    eh_ultima_mensagem = idx == len(st.session_state.messages) - 1
+
+    col_up, col_down, col_copiar, col_regenerar, _resto = st.columns(
+        [1, 1, 1, 1, 8], gap="small"
+    )
+
+    with col_up:
+        if st.button(
+            "👍" if feedback_atual == "positivo" else "🤍",
+            key=f"feedback_up_{idx}",
+            help="Resposta útil",
+        ) and historico_id:
+            registrar_feedback(historico_id, "positivo")
+            msg["feedback"] = "positivo"
+            st.rerun()
+
+    with col_down:
+        if st.button(
+            "👎" if feedback_atual == "negativo" else "🖤",
+            key=f"feedback_down_{idx}",
+            help="Resposta não ajudou",
+        ) and historico_id:
+            registrar_feedback(historico_id, "negativo")
+            msg["feedback"] = "negativo"
+            st.rerun()
+
+    with col_copiar:
+        # Streamlit não tem widget nativo de copiar pra área de
+        # transferência fora de blocos de código.
+        #
+        # Bug real (achado testando no navegador — não só no AppTest, que
+        # não pega isso): st.markdown(unsafe_allow_html=True) deixa passar
+        # a TAG <button>, mas sanitiza atributos de evento inline
+        # (onclick=...) por segurança — o clique não fazia nada, apesar
+        # de nenhuma exceção Python ou JS aparecer em lugar nenhum.
+        # components.v1.html() roda dentro de um <iframe> com JS de
+        # verdade permitido — é a ferramenta certa do Streamlit pra isso,
+        # não st.markdown. Efeito colateral: o iframe não herda as
+        # variáveis CSS --minerva-* da página (contexto de documento
+        # separado) — o botão usa cores neutras fixas + seu próprio
+        # prefers-color-scheme em vez de seguir o seletor manual de tema.
+        texto_b64 = base64.b64encode(mensagem_content(msg).encode("utf-8")).decode("ascii")
+        components.html(
+            f"""
+            <style>
+                body {{ margin: 0; }}
+                button {{
+                    border-radius: 12px; border: 1px solid #CBD5E1;
+                    background: #FFFFFF; color: #0F172A;
+                    padding: 0.25rem 0.6rem; cursor: pointer; font-size: 1rem;
+                    height: 2.3rem; width: 100%;
+                }}
+                @media (prefers-color-scheme: dark) {{
+                    button {{
+                        border-color: #334155; background: #1E293B; color: #E2E8F0;
+                    }}
+                }}
+            </style>
+            <button id="btn-copiar" title="Copiar resposta">📋</button>
+            <script>
+                document.getElementById('btn-copiar').addEventListener('click', function() {{
+                    const texto = decodeURIComponent(escape(atob('{texto_b64}')));
+                    navigator.clipboard.writeText(texto);
+                    this.innerText = '✅';
+                    setTimeout(() => {{ this.innerText = '📋'; }}, 1500);
+                }});
+            </script>
+            """,
+            height=40,
+        )
+
+    with col_regenerar:
+        # Só na última mensagem: regenerar uma resposta no meio da
+        # conversa exigiria decidir o que fazer com as mensagens
+        # seguintes (que podem referenciar o conteúdo substituído) — a
+        # última é o único caso sem ambiguidade.
+        if eh_ultima_mensagem and st.button(
+            "🔄", key=f"regenerar_{idx}", help="Gerar outra resposta"
+        ):
+            # Remove a resposta atual; a pergunta correspondente (idx-1)
+            # volta a ser "a última mensagem é do usuário" — o mesmo
+            # gatilho que já dispara uma geração nova no fim do main.py,
+            # reaproveitando o pipeline inteiro (streaming, rota,
+            # latência) em vez de duplicar essa lógica aqui.
+            st.session_state.messages.pop(idx)
+            st.rerun()
+
+
 def render_chat_history() -> None:
     """Renderiza o histórico completo da conversa."""
     for idx, msg in enumerate(st.session_state.messages):
@@ -874,3 +970,6 @@ def render_chat_history() -> None:
 
             if mensagem_role(msg) == "assistant" and "download_file" in msg:
                 render_downloads(msg, idx)
+
+            if mensagem_role(msg) == "assistant":
+                render_acoes_resposta(msg, idx)

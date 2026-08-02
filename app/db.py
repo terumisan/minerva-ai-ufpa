@@ -172,6 +172,14 @@ def inicializar_banco() -> None:
         commit=True,
     )
 
+    # 'positivo' | 'negativo' | NULL (sem feedback). Um clique no 👍/👎
+    # abaixo de cada resposta (ui.py) faz UPDATE nesta coluna pelo id da
+    # linha — ver registrar_feedback().
+    executar_query(
+        "ALTER TABLE historico_minerva ADD COLUMN IF NOT EXISTS feedback TEXT;",
+        commit=True,
+    )
+
     # Respostas do formulário de avaliação (minerva_avaliacao.py). Colunas
     # fixas só para o que se consulta direto (score SUS, curso); o restante
     # do formulário vai íntegro no JSONB — adicionar pergunta nova ao
@@ -197,17 +205,23 @@ def salvar_no_historico(
     resposta: str,
     rota: str | None = None,
     latencia_ms: int | None = None,
-) -> None:
+) -> int | None:
     """Salva pergunta e resposta na conversa indicada, dentro da sessão atual.
 
     rota/latencia_ms são opcionais (default None) pra não quebrar nenhuma
     chamada existente que ainda não tenha essa informação disponível.
+
+    Devolve o id da linha inserida (RETURNING) — usado em main.py pra
+    anexar "historico_id" na mensagem em session_state, permitindo que os
+    botões de feedback/regenerar (ui.py) referenciem a linha exata sem
+    precisar casar por texto. None se a query falhar (ver executar_query).
     """
-    executar_query(
+    resultado = executar_query(
         """
         INSERT INTO historico_minerva
             (session_id, conversa_id, pergunta, resposta, rota, latencia_ms)
-        VALUES (%s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING id;
         """,
         params=(
             st.session_state.session_id,
@@ -217,19 +231,25 @@ def salvar_no_historico(
             rota,
             latencia_ms,
         ),
+        fetch=True,
         commit=True,
     )
 
+    return resultado[0][0] if resultado else None
 
-def carregar_historico_conversa(conversa_id: str) -> list[tuple[str, str]]:
+
+def carregar_historico_conversa(conversa_id: str) -> list[tuple[int, str, str, str | None]]:
     """Carrega o histórico persistido de uma conversa específica.
 
     Filtra também por session_id: um dispositivo não pode carregar uma
     conversa de outro, mesmo que adivinhe o conversa_id.
+
+    Devolve (id, pergunta, resposta, feedback) — id e feedback alimentam
+    os botões de ação por mensagem (ui.py, render_chat_history).
     """
     registros = executar_query(
         """
-        SELECT pergunta, resposta
+        SELECT id, pergunta, resposta, feedback
         FROM historico_minerva
         WHERE session_id = %s AND conversa_id = %s
         ORDER BY id ASC;
@@ -239,6 +259,20 @@ def carregar_historico_conversa(conversa_id: str) -> list[tuple[str, str]]:
     )
 
     return registros or []
+
+
+def registrar_feedback(historico_id: int, feedback: str) -> None:
+    """Grava 👍/👎 numa resposta específica.
+
+    Sem filtro por session_id de propósito: historico_id já é a chave
+    primária da linha (só existe pra quem já viu a resposta renderizada
+    na própria sessão — não é um id adivinhável/exposto em URL).
+    """
+    executar_query(
+        "UPDATE historico_minerva SET feedback = %s WHERE id = %s;",
+        params=(feedback, historico_id),
+        commit=True,
+    )
 
 
 def listar_conversas_dispositivo(limite: int = 15) -> list[tuple[str, str, Any]]:
