@@ -295,6 +295,30 @@ def aplicar_css(tema: str = "auto") -> None:
             opacity: 0.92;
         }
 
+        /* Seletor de tema (st.segmented_control, Auto/Claro/Escuro no
+           cabeçalho): bug real — os 3 "pills" (role="radio" dentro do
+           radiogroup) usam primaryColor/backgroundColor FIXOS do
+           config.toml, os mesmos valores de tema "light" que já
+           causaram os outros dois bugs de cor corrigidos antes. No
+           escuro, a opção selecionada saía azul-claro sobre fundo
+           azul-claro translúcido, e as não-selecionadas saíam com fundo
+           quase-branco (#F7F9FC do config.toml) — exatamente o próprio
+           botão que liga o modo escuro parecia continuar no claro.
+           data-selected="true"/role="radio" são atributos estáveis do
+           componente (ao contrário das classes st-emotion-cache-*, que
+           mudam a cada build do Streamlit). */
+        [role="radiogroup"] button[role="radio"] {
+            background: var(--minerva-white) !important;
+            color: var(--minerva-text) !important;
+            border: 1px solid var(--minerva-border) !important;
+        }
+
+        [role="radiogroup"] button[role="radio"][data-selected="true"] {
+            background: var(--minerva-blue) !important;
+            color: var(--minerva-white) !important;
+            border-color: var(--minerva-blue) !important;
+        }
+
         div[data-testid="stExpander"] {
             border: 1px solid var(--minerva-border) !important;
             border-radius: 14px !important;
