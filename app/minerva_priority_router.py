@@ -625,6 +625,54 @@ def classify_question(
 
 
     # ------------------------------------------------------------------
+    # 4.13. SEGUNDA CHAMADA
+    #
+    # A própria sidebar (CATEGORIAS_MINERVA em ui.py) já promete essa
+    # resposta na descrição da categoria "Graduação" ("Trancamento,
+    # disciplina, segunda chamada e aproveitamento") — mas até agora não
+    # existia rota nenhuma pra ela, caía direto no RAG genérico.
+    # ------------------------------------------------------------------
+
+    if _has_any(
+        q,
+        (
+            "segunda chamada",
+            "faltei a uma prova",
+            "faltei na prova",
+            "perdi uma avaliacao",
+            "perdi a prova",
+            "nao pude fazer a prova",
+            "nao pude fazer a avaliacao",
+        ),
+    ):
+        return "segunda_chamada"
+
+
+    # ------------------------------------------------------------------
+    # 4.14. REVISÃO DE CONCEITO
+    # ------------------------------------------------------------------
+
+    if (
+        _has_any(
+            q,
+            (
+                "revisao de conceito",
+                "revisao de nota",
+                "discordo da minha nota",
+                "quero revisar minha nota",
+            ),
+        )
+        # "contestar minha nota"/"contestar a nota" etc.: frase exata era
+        # frágil demais (não casava "contestar minha nota", só "contestar
+        # nota" grudado) — "contestar" + "nota"/"conceito" em qualquer
+        # ordem/distância cobre as variações reais sem precisar listar
+        # cada combinação de pronome/artigo no meio.
+        or ("contestar" in q and ("nota" in q or "conceito" in q))
+    ):
+        return "revisao_conceito"
+
+
+    # ------------------------------------------------------------------
     # 5. REGULAMENTO DA GRADUAÇÃO
     # ------------------------------------------------------------------
 
@@ -1578,6 +1626,46 @@ def priority_answer(
             "área.\n\n"
             f"Site oficial: {PPGCC_HOME}\n"
             f"Contato geral da FCT: {FCT_CONTATO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # SEGUNDA CHAMADA
+    # ------------------------------------------------------------------
+
+    if route == "segunda_chamada":
+        return (
+            "A segunda chamada é tratada no **Art. 102 do Regulamento de "
+            "Graduação da UFPA**:\n\n"
+            "- Vale para quem faltou a uma avaliação por **impedimento "
+            "legal, doença atestada por serviço médico de saúde ou motivo "
+            "de força maior**, devidamente comprovado.\n"
+            "- O requerimento é feito à **direção da Subunidade Acadêmica** "
+            "(a Faculdade/Escola do seu curso).\n"
+            "- Prazo: até **72 horas úteis** após a realização da "
+            "primeira chamada.\n\n"
+            "Atenção: a **Avaliação Substitutiva** (outra modalidade, "
+            "Art. 98) é diferente e **não tem** segunda chamada própria "
+            "(§4º do Art. 98).\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
+        )
+
+
+    # ------------------------------------------------------------------
+    # REVISÃO DE CONCEITO
+    # ------------------------------------------------------------------
+
+    if route == "revisao_conceito":
+        return (
+            "A revisão de conceito (nota) é tratada nos **Art. 103 e 104 "
+            "do Regulamento de Graduação da UFPA**:\n\n"
+            "- Deve ser solicitada por **requerimento formalizado** junto "
+            "à Subunidade Acadêmica, em até **3 dias** após a divulgação "
+            "do conceito, conforme o Regimento Geral da UFPA.\n"
+            "- O processo é analisado por uma **Comissão de 3 docentes**, "
+            "nomeada pelo Diretor da Faculdade/Escola — o professor da "
+            "disciplina envolvida é excluído dessa comissão.\n\n"
+            f"Fonte oficial: {PROEG_REGULAMENTO}"
         )
 
 

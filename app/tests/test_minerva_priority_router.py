@@ -275,3 +275,48 @@ def test_novas_rotas_lab_nao_regridem_professores_nem_ppgee():
     # nova de PPGCC não deve interferir na classificação de PPGEE.
     from minerva_basic_facts import classify_basic_question
     assert classify_basic_question("O que significa PPGEE?") == "basic_acronym"
+
+
+# ----------------------------------------------------------------------
+# Segunda chamada e revisão de conceito — a sidebar (CATEGORIAS_MINERVA
+# em ui.py) já anuncia "segunda chamada" na categoria Graduação, mas não
+# havia rota nenhuma pra ela até esta mudança.
+# ----------------------------------------------------------------------
+
+def test_classify_question_segunda_chamada_variacoes():
+    variacoes = [
+        "Como funciona a segunda chamada de prova?",
+        "Faltei a uma prova, o que eu faço?",
+        "Perdi a prova por doença, e agora?",
+    ]
+    for pergunta in variacoes:
+        assert classify_question(pergunta) == "segunda_chamada", pergunta
+
+
+def test_classify_question_revisao_conceito_variacoes():
+    variacoes = [
+        "Quero contestar minha nota",
+        "Como contestar o conceito da disciplina?",
+        "Discordo da minha nota, como faço revisão de conceito?",
+    ]
+    for pergunta in variacoes:
+        assert classify_question(pergunta) == "revisao_conceito", pergunta
+
+
+def test_priority_answer_segunda_chamada_cita_prazo_e_regulamento():
+    resposta = priority_answer("Como funciona a segunda chamada de prova?")
+    assert resposta is not None
+    assert "72 horas úteis" in resposta
+    assert "regulamento-da-graduacao" in resposta.lower() or "PROEG" in resposta
+
+
+def test_priority_answer_revisao_conceito_cita_prazo_e_comissao():
+    resposta = priority_answer("Quero contestar minha nota")
+    assert resposta is not None
+    assert "3 dias" in resposta
+    assert "Comissão" in resposta or "comissão" in resposta
+
+
+def test_novas_rotas_graduacao_nao_regridem_estagio_trancamento():
+    assert classify_question("Quais são as regras de estágio?") == "internship"
+    assert classify_question("Como eu posso trancar o curso?") == "matricula_trancamento"
