@@ -112,7 +112,12 @@ st.set_page_config(
 # =============================================================================
 # CSS DA INTERFACE
 # =============================================================================
-aplicar_css()
+# Precisa ser lido ANTES de aplicar_css() (que decide o CSS deste render a
+# partir daqui) — o widget que efetivamente deixa o usuário trocar o valor
+# fica na sidebar, renderizada depois; funciona porque o valor escolhido
+# fica em session_state entre reruns (key="tema_ui" no widget mais abaixo).
+st.session_state.setdefault("tema_ui", "auto")
+aplicar_css(st.session_state["tema_ui"])
 
 
 # MINERVA_DB_IMPORT_BEGIN
@@ -324,6 +329,19 @@ with st.sidebar:
     ):
         st.session_state.modo_avaliacao = True
         st.rerun()
+
+    st.markdown("---")
+
+    # key="tema_ui" liga o widget direto ao session_state lido no topo do
+    # arquivo (antes de aplicar_css()) — trocar aqui já reflete no próximo
+    # rerun, sem precisar de callback manual.
+    st.segmented_control(
+        "Tema",
+        options=["auto", "claro", "escuro"],
+        format_func=lambda v: {"auto": "🖥️ Auto", "claro": "🌞 Claro", "escuro": "🌙 Escuro"}[v],
+        key="tema_ui",
+        label_visibility="collapsed",
+    )
 
     st.markdown("---")
 

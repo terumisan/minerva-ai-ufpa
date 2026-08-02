@@ -36,19 +36,7 @@ except (ImportError, ValueError):
 # ======================================================================
 
 
-def aplicar_css() -> None:
-    """Injeta o CSS único da interface.
-
-    Deve ser chamada logo após st.set_page_config(). Bloco único: iterações
-    anteriores empilhavam 5 blocos <style> que se sobrepunham (vários deles
-    nem miravam mais em classes usadas no HTML atual). Este bloco estiliza
-    somente o que existe hoje: as divs ".minerva-v2-*", a sidebar, os
-    botões e as mensagens do chat.
-    """
-    st.markdown(
-        """
-        <style>
-        :root {
+_TEMA_VARS_CLARO = """
             --minerva-blue: #1E40AF;
             --minerva-blue-soft: #EFF6FF;
             --minerva-border: #E2E8F0;
@@ -56,7 +44,57 @@ def aplicar_css() -> None:
             --minerva-muted: #64748B;
             --minerva-bg: #F8FAFC;
             --minerva-white: #FFFFFF;
-        }
+"""
+
+_TEMA_VARS_ESCURO = """
+            --minerva-blue: #60A5FA;
+            --minerva-blue-soft: rgba(96, 165, 250, 0.16);
+            --minerva-border: #334155;
+            --minerva-text: #E2E8F0;
+            --minerva-muted: #94A3B8;
+            --minerva-bg: #0F172A;
+            --minerva-white: #1E293B;
+"""
+
+
+def aplicar_css(tema: str = "auto") -> None:
+    """Injeta o CSS único da interface.
+
+    Deve ser chamada logo após st.set_page_config(). Bloco único: iterações
+    anteriores empilhavam 5 blocos <style> que se sobrepunham (vários deles
+    nem miravam mais em classes usadas no HTML atual). Este bloco estiliza
+    somente o que existe hoje: as divs ".minerva-v2-*", a sidebar, os
+    botões e as mensagens do chat.
+
+    tema: "claro", "escuro" ou "auto" (padrão — segue prefers-color-scheme
+    do navegador/SO). Escolha manual do usuário via seletor na sidebar
+    (ver main.py, st.session_state["tema_ui"]) tem prioridade sobre a
+    preferência do sistema quando não é "auto".
+    """
+    if tema == "escuro":
+        # Sem @media: aplica direto, incondicional — escolha manual vence
+        # a preferência do sistema.
+        bloco_variaveis = f":root {{{_TEMA_VARS_ESCURO}}}"
+    elif tema == "claro":
+        bloco_variaveis = f":root {{{_TEMA_VARS_CLARO}}}"
+    else:
+        # "auto": variáveis claras como base, escuras só dentro do media
+        # query — comportamento passivo, segue o SO/navegador.
+        bloco_variaveis = f"""
+        :root {{{_TEMA_VARS_CLARO}}}
+
+        @media (prefers-color-scheme: dark) {{
+            :root {{{_TEMA_VARS_ESCURO}}}
+        }}
+        """
+
+    # Concatenação, não f-string única: o resto da folha de estilo abaixo
+    # é CSS puro cheio de "{" "}" literais — um f-string trataria cada um
+    # deles como delimitador de expressão Python e quebraria o parsing.
+    # Só o topo (bloco_variaveis, já pré-formatado acima) precisa de
+    # interpolação.
+    st.markdown(
+        "<style>\n" + bloco_variaveis + """
 
         html, body, .stApp, [data-testid="stAppViewContainer"] {
             background: var(--minerva-bg) !important;
@@ -158,10 +196,31 @@ def aplicar_css() -> None:
             line-height: 1.5;
         }
 
-        /* Placeholder do campo de pergunta (st.chat_input) */
+        /* Caixa de pergunta (st.chat_input): o Streamlit pinta o wrapper
+           interno com branco fixo (não usa as variáveis daqui), o que
+           destoava — sobretudo no escuro, virava uma caixa branca no meio
+           de uma tela escura. Mira no wrapper visível (2 níveis abaixo de
+           stChatInput; sem data-testid próprio, então usa o primeiro/
+           segundo filho) e aplica o tom azulado suave já usado nas bolhas
+           do usuário (--minerva-blue-soft), com borda em --minerva-blue. */
+        [data-testid="stChatInput"] > div {
+            background: var(--minerva-blue-soft) !important;
+            border: 1.5px solid var(--minerva-blue) !important;
+            border-radius: 14px !important;
+        }
+
+        [data-testid="stChatInput"] textarea {
+            background: transparent !important;
+            color: var(--minerva-text) !important;
+        }
+
         [data-testid="stChatInput"] textarea::placeholder {
             color: var(--minerva-muted);
             opacity: 1;
+        }
+
+        [data-testid="stChatInput"] button {
+            color: var(--minerva-blue) !important;
         }
 
         /* Botões */
