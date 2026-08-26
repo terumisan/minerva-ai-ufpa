@@ -63,7 +63,12 @@ ESCOPO INSTITUCIONAL OBRIGATÓRIO:
 
 ESTILO:
 - Responda em português do Brasil.
-- Seja claro, direto e acadêmico.
+- Comece pela resposta direta, sem introduções como "com base no contexto".
+- Seja claro, direto e acadêmico; use no máximo 180 palavras.
+- Prefira um parágrafo curto. Use lista somente quando a pergunta pedir etapas,
+  itens ou comparação.
+- Não repita a pergunta, não enumere trechos irrelevantes e não acrescente
+  regras correlatas que não sejam necessárias para responder.
 - Não crie fatos para preencher lacunas.
 - Não mencione outras universidades como se fossem a UFPA.
 """
@@ -303,7 +308,9 @@ def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
             },
         ],
         "temperature": 0.0,
-        "max_tokens": 450,
+        # O limite de palavras no prompt evita a verbosidade observada no
+        # Gemma; 320 tokens ainda deixa margem para listas acadêmicas úteis.
+        "max_tokens": 320,
         # O Gemma 4 "pensa" antes de responder por padrão (gasta ~400
         # tokens em raciocínio interno numa pergunta de 4 palavras, estourando
         # o max_tokens antes de gerar a resposta de verdade). Modelos sem

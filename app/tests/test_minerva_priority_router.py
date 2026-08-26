@@ -205,6 +205,44 @@ def test_novas_rotas_nao_regridem_enrollment_nem_internship():
     assert classify_question("Quais são as regras de estágio?") == "internship"
 
 
+def test_dataset_especifico_tem_prioridade_sobre_rota_generica_de_estagio():
+    resposta = priority_answer(
+        "Quem pode solicitar a matrícula em Estágio Supervisionado?"
+    )
+    assert resposta is not None
+    assert "regularmente matriculado" in resposta
+    assert "Matricula_Estagio_Anexo.pdf" in resposta
+
+
+def test_rota_generica_de_estagio_permanece_para_pergunta_ampla():
+    resposta = priority_answer("Quais são as regras de estágio?")
+    assert resposta is not None
+    assert "Fonte oficial FCT" in resposta
+
+
+def test_perguntas_futuras_normativas_usam_respostas_documentais():
+    casos = {
+        "Quantas etapas tem o TCC e qual é a carga horária de cada uma?": "120 horas",
+        "Quais são os pré-requisitos para matrícula em TCC I?": "sexto bloco",
+        "Qual é o pré-requisito para matrícula em TCC II?": "aprovado em TCC I",
+        "Qual documento devo apresentar para matrícula em TCC I?": "Anexo I",
+        "Qual documento devo apresentar para matrícula em TCC II?": "Anexo II",
+        "O TCC pode ser feito em dupla ou trio?": "individualmente",
+        "Qual é a carga horária mínima do Estágio Supervisionado?": "390 horas",
+        "Qual é o pré-requisito para cursar Estágio Supervisionado de 200 horas?": "terceiro",
+        "Qual é o pré-requisito para cursar Estágio Supervisionado de 390 horas?": "quinto bloco",
+        "O plano de Estágio Supervisionado precisa ser aprovado antes da matrícula?": "colegiado",
+        "Quantas horas de Atividades Complementares são necessárias para integralizar o curso?": "120 horas",
+        "Em quais semestres são oferecidas AC-I e AC-II?": "décimo semestre",
+    }
+
+    for pergunta, trecho_esperado in casos.items():
+        resposta = priority_answer(pergunta)
+        assert resposta is not None, pergunta
+        assert trecho_esperado in resposta, pergunta
+        assert "Fonte:" in resposta, pergunta
+
+
 # ----------------------------------------------------------------------
 # Rotas encontradas continuando a varredura em domínios UFPA/FCT
 # (laboratórios de pesquisa/ensino, PPGCC)

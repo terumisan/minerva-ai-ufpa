@@ -105,7 +105,8 @@ st.set_page_config(
     page_title="Minerva - FCT/UFPA",
     layout="centered",
     page_icon=UFPA_LOGO_URL,
-    initial_sidebar_state="expanded",
+    # Mantém a navegação aberta em desktop e recolhida em telas estreitas.
+    initial_sidebar_state="auto",
 )
 
 

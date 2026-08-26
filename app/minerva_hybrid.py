@@ -473,6 +473,8 @@ Regras obrigatórias:
 - Nunca use UFPB, UFPE, UPE ou outras universidades como se fossem UFPA.
 - Não invente informações.
 - Responda somente com base no contexto abaixo.
+- Responda primeiro e diretamente ao que foi perguntado, em no máximo 180
+  palavras. Ignore trechos que não sejam necessários para a resposta.
 - O contexto vem de uma busca automática: pode incluir, junto com o(s) trecho(s)
   realmente relevante(s), outros trechos de assuntos diferentes. Use o(s)
   trecho(s) que respondem à pergunta normalmente, citando-o(s). Não misture

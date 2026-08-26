@@ -78,18 +78,20 @@ services:
   # Modelo local gratuito, isolado do chat_llm de outro projeto. Só a
   # Minerva usa este container, na porta 8002.
   # Histórico de modelos testados (arquivos .gguf ficam em models/ caso
-  # queira voltar a algum): Qwen2.5-7B (ativo) -> Llama-3.2-3B (mais rápido,
+  # queira voltar a algum): Qwen2.5-7B -> Llama-3.2-3B (mais rápido,
   # porém respostas mais pobres) -> Gemma 4 E4B (QAT, pensa demais por
   # padrão e alucina sem grounding — ver conversa) -> Qwen3-4B-Instruct-2507
   # (testado jul/2026, ~2x mais rápido isolado e qualidade comparável, mas
-  # revertido a pedido do usuário — ver memória/conversa).
+  # revertido a pedido do usuário — ver memória/conversa). Em ago/2026,
+  # Gemma 4 E4B venceu a comparação local entre os três modelos em tempo
+  # médio e respostas corretas. LLM_MODEL permite trocar sem editar o YAML.
   ufpa_rag_llm:
     image: ghcr.io/ggml-org/llama.cpp:server
     container_name: ufpa_rag_llm
     restart: unless-stopped
     command:
       - "-m"
-      - "/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
+      - "/models/${LLM_MODEL:-gemma-4-E4B_q4_0-it.gguf}"
       - "--host"
       - "0.0.0.0"
       - "--port"

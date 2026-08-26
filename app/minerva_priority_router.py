@@ -2080,6 +2080,14 @@ def priority_answer(question: str):
     if basic_result is not None:
         return basic_result
 
+    # Respostas específicas verificadas precisam vir antes das rotas
+    # temáticas genéricas. O matcher exige frase exata/variação ou todas as
+    # palavras-chave, então perguntas amplas continuam nas rotas existentes.
+    resultado_dataset = _minerva_resposta_dataset(question)
+
+    if resultado_dataset is not None:
+        return resultado_dataset
+
     resultado_router = _minerva_router_before_basic_answer(
         question
     )
@@ -2087,12 +2095,7 @@ def priority_answer(question: str):
     if resultado_router is not None:
         return resultado_router
 
-    # Último recurso, prioridade baixa: dataset de perguntas cadastradas
-    # manualmente (minerva_dataset.json). Só entra quando nada acima já
-    # respondeu — não compete com nenhuma rota fixa existente.
-    return _minerva_resposta_dataset(
-        question
-    )
+    return None
 
 
 try:
@@ -2111,4 +2114,3 @@ except NameError:
     pass
 
 # MINERVA_BASIC_FACTS_END
-

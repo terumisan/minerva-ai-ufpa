@@ -446,6 +446,28 @@ def aplicar_css(tema: str = "auto") -> None:
                 width: 45% !important;
             }
 
+            /* O cabeçalho não é uma grade de sugestões: mantém logo,
+               título e tema na mesma linha em vez de aplicar o wrap acima. */
+            .st-key-header_card [data-testid="stHorizontalBlock"] {
+                flex-wrap: nowrap !important;
+                gap: 0.35rem !important;
+            }
+
+            .st-key-header_card [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+                flex: 0 1 auto !important;
+                min-width: 0 !important;
+                width: auto !important;
+            }
+
+            .st-key-header_card h2 {
+                font-size: 1.1rem !important;
+                white-space: nowrap;
+            }
+
+            .st-key-header_card .stCaptionContainer {
+                display: none;
+            }
+
             /* Alvo de toque confortável (mínimo recomendado ~44px). */
             div.stButton > button {
                 min-height: 44px !important;
@@ -456,6 +478,10 @@ def aplicar_css(tema: str = "auto") -> None:
 
             [data-testid="stChatInput"] {
                 max-width: 100% !important;
+            }
+
+            [data-testid="stBottom"] {
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important;
             }
 
             div[data-testid="stChatMessage"] {

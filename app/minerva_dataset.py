@@ -75,7 +75,18 @@ def _pergunta_bate(pergunta_norm: str, entrada: dict) -> bool:
 
     palavras_chave = [_norm(p) for p in entrada.get("palavras_chave", []) if p]
 
-    return bool(palavras_chave) and all(p in pergunta_norm for p in palavras_chave)
+    # Limites de palavra evitam colisões de substring. Exemplo real: a
+    # palavra-chave "tcc i" casava dentro de "tcc ii" e fazia a pergunta
+    # sobre matrícula em TCC II receber a resposta/documento de TCC I.
+    def contem_termo(termo: str) -> bool:
+        return bool(
+            re.search(
+                rf"(?<![a-z0-9]){re.escape(termo)}(?![a-z0-9])",
+                pergunta_norm,
+            )
+        )
+
+    return bool(palavras_chave) and all(contem_termo(p) for p in palavras_chave)
 
 
 def _resposta_conhecida(entrada: dict) -> Optional[str]:
