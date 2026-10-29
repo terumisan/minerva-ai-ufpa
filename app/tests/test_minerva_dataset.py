@@ -32,15 +32,16 @@ def test_pergunta_nao_bate_sem_candidatos():
     assert not _pergunta_bate(_norm("pergunta qualquer"), {})
 
 
-def test_resposta_literal_cita_fonte_quando_presente():
+def test_resposta_literal_exige_snapshot_mesmo_com_nome_da_fonte():
     entrada = {"resposta_literal": "O prazo é de 30 dias.", "fonte_documento": "Resolucao_TCC.pdf"}
-    assert _resposta_literal(entrada) == "O prazo é de 30 dias.\n\nFonte: Resolucao_TCC.pdf"
+    assert _resposta_literal(entrada) is None
 
 
 def test_resposta_literal_sem_fonte():
     entrada = {"resposta_literal": "O prazo é de 30 dias."}
-    assert _resposta_literal(entrada) == "O prazo é de 30 dias."
+    assert _resposta_literal(entrada) is None
 
 
 def test_resposta_literal_none_quando_vazia():
     assert _resposta_literal({}) is None
+

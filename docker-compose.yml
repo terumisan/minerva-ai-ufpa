@@ -36,6 +36,7 @@ services:
     container_name: ufpa_rag_ui
     restart: unless-stopped
     environment:
+      MINERVA_V7_STATIC_SNAPSHOT_DIR: /static_snapshots
       DB_HOST: ufpa_rag_db
       DB_PORT: "5432"
       DB_NAME: ${DB_NAME:-ufpa_rag}
@@ -46,6 +47,7 @@ services:
     volumes:
       - ./app:/app
       - ./documentos:/documentos
+      - ./static_snapshots:/static_snapshots:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -152,3 +154,4 @@ services:
 
 volumes:
   pgdata_rag:
+

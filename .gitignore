@@ -40,3 +40,7 @@ models/
 
 # Estado local do Claude Code (sessões, config de agente) — não é parte do projeto.
 .claude/
+
+
+# Fontes e aprovações locais mantidas pelo curador
+/static_snapshots/

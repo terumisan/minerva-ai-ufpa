@@ -6,6 +6,11 @@ import unicodedata
 from pathlib import Path
 from typing import Optional
 
+try:
+    from .minerva_static import snapshot_verificado
+except (ImportError, ValueError):
+    from minerva_static import snapshot_verificado
+
 # Reaproveita o que já existe em minerva_basic_facts.py em vez de duplicar
 # fetch/parsing: BASIC_FACTS para respostas já conhecidas, _fetch/
 # _official_ufpa_url para a busca controlada em domínios *.ufpa.br.
@@ -118,20 +123,18 @@ def _resposta_conhecida(entrada: dict) -> Optional[str]:
 
 
 def _resposta_literal(entrada: dict) -> Optional[str]:
-    """RESPOSTA_LITERAL: resposta fixa extraída de um documento oficial já
-    ingerido (ver app/scripts/gerar_eval_dataset.py + promocao_eval_dataset.py),
-    para perguntas de alto valor que o RAG genérico já demonstrou responder
-    bem, mas que valem a pena responder sem esperar o LLM local (2-5min/CPU).
-    """
+    """Só libera texto literal com snapshot e resposta autorizados pelo curador."""
     resposta = str(entrada.get("resposta_literal", "")).strip()
 
-    if not resposta:
+    if not resposta or not snapshot_verificado(entrada):
         return None
 
     fonte = str(entrada.get("fonte_documento", "")).strip()
 
     if fonte:
         resposta += f"\n\nFonte: {fonte}"
+
+    resposta += f"\nFonte oficial: {entrada['url_oficial']}"
 
     return resposta
 
@@ -175,11 +178,14 @@ def resposta_dataset(pergunta: str) -> Optional[str]:
         if not _pergunta_bate(pergunta_norm, entrada):
             continue
 
-        resposta = (
-            _resposta_conhecida(entrada)
-            or _resposta_literal(entrada)
-            or _resposta_via_fetch(entrada)
-        )
+        estrategia = entrada.get("estrategia_recuperacao")
+        if estrategia in ("RESPOSTA_LITERAL", "STATIC_VERIFIED"):
+            # Sem aprovação, deixa o chamador prosseguir para recuperação.
+            resposta = _resposta_literal(entrada)
+        elif estrategia == "RAG_WEB_CONTROLADO":
+            resposta = _resposta_via_fetch(entrada)
+        else:
+            resposta = None
 
         if resposta:
             return resposta
@@ -188,3 +194,4 @@ def resposta_dataset(pergunta: str) -> Optional[str]:
 
 
 __all__ = ["resposta_dataset"]
+

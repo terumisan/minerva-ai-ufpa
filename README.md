@@ -270,3 +270,15 @@ Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de c
 - Sem autenticação de usuário: qualquer pessoa com o link acessa o app. O histórico de conversas é isolado por navegador (via `session_id` na URL), não por login.
 - Sem rate limiting: como o LLM roda serializado (`--parallel 1` no llama.cpp), várias perguntas simultâneas de usuários diferentes enfileiram.
 - **Vazamento de memória do llama.cpp em uso prolongado**: o cache interno de "compute graphs" do servidor cresce sem limite (observado: 11,2GB de RAM depois de dias no ar, contra ~4,5GB esperados de um modelo 7B Q4 — forçava a máquina inteira pro swap e degradava a latência de todos os containers, não só do LLM). Mitigado com um timer systemd de usuário (`ufpa_rag_restart_llm.timer`, reinicia o container `ufpa_rag_llm` diariamente às 4h — ver `systemctl --user list-timers`). Sem estado persistente no container, reiniciar é seguro.
+
+
+
+## Correções V7 integradas em 29/10/2026
+
+Veja [INTEGRACAO_V7.md](INTEGRACAO_V7.md) para mudanças, configuração de
+snapshots e comandos de execução. O dataset literal agora exige fonte e
+aprovação verificáveis; entradas sem autorização seguem para o RAG. O RRF
+não conta IDs duplicados na mesma lista e desempata pelo ID. As rotas fixas
+permanecem anteriores a esta política. O protótipo não exige login institucional.
+A CI também cobre `melhorias/roadmap-engenharia`. A integração não é uma
+homologação completa nem comprova ganho de qualidade ou latência.

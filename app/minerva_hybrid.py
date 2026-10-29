@@ -362,12 +362,16 @@ def _fusao_rrf(lista_lexica, lista_semantica, k=60, limite=5):
     dados: dict[int, dict] = {}
 
     for lista in (lista_lexica, lista_semantica):
+        vistos = set()
         for rank, item in enumerate(lista):
             chave = item["id"]
+            if chave in vistos:
+                continue
+            vistos.add(chave)
             scores[chave] = scores.get(chave, 0.0) + 1.0 / (k + rank + 1)
-            dados[chave] = item
+            dados.setdefault(chave, item)
 
-    ordenado = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    ordenado = sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))
 
     return [
         {
@@ -494,3 +498,4 @@ Contexto institucional:
             pass
 
     return resposta_extrativa(fontes)
+
