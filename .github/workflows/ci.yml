@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, melhorias/roadmap-engenharia]
   pull_request:
-    branches: [main]
+    branches: [main, melhorias/roadmap-engenharia]
 
 jobs:
   lint-and-test:
@@ -25,3 +25,4 @@ jobs:
 
       - name: pytest
         run: pytest
+

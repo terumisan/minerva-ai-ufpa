@@ -1,7 +1,7 @@
 # Roadmap de Engenharia — MINERVA AI V7
 
 > Planejamento proposto em 29/10/2026 para a branch `melhorias/roadmap-engenharia`.
-> Este documento planeja a V7; não declara funcionalidades implementadas, testes executados ou uma versão já homologada.
+> Planejamento com atualização incremental registrada abaixo; a integração não equivale à homologação de toda a V7.
 
 ## 1. Objetivo e escopo
 
@@ -152,4 +152,26 @@ Fora do núcleo obrigatório da V7: fine-tuning, troca completa da UI, microserv
 - [ ] Manual de instalação, operação, backup/restore e rollback validado.
 - [ ] Aceite técnico e institucional registrado; release V7 identificada.
 
-**Estado inicial de todos os itens: planejado.** A presença de componentes anteriores não fecha automaticamente estes critérios.
+**Estado inicial: planejado.** Consulte a atualização abaixo para entregas parciais; os critérios completos dos marcos permanecem pendentes.
+
+
+
+## 11. Integração incremental de 29/10/2026
+
+Base remota: `7d0fffe6e9a5c6730b88395a57f411ccac88d2ed`.
+Detalhes, configuração e limites: [INTEGRACAO_V7.md](INTEGRACAO_V7.md).
+
+| Item | Entrega nesta integração | Estado do item completo |
+|---|---|---|
+| V7-02 | CI também cobre push/PR da branch de engenharia; testes de regressão RRF e snapshots | Parcial; integração com banco/fluxo completo pendente |
+| V7-06 | Dataset literal exige fonte HTTPS UFPA, snapshot íntegro e hash da resposta; estratégia explícita governa despacho | Parcial; curadoria das 60 entradas e auditoria das rotas fixas/basic_facts pendentes |
+| Recuperação híbrida | Deduplicação por ID em cada lista, desempate estável por ID e preservação das entradas | Implementado e coberto por testes unitários |
+| V7-09 | Escopo confirmado: protótipo com acesso anônimo a documentos públicos, sem login institucional/LDAP/SSO | Isolamento do histórico continua pendente; anonimato não elimina essa necessidade |
+
+Não houve migração de banco, retreinamento, troca de embeddings, aprovação
+editorial automática nem implantação no servidor. Os números históricos do
+README e de artigos não são resultados desta integração. As rotas fixas
+anteriores permanecem; não se declara validação universal de respostas.
+
+Validação local desta integração: 125 testes aprovados, Ruff sem erros e
+compilação Python concluída; execução em Python 3.12, sem banco ou LLM real.
