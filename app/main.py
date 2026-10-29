@@ -514,10 +514,8 @@ def processar_pergunta(pergunta, stream_area=None):
     """
     Processa perguntas da Minerva usando camada institucional FCT/UFPA.
 
-    stream_area (st.empty() opcional): quando presente, a resposta do RAG
-    genérico é exibida token a token ali enquanto o modelo gera (streaming
-    SSE — ver consultar_modelo_local). As rotas fixas continuam respondendo
-    de uma vez, já que são instantâneas.
+    stream_area é mantido por compatibilidade. O RAG só exibe a resposta
+    após validar referências, evitando mostrar IDs inventados durante a geração.
 
     Devolve (resposta, rota): "rota" identifica qual camada respondeu
     (nome da rota do priority_router, "dataset_ou_basico" quando uma
@@ -579,15 +577,7 @@ def processar_pergunta(pergunta, stream_area=None):
         conn = None
 
     def llm_func(prompt):
-        if stream_area is None:
-            return consultar_modelo_local(prompt)
-
-        # O callback recebe o texto acumulado pronto pra exibir; o "▌" no
-        # fim imita o cursor de digitação enquanto a geração não termina.
-        return consultar_modelo_local(
-            prompt,
-            on_chunk=lambda texto: stream_area.markdown(texto + " ▌"),
-        )
+        return consultar_modelo_local(prompt)
 
     # try/finally: sem ele, uma exceção em responder_minerva vazava a
     # conexão (nunca voltava ao pool) — com DB_POOL_MAX=10, dez erros
@@ -610,10 +600,7 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
     ultima_pergunta = mensagem_content(st.session_state.messages[-1])
 
     with st.chat_message("assistant", avatar="🏫"):
-        # Área onde a resposta aparece token a token durante a geração
-        # (preenchida pelo on_chunk em llm_func). O spinner cobre a fase
-        # muda (busca no banco + leitura do prompt pelo modelo); assim que
-        # o primeiro token chega, o texto começa a crescer abaixo dele.
+        # Aguarda geração e validação antes de apresentar a resposta.
         stream_area = st.empty()
 
         _inicio = time.perf_counter()

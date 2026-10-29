@@ -175,3 +175,41 @@ anteriores permanecem; não se declara validação universal de respostas.
 
 Validação local desta integração: 125 testes aprovados, Ruff sem erros e
 compilação Python concluída; execução em Python 3.12, sem banco ou LLM real.
+
+## 12. Rastreabilidade incremental do RAG — 29/10/2026
+
+Implementado nesta etapa de V7-08:
+
+- O resultado da fusão RRF preserva `id`, documento (`titulo`) e trecho.
+- O prompt identifica evidências como `[T:ID]`; a geração deve citar somente
+  os trechos utilizados. A aplicação valida todos os IDs citados contra o
+  contexto daquela consulta e lista documento/excerto apenas dos IDs citados,
+  sem tratar todos os resultados recuperados como usados.
+- Referências desconhecidas, malformadas, ausentes ou URLs geradas bloqueiam
+  a resposta do modelo e produzem abstenção. Sem evidência identificável,
+  não há chamada ao LLM. Não são inferidos links a partir de nomes de PDFs.
+- No fallback extrativo, somente os trechos efetivamente reproduzidos (até
+  três) são referenciados. A UI aguarda a validação antes de exibir a geração,
+  impedindo que referências inválidas apareçam durante o streaming.
+
+Validação executada: **147 testes aprovados** em Python 3.10; Ruff e
+compilação Python aprovados. Os novos testes usam fontes sintéticas e cobrem
+IDs/documentos preservados, referência válida, subconjunto citado, repetição,
+ID inexistente, formato inválido, ausência de evidência, URL gerada, ID ambíguo,
+fallback e barreira de exibição no fluxo de `main.processar_pergunta`.
+Não foram reexecutados benchmark, avaliação humana, consulta com PostgreSQL/LLM
+real ou homologação em navegador nesta etapa.
+
+**V7-08 continua parcial.** Pertencimento ao contexto não comprova que o
+excerto sustenta semanticamente cada afirmação, nem que todo enunciado tenha
+citação própria. O modelo declara quais evidências utilizou; uso causal não
+é observável por este validador. Permanecem pendentes avaliação de sustentação,
+confiança/limiares da recuperação, versionamento do corpus, IDs estáveis entre
+reingestões e proveniência com página/seção/URL/data. IDs atuais identificam
+linhas da base ativa e podem mudar na ingestão destrutiva existente. Documento
+e excerto são incluídos no texto exibido/salvo no histórico para consulta;
+não foi criada migração nem trilha estruturada independente de auditoria.
+Rotas fixas/basic_facts e sua curadoria não foram alteradas.
+
+Esta entrega não conclui M2/M3/M6 nem o roadmap completo. Backups operacionais,
+dumps, configurações privadas e logs de consultas permanecem fora do Git.
