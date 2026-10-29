@@ -213,3 +213,48 @@ Rotas fixas/basic_facts e sua curadoria não foram alteradas.
 
 Esta entrega não conclui M2/M3/M6 nem o roadmap completo. Backups operacionais,
 dumps, configurações privadas e logs de consultas permanecem fora do Git.
+
+## 13. Validação real da rastreabilidade — 29/10/2026
+
+Código avaliado: `f6a6790`. Executada amostra intencional e sequencial de três
+perguntas sintéticas documentais e um controle fora de domínio, via função RAG
+real, PostgreSQL ativo e LLM Gemma 4 E4B já instalado. Não houve ingestão,
+alteração do corpus ou aprovação de respostas literais.
+
+| Caso | Latência total | IDs exibidos | Revisão da sustentação |
+|---|---:|---|---|
+| Atribuições do colegiado | 82,769 s | 5091, 5024 | Parcial: art. 69 sustenta atribuições gerais; trecho do art. 170 sobre especialização foi generalizado sem explicitar esse escopo |
+| Pré-requisitos de TCC I/II | 78,874 s | 5240, 5242 | Requisitos centrais sustentados; resposta omite exceção do Anexo I em vez do II e assinatura do orientador |
+| Abandono de curso | 84,434 s | 5225 | Lista de perda de vínculo sustentada; equivalência entre abandono e todas as situações de perda de vínculo não demonstrada pelo trecho |
+| Controle sem evidência | 0,077 s | Nenhum | Abstenção antes da geração, sem chamada ao LLM |
+
+As cinco referências exibidas existem no PostgreSQL e seus documentos e
+excertos coincidem com o contexto recuperado. Foram também localizadas nos
+PDFs locais: RegimentoGeral, páginas físicas 49/26; Resolucao_TCC, 1/2;
+Regulamento_Graduacao, 27. Essas páginas foram conferidas nesta auditoria;
+a aplicação ainda não as persiste como metadados. Cada consulta documental
+recuperou seis trechos; a resposta listou somente os dois, dois e um citados,
+respectivamente. Zero bloqueios por referência inválida foram observados;
+isso não substitui os testes sintéticos de IDs inventados/malformados.
+
+**Resultado factual: não homologado.** IDs válidos não impediram generalização
+de escopo, omissão de exceção ou equivalência conceitual sem suporte explícito.
+A revisão qualitativa foi feita sobre as afirmações e os trechos/PDFs, sem
+avaliador institucional independente nem confirmação de vigência online.
+A amostra não estima precisão geral, p50/p95 ou ganho de qualidade; a primeira
+consulta inclui aquecimento. V7-08 permanece parcial, com sustentação por
+afirmação, confiança da recuperação e avaliação ampla pendentes.
+
+Interface: recriado somente `ufpa_rag_ui`; hashes de main.py/minerva_hybrid.py
+coincidem entre host/container; AppTest abriu a UI sem exceções. Saúde HTTP
+200/`ok`; DB/LLM mantiveram IDs e horários de início. Não houve homologação de
+navegador remoto nem envio da amostra pelo chat WebSocket. O corpus manteve
+395 chunks e o mesmo hash de IDs, documentos, conteúdo e embeddings; PDFs
+mantiveram SHA-256. As 75 entradas literais continuam com zero aprovações.
+
+Verificações: 147 testes novamente aprovados, Ruff e `git diff --check`
+aprovados. Fastembed emitiu aviso sobre mean pooling do mpnet; a compatibilidade
+com o índice histórico continua pendente de avaliação, sem reingestão nesta
+etapa. Relatório completo com respostas, referências, contexto, tempos,
+bloqueios, revisão e limitações preservado localmente na pasta ignorada
+`.minerva_backup_validacao_rag_20261029/`; seus artefatos não são versionados.
