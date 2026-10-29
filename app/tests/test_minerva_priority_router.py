@@ -1,3 +1,5 @@
+from minerva_dataset import resposta_dataset
+
 from minerva_priority_router import (
     _norm,
     _official_ufpa_url,
@@ -205,13 +207,15 @@ def test_novas_rotas_nao_regridem_enrollment_nem_internship():
     assert classify_question("Quais são as regras de estágio?") == "internship"
 
 
-def test_dataset_especifico_tem_prioridade_sobre_rota_generica_de_estagio():
+def test_dataset_sem_aprovacao_preserva_rota_generica_de_estagio(monkeypatch):
+    monkeypatch.delenv("MINERVA_V7_STATIC_SNAPSHOT_DIR", raising=False)
     resposta = priority_answer(
         "Quem pode solicitar a matrícula em Estágio Supervisionado?"
     )
     assert resposta is not None
-    assert "regularmente matriculado" in resposta
-    assert "Matricula_Estagio_Anexo.pdf" in resposta
+    assert resposta_dataset("Quem pode solicitar a matrícula em Estágio Supervisionado?") is None
+    assert "regularmente matriculado" not in resposta
+    assert "Fonte oficial FCT" in resposta
 
 
 def test_rota_generica_de_estagio_permanece_para_pergunta_ampla():
@@ -220,7 +224,8 @@ def test_rota_generica_de_estagio_permanece_para_pergunta_ampla():
     assert "Fonte oficial FCT" in resposta
 
 
-def test_perguntas_futuras_normativas_usam_respostas_documentais():
+def test_perguntas_normativas_sem_snapshot_nao_liberam_literais(monkeypatch):
+    monkeypatch.delenv("MINERVA_V7_STATIC_SNAPSHOT_DIR", raising=False)
     casos = {
         "Quantas etapas tem o TCC e qual é a carga horária de cada uma?": "120 horas",
         "Quais são os pré-requisitos para matrícula em TCC I?": "sexto bloco",
@@ -237,10 +242,11 @@ def test_perguntas_futuras_normativas_usam_respostas_documentais():
     }
 
     for pergunta, trecho_esperado in casos.items():
+        assert resposta_dataset(pergunta) is None, pergunta
         resposta = priority_answer(pergunta)
-        assert resposta is not None, pergunta
-        assert trecho_esperado in resposta, pergunta
-        assert "Fonte:" in resposta, pergunta
+        if resposta is not None:
+            assert trecho_esperado not in resposta, pergunta
+            assert "https://" in resposta, pergunta
 
 
 # ----------------------------------------------------------------------

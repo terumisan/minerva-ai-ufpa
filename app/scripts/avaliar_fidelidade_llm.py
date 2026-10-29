@@ -111,14 +111,14 @@ def _ja_avaliados() -> set[tuple]:
 
 def main() -> None:
     linhas_e2e = [
-        json.loads(l) for l in E2E_PATH.read_text(encoding="utf-8").splitlines() if l.strip()
+        json.loads(linha) for linha in E2E_PATH.read_text(encoding="utf-8").splitlines() if linha.strip()
     ]
-    linhas_rag = [l for l in linhas_e2e if l.get("rota") == "rag_generico"]
+    linhas_rag = [linha for linha in linhas_e2e if linha.get("rota") == "rag_generico"]
     print(f"Linhas e2e totais: {len(linhas_e2e)} | rota=rag_generico: {len(linhas_rag)}")
 
     index_gabarito = _carregar_index_gabarito()
     ja_feitos = _ja_avaliados()
-    pendentes = [l for l in linhas_rag if (l["chunk_id"], l["pergunta"]) not in ja_feitos]
+    pendentes = [linha for linha in linhas_rag if (linha["chunk_id"], linha["pergunta"]) not in ja_feitos]
     print(f"Já avaliados: {len(ja_feitos)} | pendentes: {len(pendentes)}")
 
     conn = conectar_banco()
@@ -174,7 +174,7 @@ def main() -> None:
     conn.close()
 
     todos = [
-        json.loads(l) for l in OUT_PATH.read_text(encoding="utf-8").splitlines() if l.strip()
+        json.loads(linha) for linha in OUT_PATH.read_text(encoding="utf-8").splitlines() if linha.strip()
     ] if OUT_PATH.exists() else []
     validos = [r for r in todos if r["fidelidade"] is not None]
     if validos:
