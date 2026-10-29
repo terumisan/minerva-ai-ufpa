@@ -26,7 +26,7 @@ def test_referencia_valida_lista_apenas_trecho_citado(monkeypatch, fontes):
         assert "[T:28] Documento: Calendario.pdf" in prompt
         return "O colegiado avalia os projetos [T:17]. Outra menção [T:17]."
 
-    resposta = rag.responder_minerva("Atribuições?", llm_func=llm)
+    resposta = rag.responder_minerva("O que consta nos documentos?", llm_func=llm)
     assert "Documento: `Regimento.pdf`" in resposta
     assert "O colegiado avalia os projetos." in resposta
     assert "Calendario.pdf" not in resposta

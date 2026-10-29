@@ -258,3 +258,73 @@ com o índice histórico continua pendente de avaliação, sem reingestão nesta
 etapa. Relatório completo com respostas, referências, contexto, tempos,
 bloqueios, revisão e limitações preservado localmente na pasta ignorada
 `.minerva_backup_validacao_rag_20261029/`; seus artefatos não são versionados.
+
+## 14. Correção conservadora das falhas factuais — 29/10/2026
+
+Diagnóstico sobre respostas/contextos da etapa 13, com prompts anteriores
+reconstruídos do código preservado: colegiado misturou norma geral e escopo de
+especialização; TCC omitiu condições e exceções já presentes no contexto;
+abandono foi equiparado indevidamente à perda de vínculo sem definição
+explícita. As duas primeiras falhas envolvem geração, com mistura de escopos
+na recuperação da primeira; a terceira envolve cobertura inadequada do conceito
+na recuperação e inferência indevida na geração. Consulta somente leitura:
+zero ocorrências de `abandon*` nos chunks; tamanho máximo 899 caracteres.
+Os cortes adicionais de 2500/900 caracteres não causaram essas falhas. Há
+artigos interrompidos pelas fronteiras da ingestão, ainda sem solução nesta etapa.
+
+Implementado: modo conservador para consultas/fontes normativas. O LLM
+seleciona IDs do contexto filtrado por escopo e pertinência; a aplicação
+transcreve integralmente os blocos selecionados e ressalvas recuperadas do
+mesmo documento, sem publicar síntese normativa livre. As ressalvas são
+acréscimos explícitos da aplicação, não alegação de uso pelo LLM. Não são
+considerados todos os resultados como evidências utilizadas. Os excertos
+mantêm condições, exceções e assinatura e avisam que não são a norma integral
+nem conclusão sobre caso individual. Cortes adicionais de consulta/fallback
+foram removidos preventivamente; não houve reingestão. A ausência de evidência
+explícita sobre abandono/interrupção de frequência bloqueia essa inferência
+antes do LLM. Nenhuma pergunta foi promovida a resposta fixa ou literal.
+
+Regressões: **169 testes aprovados**, Ruff e compilação aprovados. Testes
+sintéticos cobrem escopo restrito, condições/exceções, assinatura, pertencimento
+de IDs, rejeição de síntese livre, parser de seleção e abstenção por conceito
+sem evidência. Filtros e parser foram ajustados após rodada exploratória real,
+preservada no relatório; ela não é misturada aos resultados finais.
+
+Reavaliação final: três perguntas originais e três paráfrases inéditas, com
+PostgreSQL ativo somente leitura e LLM Gemma 4 E4B real.
+
+| Caso | Latência total | Saída observada |
+|---|---:|---|
+| Colegiado original | 12,372 s | Excerto 5024 (art. 69), sem regra de especialização |
+| Colegiado, paráfrase de competências | 5,981 s | Abstenção: recuperação não trouxe o dispositivo pertinente; LLM recusou selecionar regras de direção |
+| TCC original | 31,712 s | Excertos 5240/5242 com pré-requisitos, assinatura e exceções |
+| TCC, paráfrase de troca de orientador/intervalo | 32,714 s | 5242 selecionado pelo LLM e 5240 acrescido como ressalva; Anexo I em vez do II e assinatura mantidos |
+| Abandono original | 0,084 s | Abstenção antes da geração |
+| Abandono, paráfrase de deixar de frequentar aulas | 0,080 s | Abstenção antes da geração, sem concluir perda de vínculo |
+
+Quatro chamadas reais de seleção na rodada final; outras quatro na rodada
+exploratória, registrada separadamente. Cinco ocorrências de referências na
+saída final, três IDs distintos, todas existentes no banco, com documento e
+conteúdo coincidentes e presentes no prompt enviado. São três saídas por
+excertos e três abstenções, não seis respostas factuais completas aprovadas.
+Não se atribui ganho global de qualidade ou desempenho: seleção, tamanho do
+contexto, cache e forma de geração diferem da avaliação anterior.
+
+Corpus preservado com 395 chunks e hash de conteúdo/embeddings idêntico ao da
+etapa 13; DB/LLM mantiveram containers e horários de início. `.env`, PDFs,
+GGUF, caches e snapshots preservados. Recriada apenas a UI; hashes do código
+coincidem com o host, AppTest sem exceções, saúde HTTP `ok`; 75 literais com
+zero aprovações. Não houve homologação por navegador ou das rotas fixas.
+Relatório local completo: `.minerva_backup_correcao_factual_20261029/RELATORIO.md`,
+com prompts, respostas, contextos, revisão causal, bloqueios e limitações;
+artefatos privados não versionados.
+
+**V7-08 continua parcial.** A seleção pode falhar; a paráfrase de colegiado
+permanece com limitação de recuperação. Heurísticas de escopo/abandono não
+cobrem toda linguagem e podem reduzir cobertura. Ressalvas acrescidas por
+documento podem ser pouco pertinentes e não substituem vínculo entre artigos.
+A transcrição evita novas conclusões livres, mas não resolve vigência,
+conflitos normativos, completude dos artigos, IDs estáveis ou metadados de
+página/versão. Permanecem avaliação independente por afirmação, testes mais
+amplos, calibração de recuperação e curadoria. Aviso do fastembed sobre mean
+pooling persiste, sem reindexação. Não há homologação factual geral.
