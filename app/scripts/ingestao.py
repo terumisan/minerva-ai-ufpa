@@ -176,7 +176,7 @@ def atualizar_corpus(conn, pasta, modelo_factory=None, batch_size=8, fontes=None
     fontes = fontes or {}
     config = configuracao()
     modelo = None
-    alterados, ignorados = [], []
+    alterados, ignorados, metadados = [], [], []
     with conn:
         with conn.cursor() as cur:
             cur.execute("SELECT pg_try_advisory_xact_lock(%s)", (LOCK_ID,))
@@ -197,8 +197,11 @@ def atualizar_corpus(conn, pasta, modelo_factory=None, batch_size=8, fontes=None
                 fonte = fontes.get(arquivo.name, anterior[2] if anterior else None)
                 cur.execute("SELECT count(*), count(*) FILTER (WHERE embedding IS NOT NULL AND chunk_uid IS NOT NULL AND documento_sha256 = %s AND embedding_config = %s) FROM documentos_ufpa WHERE nome_arquivo = %s", (digest, config, arquivo.name))
                 total, count = cur.fetchone()
-                if not force and anterior and anterior[:3] == (digest, config, fonte) and total == count == anterior[3] and count > 0:
-                    ignorados.append(arquivo.name)
+                if not force and anterior and anterior[:2] == (digest, config) and total == count == anterior[3] and count > 0:
+                    if anterior[2] != fonte:
+                        metadados.append((fonte, arquivo.name, digest))
+                    else:
+                        ignorados.append(arquivo.name)
                     continue
                 chunks = extrair_chunks(arquivo)
                 if modelo is None:
@@ -227,6 +230,9 @@ def atualizar_corpus(conn, pasta, modelo_factory=None, batch_size=8, fontes=None
 
             # Somente agora toca nas linhas ativas, com IDs preservados para
             # conteúdo idêntico, inclusive na primeira migração do legado.
+            for fonte, nome, digest in metadados:
+                cur.execute("UPDATE documentos_ufpa SET source_url=%s WHERE nome_arquivo=%s AND documento_sha256=%s", (fonte,nome,digest))
+                cur.execute("UPDATE minerva_documentos_manifesto SET source_url=%s, atualizado_em=now() WHERE nome_arquivo=%s AND sha256=%s", (fonte,nome,digest))
             for nome, digest, fonte, total in alterados:
                 cur.execute("SELECT id, conteudo FROM documentos_ufpa WHERE nome_arquivo = %s ORDER BY id", (nome,))
                 existentes = defaultdict(deque)
@@ -246,7 +252,10 @@ def atualizar_corpus(conn, pasta, modelo_factory=None, batch_size=8, fontes=None
                     VALUES (%s,%s,%s,%s,%s) ON CONFLICT (nome_arquivo) DO UPDATE SET
                     sha256=EXCLUDED.sha256, embedding_config=EXCLUDED.embedding_config,
                     source_url=EXCLUDED.source_url, chunks=EXCLUDED.chunks, atualizado_em=now()""", (nome,digest,config,fonte,total))
-    return {"atualizados": len(alterados), "inalterados": len(ignorados)}
+    resumo = {"atualizados": len(alterados), "inalterados": len(ignorados)}
+    if metadados:
+        resumo["metadados_atualizados"] = len(metadados)
+    return resumo
 
 
 def extrair_e_salvar_texto(pasta="/documentos", batch_size=8, fontes=None, force=False):

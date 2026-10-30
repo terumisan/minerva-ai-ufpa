@@ -1,5 +1,3 @@
-import os
-import uuid
 from contextlib import closing
 from pathlib import Path
 
@@ -9,28 +7,6 @@ import pytest
 from scripts import ingestao as ing
 
 
-@pytest.fixture
-def banco(monkeypatch):
-    dsn = os.getenv("MINERVA_TEST_DSN")
-    if not dsn:
-        pytest.skip("Defina MINERVA_TEST_DSN para integração com PostgreSQL/pgvector")
-    schema = "teste_" + uuid.uuid4().hex
-    with closing(psycopg2.connect(dsn)) as admin:
-        admin.autocommit = True
-        with admin.cursor() as cur:
-            cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
-            cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
-            cur.execute(f"CREATE SCHEMA {schema}")
-        def conectar():
-            return psycopg2.connect(dsn, options=f"-c search_path={schema},public")
-        monkeypatch.setattr(ing, "conectar_banco", conectar)
-        try:
-            ing.criar_tabela()
-            with closing(conectar()) as conn:
-                yield conn
-        finally:
-            with admin.cursor() as cur:
-                cur.execute(f"DROP SCHEMA {schema} CASCADE")
 
 
 class Modelo:
@@ -39,16 +15,6 @@ class Modelo:
         return [[0.1] * 768 for _ in textos]
 
 
-@pytest.fixture
-def pdfs(tmp_path, monkeypatch):
-    def extrair(p):
-        texto = p.read_text()
-        if texto == "corrompido":
-            raise ValueError("PDF corrompido")
-        return [(texto, ing.sha256((p.name + texto).encode()), ing.sha256(texto.encode()), 1, 2)]
-    monkeypatch.setattr(ing, "extrair_chunks", extrair)
-    (tmp_path / "a.pdf").write_text("Texto institucional de teste")
-    return tmp_path
 
 
 def linhas(conn):
@@ -95,6 +61,19 @@ def test_vetor_invalido_reverte_tudo(banco, pdfs):
     with pytest.raises(ValueError, match="Embedding inválido"):
         ing.atualizar_corpus(banco, pdfs, Ruim)
     assert linhas(banco) == antes
+
+
+def test_nova_url_atualiza_so_metadados_sem_carregar_modelo(banco, pdfs):
+    ing.atualizar_corpus(banco, pdfs, Modelo)
+    antes = linhas(banco)
+    def proibido():
+        pytest.fail("URL nova não deve recalcular embeddings")
+    report = ing.atualizar_corpus(banco,pdfs,proibido,fontes={"a.pdf":"https://ufpa.br/a.pdf"})
+    assert report["metadados_atualizados"] == 1 and report["atualizados"] == 0
+    assert linhas(banco) == antes
+    with banco.cursor() as cur:
+        cur.execute("SELECT source_url FROM documentos_ufpa")
+        assert cur.fetchone()[0] == "https://ufpa.br/a.pdf"
 
 
 def test_arquivo_ausente_nao_apaga_base_e_lote_invalido_recusado(banco, pdfs):

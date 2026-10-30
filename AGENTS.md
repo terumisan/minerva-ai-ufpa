@@ -41,5 +41,9 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 - Aprovações literais exigem reviewer/validated_at/valid_until, além de hashes e fonte. Curadoria e vigência são humanas; não preencher aprovações automaticamente.
 
 ## Convenções de trabalho observadas
+- Catálogo QA: `app/minerva_dataset.json` contém 92 entradas (91 ativas), com 87 contextos documentais (86 ativos), 195 variações contextuais e relações tipadas. Uma duplicata permanece inativa para auditoria.
+- Publicar QA com `docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py`: valida PDF/página/hash e sincroniza tabelas próprias de perguntas, aliases, relações e evidências. Não inserir perguntas sintéticas como fonte factual na tabela de documentos.
+- Matching contextual exige alias explícito e único; RAG restringe documento/versão/páginas. Nunca restaurar o matching por palavras-chave para questões dependentes de contexto. Contexto localizado não autoriza texto literal.
+- Novas variações foram escritas a partir das entradas e PDFs existentes, sem consumir conjuntos de avaliação; não tratá-las como holdout independente de qualidade.
 - Eval set principal: 720 perguntas geradas por LLM a partir dos chunks-fonte (hit-rate@1, hit@6 lexical/semântico/híbrido RRF).
 - Scripts de comparação/avaliação ficam em `app/scripts/` (`comparar_embeddings.py`, `comparar_llms.py`, `avaliar_fidelidade_llm.py`, `testar_retrieval_configs.py`), resultados em `app/tests/data/*.jsonl`.

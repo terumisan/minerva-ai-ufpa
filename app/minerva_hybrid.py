@@ -232,7 +232,16 @@ def _chunk_bate_multiplos_termos(trecho: str, termos: list[str]) -> bool:
     return grupos_no_trecho >= 2
 
 
-def _buscar_lexico(conn, pergunta, limite=10):
+def _filtro_contexto(escopo):
+    if not escopo:
+        return "", ()
+    return ("""AND nome_arquivo = %s AND documento_sha256 = %s
+        AND EXISTS (SELECT 1 FROM unnest(%s::int[]) AS p(numero)
+            WHERE pagina_inicio <= p.numero AND pagina_fim >= p.numero)""",
+        (escopo["documento"], escopo["documento_sha256"], escopo["paginas_fisicas"]))
+
+
+def _buscar_lexico(conn, pergunta, limite=10, escopo=None):
     termos = _termos_relevantes(pergunta)
 
     if not termos:
@@ -251,6 +260,8 @@ def _buscar_lexico(conn, pergunta, limite=10):
             ts_rank_cd(to_tsvector('portuguese', conteudo), to_tsquery('portuguese', %s)) DESC
         LIMIT %s
     """
+    filtro, params_escopo = _filtro_contexto(escopo)
+    sql = sql.replace("        ORDER BY", f"        {filtro}\n        ORDER BY", 1)
 
     # Bug real (histórico): OR puro entre todos os termos ("trancar | curso")
     # deixava uma palavra genérica e frequente ("curso", presente em quase
@@ -269,7 +280,7 @@ def _buscar_lexico(conn, pergunta, limite=10):
     ):
         try:
             cur = conn.cursor()
-            cur.execute(sql, (tsquery_texto, tsquery_texto, limite))
+            cur.execute(sql, (tsquery_texto, *params_escopo, tsquery_texto, limite))
             rows = cur.fetchall()
             cur.close()
         except Exception:
@@ -320,7 +331,7 @@ def _buscar_lexico(conn, pergunta, limite=10):
 SEMANTIC_DISTANCE_MAX = 0.50
 
 
-def _buscar_semantico(conn, pergunta, limite=10):
+def _buscar_semantico(conn, pergunta, limite=10, escopo=None):
     modelo = _get_embedding_model()
 
     if modelo is None:
@@ -344,10 +355,12 @@ def _buscar_semantico(conn, pergunta, limite=10):
         ORDER BY distancia
         LIMIT %s
     """
+    filtro, params_escopo = _filtro_contexto(escopo)
+    sql = sql.replace("        ORDER BY", f"        {filtro}\n        ORDER BY", 1)
 
     try:
         cur = conn.cursor()
-        cur.execute(sql, (vetor_literal, limite))
+        cur.execute(sql, (vetor_literal, *params_escopo, limite))
         rows = cur.fetchall()
         cur.close()
     except Exception:
@@ -424,8 +437,34 @@ def buscar_em_documentos_postgres(conn, pergunta, limite=6):
     # embedding. Consultas antigas aqui referenciavam colunas inexistentes
     # (titulo, texto, texto_extraido), o que derrubava a query com "column
     # does not exist" e fazia esta função sempre devolver [] silenciosamente.
-    lista_lexica = _buscar_lexico(conn, pergunta, limite=10)
-    lista_semantica = _buscar_semantico(conn, pergunta, limite=10)
+    from minerva_dataset import entrada_contextual
+    entrada = entrada_contextual(pergunta)
+    if entrada:
+        escopo = entrada["contexto_documental"]
+        consulta = entrada["pergunta"]
+        lista_lexica = _buscar_lexico(conn, consulta, limite=10, escopo=escopo)
+        lista_semantica = _buscar_semantico(conn, consulta, limite=10, escopo=escopo)
+    else:
+        lista_lexica = _buscar_lexico(conn, pergunta, limite=10)
+        lista_semantica = _buscar_semantico(conn, pergunta, limite=10)
+
+    if not lista_lexica and not lista_semantica and entrada:
+        # Um formulário curto pode não atingir o limiar semântico nem ter
+        # termos da pergunta no corpo. Para alias exato com contexto
+        # explicitamente cadastrado, recupera as páginas versionadas. Isso
+        # não reduz o limiar global nem usa a resposta fixa como evidência.
+        filtro, params = _filtro_contexto(escopo)
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"""SELECT id,nome_arquivo,conteudo,
+                    to_jsonb(documentos_ufpa) - 'embedding' - 'conteudo'
+                    FROM documentos_ufpa WHERE embedding IS NOT NULL {filtro}
+                    ORDER BY id LIMIT %s""", (*params,limite))
+                return [{"id":r[0],"titulo":r[1],"trecho":r[2],
+                         "fonte":"Páginas do contexto documental cadastrado",
+                         **_metadados(r[3])} for r in cur.fetchall() if r[2]]
+        except Exception:
+            return []
 
     if not lista_lexica and not lista_semantica:
         return []

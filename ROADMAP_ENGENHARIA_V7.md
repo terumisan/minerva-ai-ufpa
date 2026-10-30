@@ -436,3 +436,72 @@ Artefatos locais privados: `~/ufpa_rag_backups/ajustes_v7_20261030/`, incluindo
 dump, código anterior, relatório de restauração, auditoria de literais e
 evidências do navegador. Nenhuma credencial, histórico, PDF, GGUF ou artefato
 privado é incluído no commit. A etapa não conclui os critérios globais de M6.
+
+## 17. Contextos, ramificações e variações do catálogo — 30/10/2026
+
+As 75 entradas literais existentes foram confrontadas com suas cópias de PDFs,
+incluindo páginas vizinhas e dispositivos que completam condições/exceções.
+Foram explicitados órgão competente, curso/unidade, artigo/inciso, páginas
+físicas e versão SHA-256. Quarenta respostas foram corrigidas ou completadas;
+perguntas e respostas anteriores permanecem em `registro_anterior`.
+
+Exemplos: competência de câmaras distinta da do plenário; parecer distinto de
+aprovação; intervenção do CONSAD após sindicância; faltas sem justificação
+aceita e ressalva de membro nato; estágio como AC sem dupla contagem e limitado
+a um ano; TCC com Anexo I assinado e exceção ao Anexo II. A resolução de TCC
+abrange Computação e Telecomunicações; a de estágio consultada é de Computação.
+
+Foram criadas 12 ramificações sobre condições, limites e procedimentos,
+separadas das 195 paráfrases explícitas das entradas contextualizadas.
+A duplicata de intenção `MINERVA_0055` foi inativada, com remissão à
+`MINERVA_0050`. Total: **92 entradas, 91 ativas; 87 contextos, 86 ativos**.
+Nenhuma aprovação literal automática foi criada.
+
+Pesquisa nas fontes oficiais e comparação SHA-256 confirmaram as origens
+de cópias locais de sete PDFs adicionais ao SAGITTA. URLs foram atualizadas
+como metadados, sem recalcular embeddings. O manual de extensão tem página
+de publicação da PROEX identificada; isso não foi tratado como igualdade de
+bytes do PDF hospedado externamente. Vigência integral continua sem homologação.
+
+Catálogo publicado em PostgreSQL, separado dos 413 trechos vetoriais:
+
+| Tabela | Registros |
+|---|---:|
+| minerva_perguntas_respostas | 92 |
+| minerva_qa_variacoes | 310 formas normalizadas (incluem principais e entradas legadas) |
+| minerva_qa_relacoes | 250 relações tipadas |
+| minerva_qa_evidencias | 341 vínculos de contexto por página/trecho |
+
+`minerva_qa_versoes` preserva o JSON integral por hash. O publicador valida
+aliases, destinos de relações, PDFs, texto das páginas e versão do corpus;
+falha reverte toda a publicação. Vínculo de página não significa que todo o
+conteúdo dela sustente a resposta. Perguntas/variações não foram inseridas
+como fontes factuais na tabela de documentos nem retiradas de holdouts.
+
+Runtime: correspondência única por pergunta/alias contextualizado restringe
+a busca ao documento, versão e páginas cadastradas e evita atalhos temáticos
+mais amplos. Perguntas dêiticas antigas não ganham contexto por palavras-chave.
+Um formulário curto sem correspondência lexical/semântica usa as páginas
+explicitamente cadastradas para seu alias exato, sem reduzir o limiar global.
+PDF alterado invalida o contexto até revisão.
+
+Validação: **222 testes aprovados** com PostgreSQL temporário; Ruff aprovado.
+Na recuperação real, 86 de 86 perguntas contextuais ativas retornaram evidências
+na versão/páginas cadastradas. Essa amostra é o catálogo em desenvolvimento,
+não holdout nem estimativa independente de precisão. Duas variações foram
+executadas com LLM real: estágio como AC preservou vedação de dupla contagem,
+avaliação do relatório e limite de um ano; troca de orientador em TCC II
+preservou a exceção do Anexo I. Os critérios globais de qualidade continuam
+parciais; não se declara homologação factual geral.
+
+Navegador: variação de troca de orientador em TCC II seguiu pela rota RAG e
+exibiu a página 2 da resolução com art. 7º e Anexo I. Duas sessões isoladas e
+reload foram verificados. A UI foi reiniciada para carregar os módulos novos;
+DB e LLM permaneceram em execução. Sincronização repetida manteve os mesmos
+totais do catálogo e os 413 vetores. Após remover apenas a mensagem sintética,
+o dump foi restaurado em banco separado: nove tabelas com contagens e hashes
+lógicos coincidentes.
+
+Backups, respostas, levantamento das fontes e catálogo legível para revisão
+ficam em `~/ufpa_rag_backups/curadoria_qa_20261030/`, fora do Git. O dataset,
+código, testes e documentação são versionados; PDFs e backups não são enviados.

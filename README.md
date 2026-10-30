@@ -239,6 +239,53 @@ completo de versões históricas dos PDFs nem revisão imutável do ONNX.
 
 ## Desenvolvimento
 
+### Catálogo de perguntas, contextos e variações
+
+`app/minerva_dataset.json` é a fonte versionada do catálogo. A revisão
+documental das 75 entradas literais acrescentou contexto, dispositivo,
+páginas físicas, hash do PDF e evidências textuais; 40 respostas foram
+corrigidas ou tiveram condições explicitadas. Há 12 ramificações novas,
+195 variações nas entradas contextualizadas e relações tipadas entre assuntos.
+Uma intenção duplicada foi inativada, preservando o registro anterior.
+Total: 92 entradas, 91 ativas; 87 contextualizadas, sendo 86 ativas.
+
+Variações são formulações da mesma pergunta. Ramificações são perguntas
+diferentes sobre condições, exceções, limites ou etapas relacionadas. Não
+transforme uma ramificação em alias de uma resposta mais ampla. Perguntas
+vagas sobre “o item VIII” ou “o conselho” ficam no registro anterior para
+auditoria e não ganham contexto implícito por palavras-chave.
+
+Publicação do catálogo no banco, depois da ingestão dos PDFs:
+
+```bash
+docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py
+```
+
+O comando confere hashes e texto das páginas locais, valida aliases/relações
+e publica em uma transação: `minerva_perguntas_respostas`,
+`minerva_qa_variacoes`, `minerva_qa_relacoes`, `minerva_qa_evidencias` e
+`minerva_qa_versoes`. As evidências são vínculos de contexto por página, não
+aprovação automática da resposta. Versão divergente do corpus aborta a
+publicação. Perguntas e respostas não são inseridas como documentos factuais
+na tabela vetorial; os 413 trechos dos PDFs permanecem separados.
+
+Uma pergunta/variação específica reconhecida usa RAG restrito ao documento,
+hash e páginas do contexto, evitando atalhos temáticos mais amplos. Se a
+versão do PDF mudar, esse contexto deixa de recuperar evidências até revisão.
+Quando um alias exato aponta a um formulário curto sem correspondência lexical
+ou semântica suficiente, a busca usa as páginas explicitamente cadastradas,
+conferindo o mesmo hash. O limiar semântico global não foi reduzido.
+As respostas literais continuam exigindo aprovação humana no manifesto.
+Disponibilidade online e igualdade de bytes não comprovam vigência integral.
+
+O acesso programático a ramificações está em
+`minerva_dataset.perguntas_relacionadas(pergunta)`. O catálogo SQL espelha o
+JSON; após editar o arquivo, execute a sincronização. Nenhum conjunto de
+avaliação foi usado para gerar as novas variações nesta etapa.
+Ao atualizar também os módulos Python do catálogo, reinicie somente a UI
+(`docker compose restart ufpa_rag_ui`) para não manter imports antigos em
+memória. Alterações somente no JSON são lidas nas consultas seguintes.
+
 ```bash
 # instala dependências de dev (pytest + ruff) com uv
 uv pip install -r app/requirements-dev.txt

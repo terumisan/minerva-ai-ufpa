@@ -78,6 +78,11 @@ def _pergunta_bate(pergunta_norm: str, entrada: dict) -> bool:
     if any(_norm(c) == pergunta_norm for c in candidatos if c):
         return True
 
+    if entrada.get("contexto_documental"):
+        # Perguntas normativas contextualizadas não podem casar por palavras
+        # soltas, nem confundir uma ramificação com uma paráfrase.
+        return False
+
     palavras_chave = [_norm(p) for p in entrada.get("palavras_chave", []) if p]
 
     # Limites de palavra evitam colisões de substring. Exemplo real: a
@@ -120,6 +125,35 @@ def _resposta_conhecida(entrada: dict) -> Optional[str]:
         return resposta
 
     return None
+
+
+def entrada_contextual(pergunta: str) -> Optional[dict]:
+    """Identifica uma pergunta específica; nunca autoriza sua resposta fixa."""
+    if not isinstance(pergunta, str) or not pergunta.strip():
+        return None
+    normalizada = _norm(pergunta)
+    encontradas = [e for e in _carregar_entradas()
+                   if e.get("ativo", True) and e.get("contexto_documental")
+                   and _pergunta_bate(normalizada, e)]
+    return encontradas[0] if len(encontradas) == 1 else None
+
+
+def perguntas_relacionadas(pergunta: str) -> list[dict]:
+    entrada = entrada_contextual(pergunta)
+    if entrada is None:
+        return []
+    por_id = {e["id"]: e for e in _carregar_entradas()}
+    resultado, vistos = [], set()
+    for relacao in entrada.get("relacoes", []):
+        alvo = por_id.get(relacao["id"])
+        if alvo and alvo.get("entrada_canonica"):
+            alvo = por_id.get(alvo["entrada_canonica"])
+        if not alvo or not alvo.get("ativo", True) or alvo["id"] == entrada["id"] or alvo["id"] in vistos:
+            continue
+        vistos.add(alvo["id"])
+        resultado.append({"id": alvo["id"], "pergunta": alvo["pergunta"],
+                          "tipo": relacao["tipo"], "motivo": relacao["motivo"]})
+    return resultado
 
 
 def _resposta_literal(entrada: dict) -> Optional[str]:
