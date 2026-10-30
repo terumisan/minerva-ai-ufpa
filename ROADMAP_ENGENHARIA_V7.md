@@ -3,6 +3,12 @@
 > Planejamento proposto em 29/10/2026 para a branch `melhorias/roadmap-engenharia`.
 > Planejamento com atualização incremental registrada abaixo; a integração não equivale à homologação de toda a V7.
 
+**Estado atual:** código e catálogo contextualizado integrados na branch de
+engenharia; suíte completa com PostgreSQL/pgvector, ingestão atômica e smoke
+tests operacionais validados. Os itens concluídos abaixo são verificações
+específicas, não a homologação integral dos marcos. Revalidação mais recente:
+seção 18.
+
 ## 1. Objetivo e escopo
 
 Evoluir a MINERVA para uma versão rastreável, reproduzível e operável: respostas institucionais apoiadas em evidências, atualização documental sem perda da base ativa, histórico protegido e avaliação separada de recuperação, roteamento e geração.
@@ -144,8 +150,13 @@ Fora do núcleo obrigatório da V7: fine-tuning, troca completa da UI, microserv
 ## 10. Checklist de conclusão
 
 - [ ] Baseline, referência anterior e artefatos identificados.
-- [ ] CI e testes unitários, integração e fluxo completo aprovados.
-- [ ] Migração e ingestão seguras com proveniência verificável.
+- [x] CI, testes unitários e integração PostgreSQL/pgvector aprovados na branch de engenharia.
+- [x] Ingestão incremental e atômica validada com lotes pequenos, rollback e IDs preservados para texto idêntico.
+- [x] Catálogo QA contextualizado, variações, relações e vínculos documentais publicados e validados.
+- [x] Smoke tests do chat em navegador, isolamento entre sessões e reload aprovados nos casos registrados.
+- [x] Backup restaurado em banco separado com contagens e hashes lógicos conferidos.
+- [ ] Homologação ampla das demais rotas e do fluxo completo concluída.
+- [ ] Proveniência integral, arquivo de versões documentais e revisão imutável do modelo concluídos.
 - [ ] Respostas diretas revisadas; temporalidade e abstenção testadas.
 - [ ] Acesso ao histórico protegido; fila, limites e privacidade validados.
 - [ ] Relatório experimental reproduzível sem misturar métricas históricas.
@@ -400,7 +411,7 @@ Implementações e validações desta etapa:
 
 | Item | Entrega | Limite / pendência |
 |---|---|---|
-| V7-02 | CI agora inclui PostgreSQL/pgvector; suíte local completa com **211 testes aprovados**, sem skips, em banco temporário separado; Ruff aprovado | Resultado remoto da nova versão deve ser conferido após o push |
+| V7-02 | CI agora inclui PostgreSQL/pgvector; suíte local dessa etapa com **211 testes aprovados**, sem skips; Ruff e CI do commit e7ae284 aprovados | Cobertura ampliada posteriormente na seção 17; homologação ampla permanece pendente |
 | V7-04 | Migração aditiva, staging temporário, publicação atômica e exclusão mútua entre ingestões; falhas de extração, vetor e SQL preservam corpus/manifesto | Não há arquivo completo de versões históricas nem ponteiro para múltiplos corpora |
 | V7-05 | Manifesto por PDF/configuração; lotes de até 8; hashes de documento/trecho, ID estável e páginas físicas; texto idêntico preserva ID numérico | Origem confirmada apenas onde informada; não foram inventadas URLs; revisão imutável do ONNX e seções normativas continuam pendentes |
 | V7-06/V7-07 | Aprovação literal exige revisor, data de validação e validade com fuso; expiração bloqueia resposta | Inventário: 75 literais, zero autorizações; curadoria institucional e auditoria editorial das rotas fixas/basic_facts pendentes |
@@ -505,3 +516,46 @@ lógicos coincidentes.
 Backups, respostas, levantamento das fontes e catálogo legível para revisão
 ficam em `~/ufpa_rag_backups/curadoria_qa_20261030/`, fora do Git. O dataset,
 código, testes e documentação são versionados; PDFs e backups não são enviados.
+
+## 18. Revalidação integral e atualização do estado — 30/10/2026
+
+Solicitada nova execução da suíte completa, verificações operacionais e
+atualização do GitHub. Base de código e catálogo: `3bcebfb9e174d954c0ac216318f653d7b51acacb`.
+Antes da rodada, `git fetch origin` confirmou zero commits à frente/atrás da
+branch remota. As mudanças desta atualização são documentais: estado do
+roadmap, checklist granular e autorização de trabalho no AGENTS.md.
+
+| Verificação repetida | Resultado |
+|---|---|
+| Suíte inteira de `app/tests`, PostgreSQL/pgvector em banco temporário | **222 testes aprovados**, zero skips; 5,27 s; banco temporário removido |
+| Ruff, compilação Python e `git diff --check` | Aprovados; compilação com cache em `/tmp` para não depender da propriedade dos caches Docker |
+| Configuração Compose e saúde dos serviços | Configuração válida; DB, LLM e UI saudáveis; limites de memória preservados |
+| Ingestão incremental no worker isolado | Zero documentos reprocessados; 15 inalterados |
+| Validação dos PDFs/páginas e sincronização QA | Mesmo hash de dataset e totais: 92 entradas, 310 formas de pergunta, 250 relações, 341 vínculos de contexto |
+| Recuperação contextual com banco real somente leitura | **86/86** perguntas ativas com evidências do documento, hash e páginas cadastrados |
+| Duas variações com LLM real, sequenciais | Estágio como AC manteve vedação de dupla contagem e limite de um ano; TCC II manteve a exceção do Anexo I |
+| Chromium: fluxo de TCC | Referência ao documento/página, Anexo I e art. 7º; duas sessões isoladas e reload aprovados |
+| Chromium: fluxo de SAGITTA | Referência ao manual/página; duas sessões isoladas e reload aprovados; nenhum erro de frontend nos dois fluxos |
+| Backup novo restaurado em banco temporário | **9 tabelas** com contagens e hashes lógicos coincidentes; banco de teste removido |
+| Contagem do corpus após testes | **413 trechos, 413 vetores, 15 documentos** preservados |
+| Retenção e curadoria literal | Retenção de 30 dias apenas simulada; nenhuma aprovação literal automática; nenhum dado real excluído |
+| Timers de operação | Backup PostgreSQL e reinício diário do LLM listados com próximas execuções; não foram disparados para este teste |
+
+As duas mensagens sintéticas desta rodada foram removidas com filtros exatos
+de conversa e pergunta. Não houve reconstrução do corpus, troca de modelo,
+reinício de serviços ou migração adicional nesta revalidação. O checklist da
+seção 10 passou a distinguir verificações concluídas de critérios amplos ainda
+pendentes, sem marcar a V7 inteira como homologada.
+
+Escopo da evidência: suíte automatizada completa e smoke tests operacionais
+descritos acima. Não foram repetidos benchmarks D720/D1000, comparações entre
+modelos ou revisão institucional independente. A recuperação do catálogo de
+desenvolvimento não estima precisão factual geral; vigência normativa,
+curadoria editorial, política de retenção e aceite da release permanecem
+pendentes nos marcos correspondentes.
+
+O usuário autorizou melhorias/implementações neste projeto, validações,
+atualizações documentais e commit/push na branch de engenharia. Registro no
+AGENTS.md; os controles técnicos de permissão do ambiente permanecem em vigor.
+Artefatos, screenshots e dump desta rodada:
+`~/ufpa_rag_backups/revalidacao_20261030/`, fora do repositório.

@@ -11,6 +11,11 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 - Docker usa os bind mounts da pasta principal e o volume `minerva-ai-ufpa_pgdata_rag`; preservar esse volume.
 - Serviços systemd de backup/reinício usam a pasta principal. Histórico Git/stashes antigos, relatórios privados, configurações antigas e modelos alternativos estão em `~/ufpa_rag_backups/consolidacao_20261030/`, fora do repositório.
 
+## Autorização de trabalho registrada em 30/10/2026
+- O usuário autorizou melhorias e implementações neste projeto, execução das validações, atualização do roadmap e commit/push na branch `melhorias/roadmap-engenharia`. Prosseguir com correções necessárias aos checks e registrar o resultado concreto.
+- Essa autorização de trabalho não muda as permissões técnicas do ambiente. Usar o mecanismo de aprovação para comandos que precisem de acesso adicional; não desabilitar o sandbox ou ampliar permissões de arquivos indiscriminadamente.
+- A autorização de engenharia não constitui aprovação institucional de conteúdo: hashes, fontes e testes não autorizam automaticamente respostas literais nem homologam vigência normativa.
+
 ## Deploy / infraestrutura
 - Exposto publicamente via **ngrok** (conta free, `srterumi1@gmail.com`), serviço systemd `ngrok-minerva.service`. URL fixa (dev-domain): `https://preschool-unsaid-doodle.ngrok-free.dev` — não muda em reconexão. `ngrok` instalado em `~/.local/bin/ngrok` (sem root).
 - Antes era Cloudflare quick tunnel (`cloudflared-minerva.service`) — desativado (não deletado) porque a URL mudava a cada reconexão.
