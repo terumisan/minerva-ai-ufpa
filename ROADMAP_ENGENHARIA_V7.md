@@ -164,8 +164,10 @@ Detalhes, configuração e limites: [INTEGRACAO_V7.md](INTEGRACAO_V7.md).
 | Item | Entrega nesta integração | Estado do item completo |
 |---|---|---|
 | V7-02 | CI também cobre push/PR da branch de engenharia; testes de regressão RRF e snapshots | Parcial; integração com banco/fluxo completo pendente |
+| V7-02 (atualização em 30/10) | CI configura Python 3.10 antes da instalação das dependências com uv; suíte local atual com 169 testes aprovados e CI do commit 46272da aprovada | Parcial; integração completa pendente |
 | V7-06 | Dataset literal exige fonte HTTPS UFPA, snapshot íntegro e hash da resposta; estratégia explícita governa despacho | Parcial; curadoria das 60 entradas e auditoria das rotas fixas/basic_facts pendentes |
 | Recuperação híbrida | Deduplicação por ID em cada lista, desempate estável por ID e preservação das entradas | Implementado e coberto por testes unitários |
+| V7-08 (etapas 12–14) | Validação das referências e seleção conservadora de excertos normativos, com preservação de escopo e ressalvas; avaliação real e limites registrados abaixo | Parcial; confiança da recuperação, proveniência estável e homologação factual geral pendentes |
 | V7-09 | Escopo confirmado: protótipo com acesso anônimo a documentos públicos, sem login institucional/LDAP/SSO | Isolamento do histórico continua pendente; anonimato não elimina essa necessidade |
 
 Não houve migração de banco, retreinamento, troca de embeddings, aprovação
@@ -328,3 +330,66 @@ conflitos normativos, completude dos artigos, IDs estáveis ou metadados de
 página/versão. Permanecem avaliação independente por afirmação, testes mais
 amplos, calibração de recuperação e curadoria. Aviso do fastembed sobre mean
 pooling persiste, sem reindexação. Não há homologação factual geral.
+
+## 15. Verificação do ambiente novo — 30/10/2026
+
+Código verificado: `46272dab05b4a402c93aed90dfec55a60183a0d0`, branch
+`melhorias/roadmap-engenharia`. As duas cópias locais estavam sem alterações
+versionadas antes desta atualização documental. A validação foi executada em
+`~/minerva-ai-ufpa`, usando as ferramentas do `.venv` de `~/ufpa_rag`:
+
+- Python 3.10.20: `python -m pytest app/tests -q` — **169 testes aprovados**.
+- `ruff check .` — aprovado.
+- CI configurada para Python 3.10, instalação com uv e execução de Ruff/pytest;
+  [execução remota do commit 46272da aprovada](https://github.com/terumisan/minerva-ai-ufpa/actions/runs/40969672752),
+  conferida posteriormente na mesma data.
+- Os três serviços Docker (DB, LLM e UI) estavam `healthy`.
+- A pasta `documentos/` continha 15 arquivos PDF. Documentos, configuração
+  privada do Streamlit, `.env` e modelos permanecem cobertos pelo `.gitignore`.
+- A consulta inicial ao banco novo não encontrou `public.documentos_ufpa`;
+  saúde dos containers, portanto, não comprovava disponibilidade do corpus RAG.
+- A ingestão com lote padrão de embeddings foi interrompida por OOM com
+  limites de 2 e 4 GiB na UI. A repetição usa `passage_embed(batch_size=8)`
+  apenas nesta execução, sem alteração de código versionado. O comando padrão
+  do README ainda requer ajuste/validação para este ambiente.
+- Ingestão concluída com lotes de 8: **395 chunks, 14 documentos e 395
+  embeddings**, conferidos no PostgreSQL. `ManualSagitta.pdf`, um dos 15
+  arquivos presentes, foi rejeitado por falta de EOF; substituição registrada abaixo.
+  O limite de memória da UI foi restaurado para 2 GiB ao final.
+- Smoke test via `responder_minerva`, conexão PostgreSQL somente leitura e
+  LLM local: a pergunta sobre pré-requisitos de TCC I/II retornou excertos de
+  `Resolucao_TCC.pdf`, IDs 367 e 369, incluindo condições de matrícula,
+  assinatura do orientador e exceção do Anexo I. Os logs do servidor confirmam
+  uso de Gemma 4 E4B neste ambiente; AGENTS.md foi atualizado após essa conferência.
+  Este teste por função não equivale à homologação do chat no navegador ou à
+  revisão institucional de vigência e sustentação geral.
+
+Atualização do corpus na mesma data: a cópia corrompida de `ManualSagitta.pdf`
+foi substituída nas duas pastas locais pelo [PDF oficial fornecido pelo usuário](https://sagitta.ufpa.br/sagitta/documentos/manual_sagitta.pdf).
+Arquivo validado com 12 páginas e texto extraível, datado de 2015; SHA-256:
+`bd76166a4690803afd17467b676c691fcc4559a68238aa439c3b03e3e91320cf`.
+Foram vetorizados e inseridos somente os 18 trechos desse manual, em transação,
+com o mesmo modelo/dimensão e lotes de 8. A contagem final é **413 trechos,
+15 documentos e 413 embeddings**. Hash dos IDs, nomes, textos e embeddings dos
+395 trechos anteriores conferido antes/depois, sem alteração. O PDF permanece
+ignorado pelo Git; disponibilidade na fonte não comprova vigência do conteúdo.
+
+### Consolidação das cópias locais — 30/10/2026
+
+`~/minerva-ai-ufpa` é o único checkout de trabalho; `~/ufpa_rag` agora é um
+link simbólico para essa pasta. O `.venv` foi transferido e os serviços de
+backup/reinício apontam para o caminho principal. Código, PDFs e modelo ativo
+duplicados foram removidos após comparação SHA-256; caches antigos descartados.
+Histórico Git com branches/stashes, relatórios privados, configurações antigas
+e modelos alternativos foram preservados fora do repositório, em
+`~/ufpa_rag_backups/consolidacao_20261030/`, com manifesto e dump prévio do banco.
+
+Validação após consolidação: **169 testes aprovados**, Ruff e
+`git diff --check` aprovados; três containers saudáveis, sem recriação, e banco
+com **413 trechos, 15 documentos e 413 embeddings**. O dump foi reconhecido por
+`pg_restore --list`; isso não equivale a ensaio de restauração. As duas entradas
+do stash e as branches locais antigas foram conferidas no Git arquivado.
+
+Esta verificação não repete as avaliações das etapas 13–14, realizadas em
+outro estado operacional, nem comprova equivalência de corpus/modelo com elas.
+Os critérios completos dos marcos e o checklist da seção 10 continuam pendentes.

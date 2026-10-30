@@ -5,6 +5,12 @@ Contexto operacional do projeto, consolidado a partir do histórico de trabalho 
 ## Visão geral
 Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline de ingestão de PDFs (`documentos/` → Postgres `documentos_ufpa`) e um LLM local via llama.cpp em container Docker (`ufpa_rag_llm`).
 
+## Pasta principal — consolidação em 30/10/2026
+- Trabalhar em `~/minerva-ai-ufpa`. `~/ufpa_rag` é um link simbólico para essa mesma pasta, não outro checkout.
+- O `.venv` de desenvolvimento foi transferido para a pasta principal. O link antigo mantém os caminhos dos executáveis compatíveis.
+- Docker usa os bind mounts da pasta principal e o volume `minerva-ai-ufpa_pgdata_rag`; preservar esse volume.
+- Serviços systemd de backup/reinício usam a pasta principal. Histórico Git/stashes antigos, relatórios privados, configurações antigas e modelos alternativos estão em `~/ufpa_rag_backups/consolidacao_20261030/`, fora do repositório.
+
 ## Deploy / infraestrutura
 - Exposto publicamente via **ngrok** (conta free, `srterumi1@gmail.com`), serviço systemd `ngrok-minerva.service`. URL fixa (dev-domain): `https://preschool-unsaid-doodle.ngrok-free.dev` — não muda em reconexão. `ngrok` instalado em `~/.local/bin/ngrok` (sem root).
 - Antes era Cloudflare quick tunnel (`cloudflared-minerva.service`) — desativado (não deletado) porque a URL mudava a cada reconexão.
@@ -13,7 +19,7 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 - `loginctl enable-linger terumi` ativo — túnel sobrevive a reboot/logout.
 
 ## LLM (`ufpa_rag_llm`, llama.cpp)
-- Modelo ativo: `Qwen2.5-7B-Instruct-Q4_K_M.gguf` (revertido de uma tentativa com Qwen3-4B-Instruct-2507, que ainda está em `models/` caso seja revisitado).
+- Modelo ativo conferido em 30/10/2026: `gemma-4-E4B_q4_0-it.gguf`. Qwen2.5-7B e Llama-3.2-3B foram preservados no arquivo da consolidação; comparações abaixo são históricas, não medições do modelo ativo.
 - Comparação medida (`app/scripts/comparar_llms.py`): Qwen3-4B ~2x mais rápido isolado (12.7 vs 6.1 tok/s gen), qualidade comparável/melhor em nuances. Mas a reversão para Qwen2.5-7B foi pedida pelo usuário sem explicação — **não presumir que foi por qualidade/velocidade**; perguntar antes de re-recomendar a troca.
 - Timing de pipeline completo é enganoso: contenção de CPU no host distorce comparações wall-clock entre modelos. Preferir benchmark isolado, back-to-back, na mesma sessão.
 - **Vazamento de memória conhecido**: o container cresce RAM sem limite com uptime longo (observado 11.2GB vs ~5GB esperado) ou após rajadas de ~50+ chamadas sequenciais — pode derrubar o container (`Connection refused`/`503`). Mitigado por timer systemd `ufpa_rag_restart_llm.timer` (reinicia às 04:00 diariamente). Se lento: checar `docker stats ufpa_rag_llm` e `free -h`; `docker compose restart ufpa_rag_llm` resolve na hora.
@@ -26,8 +32,9 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 - `ingestao.py` faz `DROP COLUMN IF EXISTS embedding` + `ADD COLUMN` no reindex — mudança de dimensão de embedding não precisa de migração manual.
 
 ## Dados / ingestão
-- `documentos/` tinha um PDF duplicado (mesmo MD5) e 2 arquivos vazios/corrompidos — removidos. Corpus atual: 15 PDFs válidos, 395 chunks (era 591 com o lixo).
-- `ManualSagitta.pdf` continua corrompido (sem EOF marker, nem Ghostscript abre) — `ingestao.py` pula silenciosamente (0 chunks, warning no log). Precisa ser re-obtido da fonte original; não é um bug do pipeline.
+- Corpus conferido em 30/10/2026: 15 PDFs, 413 chunks com embeddings. Duplicata e arquivos vazios foram removidos anteriormente.
+- `ManualSagitta.pdf` foi substituído pelo PDF oficial íntegro (12 páginas, edição de 2015); 18 trechos inseridos, preservando os 395 anteriores. Fonte: https://sagitta.ufpa.br/sagitta/documentos/manual_sagitta.pdf.
+- Ingestão com lote padrão excedeu os limites de 2 e 4 GiB da UI. Nesta execução foram usados lotes de 8 em `passage_embed`; o código padrão ainda não foi ajustado. Não repetir a ingestão padrão supondo que o problema esteja resolvido.
 - `ingestao.py` faz TRUNCATE + rebuild completo a cada execução — contagens de chunks podem mudar; não confiar em números antigos, reconferir com `SELECT nome_arquivo, count(*) FROM documentos_ufpa GROUP BY nome_arquivo`.
 
 ## Convenções de trabalho observadas
