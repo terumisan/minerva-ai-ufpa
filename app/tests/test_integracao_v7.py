@@ -22,6 +22,9 @@ def aprovado(tmp_path, monkeypatch):
         "file": "fonte.txt", "url": entrada["url_oficial"],
         "sha256": hashlib.sha256(texto).hexdigest(),
         "answer_sha256": hashlib.sha256(b"Resposta revisada.").hexdigest(),
+        "reviewer": "curador_sintetico",
+        "validated_at": "2020-01-01T00:00:00+00:00",
+        "valid_until": "2099-01-01T00:00:00+00:00",
     }}
     (tmp_path / "static_manifest.json").write_text(json.dumps(manifesto))
     monkeypatch.setenv("MINERVA_V7_STATIC_SNAPSHOT_DIR", str(tmp_path))
@@ -89,6 +92,19 @@ def test_snapshot_nao_aceita_escape_por_symlink(aprovado, tmp_path_factory):
     fora.write_bytes((root / "fonte.txt").read_bytes())
     (root / "atalho.txt").symlink_to(fora)
     manifesto["TESTE"]["file"] = "atalho.txt"
+    (root / "static_manifest.json").write_text(json.dumps(manifesto))
+    assert not snapshot_verificado(entrada)
+
+
+@pytest.mark.parametrize("campos", [
+    {"valid_until": "2020-01-02T00:00:00+00:00"},
+    {"validated_at": "2099-01-01T00:00:00+00:00"},
+    {"validated_at": "2020-01-01"}, {"valid_until": "inválida"},
+    {"reviewer": ""}, {"reviewer": None},
+])
+def test_aprovacao_expirada_futura_ou_sem_revisor_bloqueada(aprovado, campos):
+    entrada, manifesto, root = aprovado
+    manifesto["TESTE"].update(campos)
     (root / "static_manifest.json").write_text(json.dumps(manifesto))
     assert not snapshot_verificado(entrada)
 

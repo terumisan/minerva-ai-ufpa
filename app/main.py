@@ -12,6 +12,7 @@ import time
 import uuid
 
 import streamlit as st
+from operacao import inicializar_identidade, MAX_PERGUNTA
 
 # MINERVA_HISTORY_IMPORT_BEGIN
 try:
@@ -192,29 +193,8 @@ except (ImportError, ValueError):
 # =============================================================================
 # ESTADO DE SESSÃO
 # =============================================================================
-# Cada navegador/sessão recebe um ID próprio.
-# Isso impede que conversas de usuários diferentes se misturem.
-#
-# O session_id é espelhado em st.query_params ("sid"): st.session_state por
-# si só reseta a cada reload de página (nova conexão WebSocket = novo estado
-# em branco), então sem isso "carregar_historico_sessao()" abaixo quase nunca
-# encontrava nada — um F5 gerava um session_id novo antes mesmo de checar o
-# banco. Guardar o id na URL faz o histórico sobreviver a reloads dentro do
-# mesmo link/aba, sem precisar de cookies ou login.
-if "session_id" not in st.session_state:
-    sid_da_url = st.query_params.get("sid")
-
-    if sid_da_url:
-        try:
-            uuid.UUID(sid_da_url)
-            st.session_state.session_id = sid_da_url
-        except ValueError:
-            st.session_state.session_id = None
-
-    if not st.session_state.get("session_id"):
-        st.session_state.session_id = str(uuid.uuid4())
-
-    st.query_params["sid"] = st.session_state.session_id
+# Identidade criada no servidor, sem aceitar credenciais pela URL.
+inicializar_identidade(st.session_state, st.query_params)
 
 # Conversa ativa dentro da sessão/dispositivo: um dispositivo pode ter
 # várias conversas (ver listar_conversas_dispositivo em db.py e a lista na
@@ -382,6 +362,7 @@ with st.sidebar:
         "Ensino de Recursos Virtuais Acadêmicos. Assistente "
         "acadêmica baseada em documentos institucionais da FCT/UFPA."
     )
+    st.caption("Histórico disponível durante esta sessão. Recarregar a página inicia uma nova sessão anônima; exporte antes de sair.")
 
 
 
@@ -491,7 +472,7 @@ else:
 #    do st.chat_input (substitui o antigo st.form + text_input do topo).
 # -------------------------------------------------------------------------
 pergunta_digitada = st.chat_input(
-    "Faça sua pergunta"
+    "Faça sua pergunta", max_chars=MAX_PERGUNTA,
 )
 
 if pergunta_digitada and pergunta_digitada.strip():
@@ -511,6 +492,18 @@ if pergunta_digitada and pergunta_digitada.strip():
 # PROCESSAMENTO DA PERGUNTA
 # =============================================================================
 def processar_pergunta(pergunta, stream_area=None):
+    from operacao import capacidade, validar_pergunta
+    erro = validar_pergunta(pergunta)
+    if erro:
+        return erro, "entrada_invalida"
+    import streamlit as st
+    with capacidade(st.session_state) as erro:
+        if erro:
+            return erro, "limite_capacidade"
+        return _processar_pergunta(pergunta, stream_area)
+
+
+def _processar_pergunta(pergunta, stream_area=None):
     """
     Processa perguntas da Minerva usando camada institucional FCT/UFPA.
 
@@ -591,9 +584,11 @@ def processar_pergunta(pergunta, stream_area=None):
     finally:
         if conn:
             try:
-                db_pool.putconn(conn)
+                conn.rollback()
             except Exception:
-                pass
+                db_pool.putconn(conn, close=True)
+            else:
+                db_pool.putconn(conn)
 
 
 if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messages[-1]) == "user":

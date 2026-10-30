@@ -1,4 +1,26 @@
 services:
+  # Worker opcional: o modelo de embeddings não compete pelo teto de 2 GiB
+  # do processo Streamlit. Publicação continua atômica no mesmo banco.
+  ufpa_rag_ingestao:
+    profiles: [manutencao]
+    build: ./app
+    entrypoint: [python, -u, scripts/ingestao.py]
+    environment:
+      DB_HOST: ufpa_rag_db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-ufpa_rag}
+      DB_USER: ${DB_USER:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env (veja .env.example)}
+    volumes:
+      - ./app:/app
+      - ./documentos:/documentos:ro
+    mem_limit: 2g
+    cpus: 2
+    init: true
+    depends_on:
+      ufpa_rag_db:
+        condition: service_healthy
+
   ufpa_rag_db:
     image: ankane/pgvector:latest
     container_name: ufpa_rag_db

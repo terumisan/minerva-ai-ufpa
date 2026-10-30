@@ -39,13 +39,13 @@ except (ImportError, ValueError):
 
 
 @st.cache_resource(show_spinner=False)
-def get_db_pool() -> pool.SimpleConnectionPool | None:
+def get_db_pool() -> pool.ThreadedConnectionPool | None:
     """Cria pool de conexões PostgreSQL.
 
     O pool evita abrir e fechar conexão a cada pergunta.
     """
     try:
-        return psycopg2.pool.SimpleConnectionPool(
+        return psycopg2.pool.ThreadedConnectionPool(
             minconn=DB_POOL_MIN,
             maxconn=DB_POOL_MAX,
             host=DB_HOST,
@@ -53,9 +53,10 @@ def get_db_pool() -> pool.SimpleConnectionPool | None:
             database=DB_NAME,
             user=DB_USER,
             password=DB_PASSWORD,
+            options="-c statement_timeout=10000",
         )
     except Exception as exc:
-        logger.exception("Erro ao inicializar pool de banco: %s", exc)
+        logger.error("Erro ao inicializar pool de banco: %s", type(exc).__name__)
         return None
 
 
@@ -96,12 +97,17 @@ def executar_query(
         if conn:
             conn.rollback()
 
-        logger.exception("Erro ao executar query: %s", exc)
+        logger.error("Erro ao executar query: %s", type(exc).__name__)
         return None
 
     finally:
         if conn:
-            db_pool.putconn(conn)
+            try:
+                conn.rollback()
+            except psycopg2.Error:
+                db_pool.putconn(conn, close=True)
+            else:
+                db_pool.putconn(conn)
 
     return resultado
 
@@ -264,13 +270,13 @@ def carregar_historico_conversa(conversa_id: str) -> list[tuple[int, str, str, s
 def registrar_feedback(historico_id: int, feedback: str) -> None:
     """Grava 👍/👎 numa resposta específica.
 
-    Sem filtro por session_id de propósito: historico_id já é a chave
-    primária da linha (só existe pra quem já viu a resposta renderizada
-    na própria sessão — não é um id adivinhável/exposto em URL).
+    A chave primária não autoriza alteração: exige a identidade do servidor.
     """
+    if feedback not in ("positivo", "negativo"):
+        raise ValueError("Feedback inválido")
     executar_query(
-        "UPDATE historico_minerva SET feedback = %s WHERE id = %s;",
-        params=(feedback, historico_id),
+        "UPDATE historico_minerva SET feedback = %s WHERE id = %s AND session_id = %s;",
+        params=(feedback, historico_id, st.session_state.session_id),
         commit=True,
     )
 

@@ -242,7 +242,8 @@ def _buscar_lexico(conn, pergunta, limite=10):
         SELECT
             id,
             nome_arquivo AS titulo,
-            conteudo AS trecho
+            conteudo AS trecho,
+            to_jsonb(documentos_ufpa) - 'embedding' - 'conteudo' AS metadados
         FROM documentos_ufpa
         WHERE
             to_tsvector('portuguese', conteudo) @@ to_tsquery('portuguese', %s)
@@ -280,7 +281,8 @@ def _buscar_lexico(conn, pergunta, limite=10):
 
         if rows:
             candidatos = [
-                {"id": r[0], "titulo": r[1], "trecho": r[2]}
+                {"id": r[0], "titulo": r[1], "trecho": r[2],
+                 **_metadados(r[3] if len(r) > 3 else None)}
                 for r in rows
                 if r and len(r) >= 3 and r[2]
             ]
@@ -335,7 +337,8 @@ def _buscar_semantico(conn, pergunta, limite=10):
             id,
             nome_arquivo AS titulo,
             conteudo AS trecho,
-            embedding <=> %s::vector AS distancia
+            embedding <=> %s::vector AS distancia,
+            to_jsonb(documentos_ufpa) - 'embedding' - 'conteudo' AS metadados
         FROM documentos_ufpa
         WHERE embedding IS NOT NULL
         ORDER BY distancia
@@ -355,10 +358,19 @@ def _buscar_semantico(conn, pergunta, limite=10):
         return []
 
     return [
-        {"id": r[0], "titulo": r[1], "trecho": r[2]}
+        {"id": r[0], "titulo": r[1], "trecho": r[2],
+         **_metadados(r[4] if len(r) > 4 else None)}
         for r in rows
         if r and len(r) >= 3 and r[2] and r[3] <= SEMANTIC_DISTANCE_MAX
     ]
+
+
+def _metadados(valor):
+    if not isinstance(valor, dict):
+        return {}
+    campos = ("chunk_uid", "chunk_sha256", "documento_sha256", "pagina_inicio",
+              "pagina_fim", "source_url", "embedding_config")
+    return {k: valor[k] for k in campos if valor.get(k) is not None}
 
 
 def _fusao_rrf(lista_lexica, lista_semantica, k=60, limite=5):
@@ -390,6 +402,7 @@ def _fusao_rrf(lista_lexica, lista_semantica, k=60, limite=5):
             "titulo": dados[chave]["titulo"],
             "trecho": dados[chave]["trecho"],
             "fonte": "Base documental local",
+            **_metadados(dados[chave]),
         }
         for chave, _ in ordenado[:limite]
     ]
@@ -464,7 +477,18 @@ def _anexar_referencias(resposta, fontes, ids):
         # Código literal evita transformar conteúdo documental em links Markdown.
         titulo = fonte["titulo"].replace("`", "'").replace("\n", " ")
         trecho = fonte["trecho"].strip().replace("`", "'").replace("\n", " ")
-        linhas.append(f"- [T:{chave}] Documento: `{titulo}` — trecho: `{trecho}`")
+        detalhes = ""
+        if fonte.get("pagina_inicio"):
+            inicio = fonte["pagina_inicio"]
+            fim = fonte.get("pagina_fim", inicio)
+            detalhes += f" — página física {inicio}" if inicio == fim else f" — páginas físicas {inicio}–{fim}"
+        if fonte.get("documento_sha256"):
+            detalhes += f" — versão SHA-256 `{fonte['documento_sha256']}`"
+        if fonte.get("chunk_uid"):
+            detalhes += f" — trecho estável `{fonte['chunk_uid']}`"
+        if fonte.get("source_url"):
+            detalhes += f" — origem: {fonte['source_url']}"
+        linhas.append(f"- [T:{chave}] Documento: `{titulo}`{detalhes} — trecho: `{trecho}`")
     return "\n\n".join(linhas)
 
 

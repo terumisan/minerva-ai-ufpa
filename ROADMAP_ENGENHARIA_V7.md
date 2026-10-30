@@ -393,3 +393,46 @@ do stash e as branches locais antigas foram conferidas no Git arquivado.
 Esta verificação não repete as avaliações das etapas 13–14, realizadas em
 outro estado operacional, nem comprova equivalência de corpus/modelo com elas.
 Os critérios completos dos marcos e o checklist da seção 10 continuam pendentes.
+
+## 16. Ingestão segura e proteção operacional — 30/10/2026
+
+Implementações e validações desta etapa:
+
+| Item | Entrega | Limite / pendência |
+|---|---|---|
+| V7-02 | CI agora inclui PostgreSQL/pgvector; suíte local completa com **211 testes aprovados**, sem skips, em banco temporário separado; Ruff aprovado | Resultado remoto da nova versão deve ser conferido após o push |
+| V7-04 | Migração aditiva, staging temporário, publicação atômica e exclusão mútua entre ingestões; falhas de extração, vetor e SQL preservam corpus/manifesto | Não há arquivo completo de versões históricas nem ponteiro para múltiplos corpora |
+| V7-05 | Manifesto por PDF/configuração; lotes de até 8; hashes de documento/trecho, ID estável e páginas físicas; texto idêntico preserva ID numérico | Origem confirmada apenas onde informada; não foram inventadas URLs; revisão imutável do ONNX e seções normativas continuam pendentes |
+| V7-06/V7-07 | Aprovação literal exige revisor, data de validação e validade com fuso; expiração bloqueia resposta | Inventário: 75 literais, zero autorizações; curadoria institucional e auditoria editorial das rotas fixas/basic_facts pendentes |
+| V7-08 | Recuperação/RRF preservam metadados; resposta mostra página física, versão/hash e ID estável da evidência | Sustentação semântica geral, calibração e avaliação independente permanecem pendentes |
+| V7-09 | Identidade anônima criada no servidor; sid da URL ignorado; feedback também filtra proprietário; teste real de leitura/listagem/edição/exclusão/feedback entre sessões | Reload inicia nova sessão, sem recuperação do histórico por links; não foi implementado login institucional |
+| V7-10 | Pergunta limitada a 4.000 caracteres, intervalo de 3 s, uma consulta por processo sem fila; pool com threads, rollback ao devolver conexão e timeout SQL; HTTP/streaming com limites | Não há rate limiting distribuído nem cancelamento forçado do processo do LLM |
+| V7-11 | HTTPS UFPA em cada salto; IP público validado e fixado na conexão TLS, sem segunda resolução; HTML limitado; testes de redirecionamento, IP privado e citação maliciosa | Testes não comprovam resistência universal a instruções maliciosas em documentos |
+| V7-12 | Logs omitem corpo de erro/resposta bloqueada; ferramenta de retenção simula por padrão e só exclui com flag explícita | Prazo e agendamento dependem de decisão do responsável pelos dados; não houve expiração automática |
+
+Aplicação no ambiente ativo: **413 trechos, 413 vetores, 413 IDs estáveis e 413
+registros de página**, distribuídos por 15 PDFs. A segunda execução retornou
+`atualizados: 0, inalterados: 15`. Worker opcional de ingestão (`manutencao`)
+construído e executado com sucesso, com limites próprios de 2 GiB/2 CPUs;
+DB/LLM/UI não foram recriados. Evita carregar outro modelo no teto da UI.
+
+Navegador Chromium: pergunta sintética de comentários/anexos no SAGITTA
+respondida pela rota RAG com referência ao manual, página física 8, hash e
+origem. Duas sessões independentes com a mesma URL não compartilharam histórico;
+sid foi removido, reload iniciou nova identidade e não houve erro de frontend.
+Isso não constitui avaliação ampla de correção factual ou vigência.
+
+Backup prévio restaurado em banco temporário: contagens e hashes lógicos
+coincidiram com a base no momento do ensaio. Banco temporário removido ao final.
+O dump após a migração também foi restaurado e comparado: quatro tabelas com
+contagens/hashes coincidentes. A mensagem sintética do navegador foi removida
+por filtro exato de conversa e pergunta; nenhum registro real foi apagado.
+Ferramenta repetível: `scripts/validar_backup.py` (dump custom, nunca restaura
+sobre a base ativa). Código anterior e dump preservados para planejar reversão;
+rollback de produção, janela de suspensão de escritas e aceite institucional
+continuam exigindo procedimento operacional específico.
+
+Artefatos locais privados: `~/ufpa_rag_backups/ajustes_v7_20261030/`, incluindo
+dump, código anterior, relatório de restauração, auditoria de literais e
+evidências do navegador. Nenhuma credencial, histórico, PDF, GGUF ou artefato
+privado é incluído no commit. A etapa não conclui os critérios globais de M6.

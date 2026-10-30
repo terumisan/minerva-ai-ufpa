@@ -38,7 +38,10 @@ Após verificar a fonte e sua relação com a resposta, o curador deve preencher
     "file": "fonte.txt",
     "url": "https://fct.ufpa.br/",
     "sha256": "SHA256_DOS_BYTES_DA_FONTE",
-    "answer_sha256": "SHA256_DA_RESPOSTA_LITERAL_COM_STRIP_EM_UTF8"
+    "answer_sha256": "SHA256_DA_RESPOSTA_LITERAL_COM_STRIP_EM_UTF8",
+    "reviewer": "IDENTIFICADOR_DO_CURADOR",
+    "validated_at": "DATA_ISO_8601_COM_FUSO",
+    "valid_until": "DATA_ISO_8601_COM_FUSO"
   }
 }
 ```
@@ -49,6 +52,11 @@ revalidação continuam humanas. A pasta é ignorada pelo Git; não inclua segre
 Nenhuma resposta foi aprovada automaticamente nesta integração. As 60 entradas
 literais legadas sem manifesto/URL válida deixam de responder diretamente;
 isso pode aumentar a latência e as abstenções até a curadoria ser concluída.
+
+Atualização de 30/10: aprovações exigem revisor e datas com fuso; validação
+futura, validade expirada e ausência desses campos bloqueiam a resposta.
+Manifestos antigos precisam de reavaliação humana. Inventário de pendências:
+`docker compose exec -T ufpa_rag_ui python scripts/auditar_literais.py`.
 
 ## GitHub, nuvem e execução
 
@@ -67,9 +75,10 @@ docker compose up -d --build
 ```
 
 Abra `http://localhost:8501` no host. Em servidor remoto, use o acesso configurado
-nesse servidor. O modelo exigido está em `models/Qwen2.5-7B-Instruct-Q4_K_M.gguf`.
+nesse servidor. O modelo exigido pelo Compose atual está em `models/gemma-4-E4B_q4_0-it.gguf`.
 O banco novo ainda precisa da ingestão descrita no README; não a execute sobre
-uma base existente sem backup, pois o script atual recria o corpus.
+uma base existente sem backup. A ingestão atual é incremental e atômica;
+consulte o README para migração aditiva, memória e limites.
 
 Para uma instalação existente, revise `git status`, preserve alterações locais
 e só então atualize a branch com `git pull --ff-only` e reconstrua os containers.

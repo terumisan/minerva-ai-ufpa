@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 
 import requests
 import streamlit as st
@@ -192,8 +193,7 @@ def validar_resposta_institucional(resposta: str) -> str:
 
     if violacao == "associacao":
         logger.warning(
-            "Resposta bloqueada por associação institucional incompatível: %s",
-            resposta,
+            "Resposta bloqueada por associação institucional incompatível",
         )
         return (
             "Não localizei informação institucional suficiente na base disponível "
@@ -205,8 +205,7 @@ def validar_resposta_institucional(resposta: str) -> str:
 
     if violacao == "sigla":
         logger.warning(
-            "Resposta bloqueada por sigla institucional externa: %s",
-            resposta,
+            "Resposta bloqueada por sigla institucional externa",
         )
         return (
             "A Minerva está configurada para responder exclusivamente no contexto "
@@ -328,6 +327,8 @@ def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
     if on_chunk is not None:
         payload["stream"] = True
 
+    response = None
+    inicio = time.monotonic()
     try:
         response = http_session.post(
             LLM_API_URL,
@@ -339,15 +340,14 @@ def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
             # o pior caso com folga; abaixo disso o request estourava
             # antes de o modelo terminar. No streaming, o timeout vale para
             # cada intervalo sem dados chegando, não para o tempo total.
-            timeout=420,
+            timeout=(5, 180),
             stream=on_chunk is not None,
         )
 
         if response.status_code != 200:
             logger.warning(
-                "Modelo retornou status %s: %s",
+                "Modelo retornou status %s",
                 response.status_code,
-                response.text,
             )
             return (
                 "Não localizei informação institucional suficiente na base "
@@ -376,6 +376,8 @@ def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
         partes: list[str] = []
 
         for linha in response.iter_lines(decode_unicode=True):
+            if time.monotonic() - inicio > 180:
+                raise TimeoutError("Tempo máximo de geração excedido")
             delta = _extrair_delta_sse(linha)
 
             if delta is None:
@@ -399,11 +401,14 @@ def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
         return validar_resposta_institucional("".join(partes).strip())
 
     except Exception as exc:
-        logger.exception(
+        logger.warning(
             "Erro ao consultar modelo local da Minerva: %s",
-            exc,
+            type(exc).__name__,
         )
         return (
             "No momento, não foi possível consultar a base assistida da FCT/UFPA. "
             "Tente novamente mais tarde."
         )
+    finally:
+        if response is not None:
+            response.close()

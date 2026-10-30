@@ -6,6 +6,7 @@ import os
 import re
 from pathlib import Path
 from urllib.parse import urlparse
+from datetime import datetime, timezone
 
 
 def snapshot_verificado(entrada: dict) -> bool:
@@ -23,6 +24,7 @@ def snapshot_verificado(entrada: dict) -> bool:
         parsed = urlparse(url)
         host = parsed.hostname or ""
         if (parsed.scheme != "https" or parsed.username or parsed.password
+                or parsed.port not in (None, 443)
                 or not (host == "ufpa.br" or host.endswith(".ufpa.br"))):
             return False
         root = Path(root_value).resolve()
@@ -31,6 +33,15 @@ def snapshot_verificado(entrada: dict) -> bool:
             return False
         entry = manifest.get(entrada.get("id"))
         if not isinstance(entry, dict) or entry.get("url") != url:
+            return False
+        revisor = entry.get("reviewer")
+        if not isinstance(revisor, str) or not revisor.strip():
+            return False
+        validado = datetime.fromisoformat(entry.get("validated_at", ""))
+        validade = datetime.fromisoformat(entry.get("valid_until", ""))
+        agora = datetime.now(timezone.utc)
+        if (validado.tzinfo is None or validade.tzinfo is None
+                or not validado <= agora < validade):
             return False
         filename = entry.get("file")
         digest = entry.get("sha256")

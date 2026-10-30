@@ -29,13 +29,16 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 ## Embeddings / RAG
 - Modelo de embedding: `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` (768d), trocado do MiniLM (384d) após ganho medido (hit@6 semântico 44.2%→63.5%).
 - `multilingual-e5-large` (2.3GB) foi testado e teve melhor score, mas **rejeitado por risco de memória** — RAM total da máquina é só 14GB e já houve incidente de swap-thrashing com o LLM. Só revisitar se a situação de memória do LLM estiver estável/monitorada.
-- `ingestao.py` faz `DROP COLUMN IF EXISTS embedding` + `ADD COLUMN` no reindex — mudança de dimensão de embedding não precisa de migração manual.
+- `ingestao.py` usa migração aditiva e rejeita dimensões incompatíveis, preservando o índice ativo. Não trocar modelo/dimensão sem planejar um índice separado e validar a migração.
 
 ## Dados / ingestão
 - Corpus conferido em 30/10/2026: 15 PDFs, 413 chunks com embeddings. Duplicata e arquivos vazios foram removidos anteriormente.
 - `ManualSagitta.pdf` foi substituído pelo PDF oficial íntegro (12 páginas, edição de 2015); 18 trechos inseridos, preservando os 395 anteriores. Fonte: https://sagitta.ufpa.br/sagitta/documentos/manual_sagitta.pdf.
-- Ingestão com lote padrão excedeu os limites de 2 e 4 GiB da UI. Nesta execução foram usados lotes de 8 em `passage_embed`; o código padrão ainda não foi ajustado. Não repetir a ingestão padrão supondo que o problema esteja resolvido.
-- `ingestao.py` faz TRUNCATE + rebuild completo a cada execução — contagens de chunks podem mudar; não confiar em números antigos, reconferir com `SELECT nome_arquivo, count(*) FROM documentos_ufpa GROUP BY nome_arquivo`.
+- Ingestão corrigida: lotes de até 8, staging temporário, publicação atômica e manifesto incremental. Qualquer falha aborta a publicação inteira; arquivos ausentes não são removidos automaticamente. Não usa DROP/TRUNCATE da base ativa.
+- Prefira o worker isolado: `docker compose --profile manutencao run --rm --build ufpa_rag_ingestao --fontes /app/fontes_documentais.json`. Evita carregar dois modelos no teto de memória da UI.
+- IDs numéricos são preservados para texto idêntico; chunks têm hash/ID estável, versão SHA-256 do PDF e páginas físicas. Origens desconhecidas permanecem nulas; não inventar URLs.
+- Identidade anônima agora é gerada no servidor, sem aceitar `sid` pela URL. Reload cria nova identidade; exportação deve ocorrer na sessão atual. Não reintroduzir sid como credencial.
+- Aprovações literais exigem reviewer/validated_at/valid_until, além de hashes e fonte. Curadoria e vigência são humanas; não preencher aprovações automaticamente.
 
 ## Convenções de trabalho observadas
 - Eval set principal: 720 perguntas geradas por LLM a partir dos chunks-fonte (hit-rate@1, hit@6 lexical/semântico/híbrido RRF).

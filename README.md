@@ -80,13 +80,13 @@ Cada pergunta passa por camadas, na ordem — a primeira que responder "ganha":
 - **Python 3.10**
 - **Streamlit 1.59** — interface web
 - **PostgreSQL + pgvector** — histórico de conversas e busca vetorial
-- **llama.cpp** — inferência do LLM local (modelo ativo: `Qwen2.5-7B-Instruct-Q4_K_M.gguf`. Testado `Qwen3-4B-Instruct-2507` em jul/2026 — ~2x mais rápido isolado e qualidade comparável — mas revertido a pedido do usuário; ver histórico no `docker-compose.yml`)
+- **llama.cpp** — inferência local em CPU; modelo ativo conferido em 30/10/2026: `gemma-4-E4B_q4_0-it.gguf`. Comparações anteriores com Qwen/Llama são históricas.
 - **fastembed** — embeddings (`paraphrase-multilingual-mpnet-base-v2`, 768d, ONNX, sem depender de GPU/torch — trocado do MiniLM-L12 384d após medir com `app/scripts/comparar_embeddings.py`: hit-rate@6 semântico saltou de 44,2% para 63,5% na base real. O `multilingual-e5-large` media ainda melhor, mas 2,3GB era arriscado demais de memória nesta máquina)
 - **langchain-text-splitters** + **pypdf** — extração e *chunking* dos PDFs institucionais na ingestão
 - **python-docx** — geração de documentos `.docx` a partir do conteúdo indexado
 - **uv** (Astral) — instalador de dependências (Dockerfile e CI)
 - **pytest** + **ruff** — testes e lint
-- **GitHub Actions** — CI (roda `ruff check` + `pytest` em todo push/PR pra `main`)
+- **GitHub Actions** — Ruff e pytest com PostgreSQL/pgvector em push/PR para `main` e `melhorias/roadmap-engenharia`.
 
 ## Estrutura do projeto
 
@@ -111,7 +111,7 @@ ufpa_rag/
     ├── minerva_basic_facts.py     # respostas sobre siglas/identidade institucional
     ├── minerva_dataset.py         # respostas cadastradas manualmente (minerva_dataset.json)
     ├── scripts/ingestao.py        # extrai PDFs de documentos/, gera embeddings, popula o Postgres
-    ├── tests/                     # suíte pytest (57 testes, módulos puros)
+    ├── tests/                     # suíte pytest e integração PostgreSQL/pgvector
     ├── requirements.txt            # dependências de produção (pinadas)
     ├── requirements-dev.txt        # + pytest/ruff, só pra dev/CI
     └── Dockerfile
@@ -119,7 +119,7 @@ ufpa_rag/
 
 ## Como rodar
 
-**Pré-requisitos**: Docker + Docker Compose. Um modelo `.gguf` em `models/` (o `docker-compose.yml` já aponta pro `Qwen2.5-7B-Instruct-Q4_K_M.gguf` — troque o `command` do serviço `ufpa_rag_llm` se for usar outro). PDFs institucionais em `documentos/`.
+**Pré-requisitos**: Docker + Docker Compose. O modelo indicado no `command` de `ufpa_rag_llm` deve existir em `models/` (atualmente `gemma-4-E4B_q4_0-it.gguf`). PDFs institucionais em `documentos/`.
 
 ```bash
 # 1. Credenciais do Postgres
@@ -130,7 +130,7 @@ cp .env.example .env
 docker compose up -d --build
 
 # 3. Popule a base vetorial a partir dos PDFs em documentos/
-docker compose exec ufpa_rag_ui python scripts/ingestao.py
+docker compose exec -T ufpa_rag_ui python scripts/ingestao.py --fontes /app/fontes_documentais.json
 
 # 4. Acesse
 # http://localhost:8501
@@ -209,20 +209,33 @@ Tudo lido via `app/config.py::get_config()`, na ordem: `.streamlit/secrets.toml`
 1. Lê todos os `.pdf` de `documentos/`.
 2. Extrai o texto preservando marcadores estruturais (Art., Capítulo, Seção, §) como fronteiras de corte.
 3. Fatia em chunks (~900 caracteres, overlap de 150) com `RecursiveCharacterTextSplitter`.
-4. Gera embeddings de cada chunk (mesmo modelo usado na busca, pra distância de cosseno fazer sentido) e grava tudo em `documentos_ufpa` (Postgres).
+4. Gera embeddings em lotes de até 8, com o modelo/dimensão da busca; registra hash do PDF, hash/ID estável do trecho, páginas físicas e origem quando confirmada. Textos idênticos preservam o ID numérico.
 
 Rodar (dentro do container, ou localmente com as mesmas env vars do `.env`):
 
 ```bash
-docker compose exec ufpa_rag_ui python scripts/ingestao.py
+docker compose exec -T ufpa_rag_ui python scripts/ingestao.py --fontes /app/fontes_documentais.json
 ```
 
-⚠️ Isso faz `TRUNCATE` na tabela `documentos_ufpa` antes de reindexar — reprocessa tudo do zero a cada execução.
+A ingestão agora é incremental e atômica: PDFs inalterados são ignorados; mudanças são preparadas em staging temporário e publicadas em uma transação. Falhas de extração, vetor ou SQL preservam a base ativa. Não há `DROP` vetorial nem `TRUNCATE`; arquivos ausentes não são excluídos automaticamente. Dimensão incompatível é rejeitada. A primeira execução no legado calcula os metadados; execuções seguintes pulam arquivos inalterados.
+
+Com o chat em uso, prefira o worker isolado para não carregar dois modelos no
+mesmo limite de memória da UI:
+
+```bash
+docker compose --profile manutencao run --rm --build ufpa_rag_ingestao --fontes /app/fontes_documentais.json
+```
+
+O worker tem limite próprio de 2 GiB e 2 CPUs; `--batch-size` aceita 1 a 8.
+`--force` reprocessa arquivos inalterados. `--fontes` recebe um JSON de nome
+do PDF para URL HTTPS oficial; não invente origens desconhecidas. As páginas
+são físicas do PDF e podem diferir da numeração impressa. Não há arquivo
+completo de versões históricas dos PDFs nem revisão imutável do ONNX.
 
 **Consistência dos dados-fonte** (`documentos/`, 15 PDFs válidos):
 - `Regimento_UFPA_FCT.pdf` era um duplicado exato (MD5 idêntico) de `RegimentoGeral.pdf` — removido; mantido só `RegimentoGeral.pdf` (é o nome referenciado em `app/documents.py`, usado no download por palavra-chave). A duplicata inflava a base em ~33% de chunks repetidos e prejudicava o ranking do RRF (chunks idênticos competindo entre si) — hit-rate@1 subiu de 42,6% para 52,9% só com essa remoção.
 - `Apresentacao_Eng_Computacao.pdf` e `Apresentacao_Eng_Telecomunicacoes.pdf` (0 bytes, vazios) — removidos.
-- `ManualSagitta.pdf` está corrompido (falta o marcador EOF, "stream has ended unexpectedly") — nem o Ghostscript consegue abrir pra reparar. Continua em `documentos/` mas nunca gera chunks (a ingestão pula com um aviso). Precisa ser re-obtido na fonte original se o conteúdo for importante.
+- `ManualSagitta.pdf` foi substituído pelo PDF oficial íntegro: 12 páginas, edição de 2015 e 18 trechos. Corpus conferido em 30/10/2026: 413 trechos de 15 documentos.
 
 ## Desenvolvimento
 
@@ -230,15 +243,15 @@ docker compose exec ufpa_rag_ui python scripts/ingestao.py
 # instala dependências de dev (pytest + ruff) com uv
 uv pip install -r app/requirements-dev.txt
 
-# testes (57 testes, cobrindo módulos que não dependem de Streamlit/Postgres:
-# minerva_history, minerva_hybrid, minerva_priority_router, minerva_dataset)
+# testes; integração exige MINERVA_TEST_DSN apontando para um banco separado
+# a CI fornece PostgreSQL/pgvector; sem DSN, os testes de banco são pulados
 pytest
 
 # lint
 ruff check .
 ```
 
-CI (`.github/workflows/ci.yml`) roda os dois em todo push/PR pra `main`.
+CI (`.github/workflows/ci.yml`) roda Ruff e a suíte com PostgreSQL/pgvector nas branches `main` e `melhorias/roadmap-engenharia`. Cada teste de banco usa schema temporário; configure `MINERVA_TEST_DSN` somente para um banco de testes separado.
 
 Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de conversa) sem precisar de navegador, o projeto usa `streamlit.testing.v1.AppTest` — simula um script Streamlit real, incluindo `session_state` e `query_params`.
 
@@ -246,10 +259,34 @@ Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de c
 
 - Credenciais do Postgres nunca ficam hardcoded no código — vêm de `.env` (gitignored), consumido via variável de ambiente tanto pelo `docker-compose.yml` quanto pelos scripts Python.
 - Postgres não é exposto além de `127.0.0.1`.
-- *Web scraping* dinâmico (`minerva_priority_router.py`, `minerva_basic_facts.py`) só aceita domínios `*.ufpa.br` (allowlist), inclusive checando o domínio final após redirecionamento.
+- Acesso web exige HTTPS da UFPA em cada redirecionamento, rejeita IP privado/reservado e fixa o IP validado na conexão TLS; HTML limitado a 2 MB.
 - Toda resposta passa por uma barreira pós-geração que bloqueia associação com instituições externas, mesmo que o modelo tente gerar isso.
 
 ## Operação e infraestrutura
+
+Validação de dump custom (`pg_dump -Fc`), em banco temporário separado:
+
+```bash
+python3 scripts/validar_backup.py /caminho/backup.dump --relatorio /caminho/restore.json
+```
+
+Use um backup recém-criado sem gravações concorrentes para comparar contagens e
+hashes. O comando remove somente o banco temporário que criou. Para rollback
+da aplicação, preserve o commit anterior e o dump antes de migrar; teste a
+restauração, suspenda novas gravações e só então planeje restaurar a base ativa.
+As novas colunas são aditivas, mas voltar ao código antigo remove as proteções
+de sessão e ingestão. O script de validação não restaura sobre produção.
+
+Expiração de histórico e avaliações é uma operação separada:
+
+```bash
+docker compose exec -T ufpa_rag_ui python scripts/retencao_historico.py --dias 30
+```
+
+Esse comando apenas simula. Defina o prazo com o responsável pelos dados antes
+de usar `--aplicar` ou agendar a exclusão. Nenhuma expiração automática foi
+ativada. Logs operacionais omitem respostas bloqueadas e corpos de erro do LLM;
+histórico, avaliações e backups ainda contêm texto e devem permanecer privados.
 
 - **Backup diário do Postgres**: `scripts/backup_postgres.sh` (`pg_dump` gzipado, rotação de 14 dias) roda via timer systemd de usuário (`ufpa_rag_backup_postgres.timer`, 03h30, antes do restart do LLM às 4h). Os dumps ficam em `~/ufpa_rag_backups/`, **fora do repositório git** — contêm dado real de aluno (perguntas do chat, respostas abertas do formulário de avaliação) e nunca devem ser versionados. Rodar manualmente: `./scripts/backup_postgres.sh`. Restaurar: `gunzip -c ~/ufpa_rag_backups/ufpa_rag_AAAAMMDD_HHMMSS.sql.gz | docker exec -i ufpa_rag_db psql -U admin ufpa_rag`.
 - **Limites de memória** (`mem_limit` no `docker-compose.yml`): `ufpa_rag_llm` 6g, `ufpa_rag_ui` 2g, `ufpa_rag_db` 1g — calibrados com uso real observado, contendo o vazamento de memória conhecido do LLM (ver Limitações abaixo) num teto por container em vez de deixar em aberto. Ao trocar de modelo `.gguf`, ajuste o limite do `ufpa_rag_llm` proporcionalmente ao tamanho do arquivo (o `--mlock` do llama.cpp trava páginas na RAM — um limite menor que o footprint real do modelo o mata no próprio carregamento).
@@ -266,9 +303,9 @@ Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de c
 
 ## Limitações conhecidas
 
-- O modelo local roda em **CPU** — com o Qwen2.5-7B (escolhido pela precisão), respostas que passam pelo RAG genérico levam em média ~90s (medido; a estimativa antiga de 2-5min já refletia um servidor sem reiniciar há semanas — ver item de memória abaixo). Perguntas cobertas por rotas fixas ou pelo dataset promovido (`minerva_dataset.json`, estratégia `RESPOSTA_LITERAL`) são instantâneas. Pra priorizar velocidade sobre precisão, troque pro `Llama-3.2-3B` no `docker-compose.yml` (~1 min por resposta).
-- Sem autenticação de usuário: qualquer pessoa com o link acessa o app. O histórico de conversas é isolado por navegador (via `session_id` na URL), não por login.
-- Sem rate limiting: como o LLM roda serializado (`--parallel 1` no llama.cpp), várias perguntas simultâneas de usuários diferentes enfileiram.
+- Inferência em CPU: latências históricas de outros modelos não representam um SLO do Gemma ativo; medir aquecimento, concorrência e p50/p95 antes de comparar.
+- Acesso anônimo, sem login institucional. Identidade criada no servidor; `sid` da URL é ignorado. Histórico disponível durante a sessão WebSocket; reload inicia outra identidade. Exporte antes de sair.
+- Uma consulta por processo da UI, sem fila de espera; intervalo mínimo de 3 s por sessão e perguntas de até 4.000 caracteres. Réplicas exigirão limitação compartilhada. HTTP do LLM: timeout de conexão de 5 s e leitura de 180 s; streaming verifica prazo entre eventos. Não é cancelamento forçado do processo do modelo.
 - **Vazamento de memória do llama.cpp em uso prolongado**: o cache interno de "compute graphs" do servidor cresce sem limite (observado: 11,2GB de RAM depois de dias no ar, contra ~4,5GB esperados de um modelo 7B Q4 — forçava a máquina inteira pro swap e degradava a latência de todos os containers, não só do LLM). Mitigado com um timer systemd de usuário (`ufpa_rag_restart_llm.timer`, reinicia o container `ufpa_rag_llm` diariamente às 4h — ver `systemctl --user list-timers`). Sem estado persistente no container, reiniciar é seguro.
 
 
