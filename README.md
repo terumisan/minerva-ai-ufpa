@@ -9,6 +9,7 @@ Assistente virtual acadêmica da **Faculdade de Computação e Telecomunicaçõe
 ## Sumário
 
 - [Visão geral](#visão-geral)
+- [Estado atual e próxima etapa](#estado-atual-e-próxima-etapa)
 - [Arquitetura](#arquitetura)
 - [Como a Minerva responde uma pergunta](#como-a-minerva-responde-uma-pergunta)
 - [Stack técnica](#stack-técnica)
@@ -35,6 +36,26 @@ A Minerva é um chatbot RAG (*Retrieval-Augmented Generation*) construído para 
 
 Interface web em Streamlit, conversas múltiplas por sessão (estilo ChatGPT), exportação de histórico e download dos documentos originais (PDF) ou reformatados (DOCX).
 
+## Estado atual e próxima etapa
+
+A revalidação de 30/10/2026 aprovou 222 testes com PostgreSQL/pgvector,
+Ruff, compilação, os fluxos de TCC e SAGITTA no navegador e a restauração de
+backup em banco separado. A base contém 413 trechos de 15 documentos; o
+catálogo tem 92 entradas, das quais 91 estão ativas. Os resultados e seus
+limites estão no [roadmap](ROADMAP_ENGENHARIA_V7.md), seção 18.
+
+Essas verificações dão suporte a uma rodada controlada de avaliação. Ainda
+é necessário verificar se as respostas são corretas, completas, pertinentes
+ao curso e sustentadas por fontes vigentes. Recuperar o documento certo e
+validar a referência são partes dessa avaliação. A V7 permanece sem
+homologação técnica e institucional integral.
+
+A próxima etapa proposta é revisar de 20 a 30 perguntas importantes, com
+formulações diferentes das usadas no desenvolvimento, antes de ampliar o
+catálogo ou trocar modelos. O [plano de avaliação controlada](docs/AVALIACAO_CONTROLADA_V7.md)
+define amostra, rubrica, registro de erros, medição de latência e critérios
+para decidir os próximos ajustes.
+
 ## Arquitetura
 
 ```
@@ -53,27 +74,27 @@ Interface web em Streamlit, conversas múltiplas por sessão (estilo ChatGPT), e
                           └──────────────────────┘
 ```
 
-Três containers Docker (`docker-compose.yml`):
+Três serviços principais e um worker opcional no `docker-compose.yml`:
 
 | Serviço | Imagem | Função |
 |---|---|---|
 | `ufpa_rag_ui` | build local (`app/Dockerfile`) | App Streamlit — toda a lógica da Minerva |
 | `ufpa_rag_db` | `ankane/pgvector` | Postgres com a extensão `pgvector` — histórico de conversas + chunks de documentos com embeddings |
 | `ufpa_rag_llm` | `ghcr.io/ggml-org/llama.cpp:server` | Serve o modelo GGUF local via API compatível com `/v1/chat/completions` |
+| `ufpa_rag_ingestao` | build local (`app/Dockerfile`), perfil `manutencao` | Processa PDFs em execução separada da UI, com limite próprio de memória |
 
 ## Como a Minerva responde uma pergunta
 
-Cada pergunta passa por camadas, na ordem — a primeira que responder "ganha":
+1. **Entrada e capacidade:** `operacao.py` valida a pergunta e controla o atendimento. Há limite de 4.000 caracteres, intervalo mínimo por sessão e uma consulta por processo da UI, sem fila de espera.
+2. **Contexto específico:** `minerva_dataset.py` reconhece perguntas e variações explícitas do catálogo. Quando há correspondência única com contexto documental, a consulta segue para o RAG com restrição de documento, versão e páginas, evitando respostas temáticas mais amplas.
+3. **Roteamento das demais perguntas:** `minerva_priority_router.py` combina fatos básicos, dataset e rotas temáticas. Algumas rotas consultam páginas oficiais da UFPA com validação de domínio, redirecionamento e endereço de destino. Resposta literal do dataset exige manifesto aprovado, hashes, revisor e validade; na ausência dessa aprovação, a entrada não libera texto fixo.
+4. **Recuperação documental:** `minerva_hybrid.py` combina busca lexical e semântica por RRF. Para um alias exato cujo formulário curto não atinja correspondência suficiente, pode recuperar as páginas cadastradas, conferindo o hash do documento. Isso não reduz o limiar semântico global.
+5. **Resposta e referências:** no modo normativo conservador, o LLM seleciona IDs e a aplicação transcreve os excertos com ressalvas. Nas demais consultas RAG, a geração precisa usar referências válidas do contexto. A aplicação aguarda a validação antes de exibir o texto; evidência insuficiente ou referência inválida pode produzir abstenção.
 
-1. **`minerva_priority_router.py`** — rotas fixas e determinísticas para assuntos específicos (calendário, cardápio, TCC, estágio, contato, regimento...). Faz *web scraping* controlado (allowlist de domínio `*.ufpa.br`, timeout, cache de 15min) quando a resposta precisa vir de uma página oficial ao vivo.
-2. **`minerva_basic_facts.py`** — perguntas básicas sobre siglas e identidade institucional ("o que é FCT?", "o que é ITEC?").
-3. **`minerva_dataset.py`** — perguntas cadastradas manualmente em `minerva_dataset.json`, prioridade mais baixa, preenche lacunas que ainda não têm rota fixa.
-4. **`minerva_hybrid.py`** (RAG genérico) — se nada acima respondeu:
-   - Busca **léxica** (full-text search do Postgres, com stemmer português e expansão de sinônimos institucionais).
-   - Busca **semântica** (embeddings via `fastembed`, comparação por cosseno no pgvector).
-   - As duas listas são combinadas por **Reciprocal Rank Fusion (RRF)**.
-   - Os trechos mais relevantes viram contexto para o LLM local, com um prompt que proíbe inventar informação e força citar a fonte.
-5. Antes de qualquer resposta sair pra tela, passa por **barreiras institucionais** (`prompts.py`): bloqueia menção a outras universidades, tanto na pergunta do usuário quanto na resposta gerada pelo modelo.
+As barreiras institucionais e de referências reduzem falhas específicas da
+geração. Elas não demonstram que toda afirmação está sustentada ou que uma
+norma permanece vigente. A revisão editorial das rotas fixas e de
+`minerva_basic_facts.py` também continua pendente.
 
 ## Stack técnica
 
@@ -91,8 +112,8 @@ Cada pergunta passa por camadas, na ordem — a primeira que responder "ganha":
 ## Estrutura do projeto
 
 ```
-ufpa_rag/
-├── docker-compose.yml          # orquestra os 3 containers
+minerva-ai-ufpa/
+├── docker-compose.yml          # serviços principais e worker opcional
 ├── .env.example                # template de credenciais (copiar pra .env)
 ├── documentos/                 # PDFs oficiais fonte (não versionados)
 ├── models/                     # modelos .gguf locais (não versionados)
@@ -110,6 +131,11 @@ ufpa_rag/
     ├── minerva_priority_router.py # roteador de rotas fixas + scraping controlado (*.ufpa.br)
     ├── minerva_basic_facts.py     # respostas sobre siglas/identidade institucional
     ├── minerva_dataset.py         # respostas cadastradas manualmente (minerva_dataset.json)
+    ├── minerva_dataset.json       # perguntas, respostas candidatas, contextos e variações
+    ├── minerva_qa_catalogo.py      # validação e publicação do catálogo no PostgreSQL
+    ├── minerva_static.py          # verificação da aprovação das respostas literais
+    ├── operacao.py                # identidade anônima, entrada e limite de capacidade
+    ├── web_segura.py              # acesso HTTPS oficial e validação de destino
     ├── scripts/ingestao.py        # extrai PDFs de documentos/, gera embeddings, popula o Postgres
     ├── tests/                     # suíte pytest e integração PostgreSQL/pgvector
     ├── requirements.txt            # dependências de produção (pinadas)
@@ -129,10 +155,13 @@ cp .env.example .env
 # 2. Suba os containers
 docker compose up -d --build
 
-# 3. Popule a base vetorial a partir dos PDFs em documentos/
-docker compose exec -T ufpa_rag_ui python scripts/ingestao.py --fontes /app/fontes_documentais.json
+# 3. Popule a base vetorial em um worker separado
+docker compose --profile manutencao run --rm --build ufpa_rag_ingestao --fontes /app/fontes_documentais.json
 
-# 4. Acesse
+# 4. Com os PDFs correspondentes ao dataset, publique o catálogo QA
+docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py
+
+# 5. Acesse
 # http://localhost:8501
 ```
 
@@ -300,14 +329,18 @@ ruff check .
 
 CI (`.github/workflows/ci.yml`) roda Ruff e a suíte com PostgreSQL/pgvector nas branches `main` e `melhorias/roadmap-engenharia`. Cada teste de banco usa schema temporário; configure `MINERVA_TEST_DSN` somente para um banco de testes separado.
 
-Para testar o fluxo completo do app (sessão, histórico, roteamento, troca de conversa) sem precisar de navegador, o projeto usa `streamlit.testing.v1.AppTest` — simula um script Streamlit real, incluindo `session_state` e `query_params`.
+A suíte cobre módulos, contratos e integração com banco. Os smoke tests de
+navegador registrados no roadmap verificaram chat, referências, isolamento
+entre sessões e reload em casos específicos. Esses resultados não cobrem
+todas as rotas ou uma avaliação ampla de usabilidade. O plano de avaliação
+controlada complementa a suíte com revisão humana e tarefas pela interface.
 
 ## Segurança
 
 - Credenciais do Postgres nunca ficam hardcoded no código — vêm de `.env` (gitignored), consumido via variável de ambiente tanto pelo `docker-compose.yml` quanto pelos scripts Python.
 - Postgres não é exposto além de `127.0.0.1`.
 - Acesso web exige HTTPS da UFPA em cada redirecionamento, rejeita IP privado/reservado e fixa o IP validado na conexão TLS; HTML limitado a 2 MB.
-- Toda resposta passa por uma barreira pós-geração que bloqueia associação com instituições externas, mesmo que o modelo tente gerar isso.
+- A geração RAG passa por barreiras institucionais e validação de referências. Isso não autoriza generalizar a revisão para todas as rotas fixas ou para a correção factual de todas as respostas.
 
 ## Operação e infraestrutura
 
@@ -357,12 +390,15 @@ histórico, avaliações e backups ainda contêm texto e devem permanecer privad
 
 
 
-## Correções V7 integradas em 29/10/2026
+## Histórico da integração V7
 
-Veja [INTEGRACAO_V7.md](INTEGRACAO_V7.md) para mudanças, configuração de
-snapshots e comandos de execução. O dataset literal agora exige fonte e
-aprovação verificáveis; entradas sem autorização seguem para o RAG. O RRF
-não conta IDs duplicados na mesma lista e desempata pelo ID. As rotas fixas
-permanecem anteriores a esta política. O protótipo não exige login institucional.
-A CI também cobre `melhorias/roadmap-engenharia`. A integração não é uma
-homologação completa nem comprova ganho de qualidade ou latência.
+Veja [INTEGRACAO_V7.md](INTEGRACAO_V7.md) para o histórico iniciado em
+29/10/2026, a configuração dos snapshots e os passos de atualização. As
+respostas literais do dataset exigem aprovação verificável; contexto
+documental localizado não libera texto fixo. As rotas fixas mantêm revisão
+editorial pendente, e o protótipo continua sem login institucional.
+
+A CI cobre `main` e `melhorias/roadmap-engenharia`. A integração e os testes
+registrados não constituem homologação integral nem demonstram ganho geral
+de qualidade ou latência. As próximas verificações estão descritas no
+[plano de avaliação controlada](docs/AVALIACAO_CONTROLADA_V7.md).

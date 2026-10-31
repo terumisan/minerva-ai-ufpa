@@ -7,7 +7,8 @@
 engenharia; suíte completa com PostgreSQL/pgvector, ingestão atômica e smoke
 tests operacionais validados. Os itens concluídos abaixo são verificações
 específicas, não a homologação integral dos marcos. Revalidação mais recente:
-seção 18.
+seção 18. A prioridade seguinte, proposta na seção 19, é a avaliação
+controlada do conteúdo e da experiência de uso.
 
 ## 1. Objetivo e escopo
 
@@ -110,6 +111,12 @@ Se D1000/D900/D100 forem incorporados, registrar origem e versões; sua presenç
 ### Ponta a ponta
 
 Avaliar correção factual, sustentação por evidência, validade das citações, cobertura e abstenções. Definir rubrica antes da execução, registrar denominadores e usar revisão humana independente em uma amostra, com resolução de discordâncias.
+
+Para a primeira rodada técnica com revisão de conteúdo, seguir o
+[plano de avaliação controlada](docs/AVALIACAO_CONTROLADA_V7.md): 20 a 30
+perguntas importantes, com proposta inicial de 24 casos e formulações
+diferentes das usadas no desenvolvimento. A amostra é diagnóstica e não
+substitui uma avaliação representativa ou os protocolos por trilha acima.
 
 ### Desempenho
 
@@ -559,3 +566,30 @@ atualizações documentais e commit/push na branch de engenharia. Registro no
 AGENTS.md; os controles técnicos de permissão do ambiente permanecem em vigor.
 Artefatos, screenshots e dump desta rodada:
 `~/ufpa_rag_backups/revalidacao_20261030/`, fora do repositório.
+
+## 19. Prioridades após a revalidação — 30/10/2026
+
+A infraestrutura e os testes de regressão estão mais consolidados que a
+validação independente das respostas. O próximo avanço deve esclarecer a
+qualidade e a utilidade da orientação oferecida, antes de ampliar o catálogo
+ou trocar modelos. A etapa proposta é uma avaliação controlada com usuários
+e revisão de conteúdo, conforme [plano específico](docs/AVALIACAO_CONTROLADA_V7.md).
+
+| Prioridade | Próximo trabalho | Evidência esperada | Estado |
+|---|---|---|---|
+| 1 — Conteúdo | Revisar 20–30 perguntas importantes, com curso/órgão, condições, exceções e fonte aplicável | Julgamento por afirmação, registro de divergências e correção de falhas críticas | Plano escrito; execução e avaliadores pendentes |
+| 2 — Clareza | Avaliar orientação, localização da fonte e mensagens de abstenção; propor detalhes técnicos em área expansível | Tarefas observadas na interface e verificação de preservação da rastreabilidade | Proposta; interface não alterada nesta etapa |
+| 3 — Histórico e retenção | Confirmar entendimento de que reload inicia outra sessão e definir prazo de conservação | Comunicação compreensível e decisão do responsável pelos dados | Comportamento atual documentado; prazo/agendamento pendentes |
+| 4 — Desempenho e cobertura | Medir latência, erros e abstenções por rota, separando aquecimento | Resultados com denominadores e limitações, sem misturar benchmarks históricos | Protocolo escrito; medições da nova rodada pendentes |
+
+Os 222 testes e as 86 recuperações do catálogo verificam aspectos técnicos
+específicos. Não comprovam, por si, correção, completude ou vigência de cada
+resposta. A redação do README e do documento de integração foi alinhada a
+essa distinção, incluindo o fluxo atual de contexto específico e RAG
+conservador. Os 125 testes da integração inicial permanecem identificados
+como resultado histórico de 29/10.
+
+Esta atualização altera apenas documentação. Não executa a avaliação
+proposta, modifica a interface, aprova respostas literais ou estabelece
+retenção automática. A V7 permanece sem homologação integral; os critérios
+de M6 e as pendências das seções anteriores continuam aplicáveis.
