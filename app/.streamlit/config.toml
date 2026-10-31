@@ -1,0 +1,18 @@
+[theme]
+# "auto" NÃO é um valor aceito por esta versão do Streamlit (só "light"
+# ou "dark", ou um caminho pra um arquivo de tema — "auto" quebrava o
+# boot com "Theme file not found: /app/auto"). O suporte a modo escuro
+# de verdade vem do @media (prefers-color-scheme: dark) no CSS
+# (aplicar_css() em ui.py), que sobrescreve com !important tudo que
+# aparece na tela — o base abaixo só afeta os poucos widgets nativos do
+# Streamlit sem CSS custom aqui (inputs, popover, etc.).
+base = "light"
+primaryColor = "#1E40AF"
+backgroundColor = "#F7F9FC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0F172A"
+font = "sans serif"
+
+[server]
+address = "0.0.0.0"
+port = 8501
