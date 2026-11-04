@@ -27,6 +27,23 @@ Suíte local final: 214 aprovados, 15 ignorados; lint de `app/` aprovado.
 Método, registros e resultados estão no
 [relatório operacional](docs/VALIDACAO_ROTEAMENTO_20261104.md).
 
+### Interface e experiência de uso — 04/11/2026
+
+Executada a rodada de navegador com Streamlit, banco e LLM reais: clareza
+das fontes, pergunta relacionada por clique, espera, abstenção e histórico.
+Foram implementados excertos legíveis com botão para a fonte/página,
+detalhes técnicos recolhidos, perguntas relacionadas, cronômetro da consulta,
+orientação de reformulação e alinhamento das ações em tela estreita.
+O processo da UI precisou de reinício para carregar os módulos atualizados.
+
+Verificação final: fontes e pergunta relacionada corretas na amostra;
+exportação idêntica após restaurar conversa; histórico isolado entre sessões;
+reload vazio conforme regra existente; sem transbordamento a 390 px nem
+exceções JavaScript na execução final. Suíte local: 221 aprovados, 15
+ignorados; lint de `app/` aprovado. Não equivale a estudo de usabilidade ou
+homologação de conteúdo. Evidências e limites no
+[relatório de interface](docs/VALIDACAO_INTERFACE_20261104.md).
+
 > Planejamento proposto em 29/10/2026 para a branch `melhorias/roadmap-engenharia`.
 > Planejamento com atualização incremental registrada abaixo; a integração não equivale à homologação de toda a V7.
 

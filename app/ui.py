@@ -7,6 +7,9 @@ from typing import Any
 
 import streamlit as st
 import streamlit.components.v1 as components
+from minerva_apresentacao import escapar_markdown, separar_fontes
+from minerva_dataset import perguntas_relacionadas
+from minerva_hybrid import fallback_sem_base
 
 # MINERVA_UI_HISTORY_IMPORT_BEGIN
 try:
@@ -131,6 +134,21 @@ def aplicar_css(tema: str = "auto") -> None:
                empurrava a tela a precisar de scroll mesmo com pouco
                conteúdo (relatado pelo usuário). */
             padding-bottom: 2.5rem !important;
+        }
+
+        @media (max-width: 640px) {
+            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] {
+                flex-wrap: nowrap !important;
+                gap: 0.4rem !important;
+            }
+            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                min-width: 0 !important;
+                flex: 0 0 44px !important;
+                width: 44px !important;
+            }
+            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+                flex: 1 !important;
+            }
         }
 
         /* Sidebar */
@@ -1061,16 +1079,59 @@ def render_acoes_resposta(msg: dict[str, Any], idx: int) -> None:
             st.rerun()
 
 
+def render_conteudo_resposta(conteudo: str) -> None:
+    cabecalho, fontes = separar_fontes(conteudo)
+    if not fontes:
+        st.markdown(conteudo)
+    else:
+        if cabecalho.startswith("Excertos documentais para consulta"):
+            st.markdown("**Trechos encontrados nos documentos:**")
+            st.caption(cabecalho)
+        else:
+            st.markdown(cabecalho)
+        for fonte in fontes:
+            st.markdown(f"**{escapar_markdown(fonte['titulo'])}** · {fonte['paginas']} · [T:{fonte['id']}]")
+            st.markdown(escapar_markdown(fonte['trecho']))
+            if fonte['url']:
+                st.link_button("Abrir fonte oficial", fonte['url'])
+            with st.expander(f"Detalhes da fonte [T:{fonte['id']}]"):
+                st.markdown(fonte['detalhes'])
+    if conteudo == fallback_sem_base():
+        st.info("Tente informar o curso, o assunto e a norma ou documento, se souber. "
+                "Cada pergunta é consultada separadamente.")
+
+
+def render_perguntas_relacionadas(pergunta: str, idx: int) -> None:
+    relacionadas = perguntas_relacionadas(pergunta)
+    if not relacionadas:
+        return
+    with st.expander("Perguntas relacionadas"):
+        st.caption("Selecione uma pergunta para continuar.")
+        for relacionada in relacionadas:
+            if st.button(relacionada['pergunta'], key=f"relacionada_{idx}_{relacionada['id']}",
+                         use_container_width=True):
+                enviar_pergunta_minerva(relacionada['pergunta'])
+
+
 def render_chat_history() -> None:
     """Renderiza o histórico completo da conversa."""
     for idx, msg in enumerate(st.session_state.messages):
         avatar = "🏫" if mensagem_role(msg) == "assistant" else "👤"
 
         with st.chat_message(mensagem_role(msg), avatar=avatar):
-            st.markdown(mensagem_content(msg))
+            if mensagem_role(msg) == "assistant":
+                render_conteudo_resposta(mensagem_content(msg))
+            else:
+                st.markdown(mensagem_content(msg))
 
             if mensagem_role(msg) == "assistant" and "download_file" in msg:
                 render_downloads(msg, idx)
 
             if mensagem_role(msg) == "assistant":
-                render_acoes_resposta(msg, idx)
+                with st.container(key=f"acoes_resposta_{idx}"):
+                    render_acoes_resposta(msg, idx)
+                if (idx == len(st.session_state.messages) - 1 and idx > 0
+                        and mensagem_role(st.session_state.messages[idx - 1]) == "user"):
+                    render_perguntas_relacionadas(
+                        mensagem_content(st.session_state.messages[idx - 1]), idx,
+                    )

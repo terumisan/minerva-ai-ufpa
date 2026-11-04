@@ -471,6 +471,8 @@ else:
 # 4. Campo de pergunta — fixo no rodapé e com rolagem automática, nativos
 #    do st.chat_input (substitui o antigo st.form + text_input do topo).
 # -------------------------------------------------------------------------
+st.caption("Cada pergunta é consultada separadamente. Para continuar um assunto, "
+           "inclua o contexto ou use as perguntas relacionadas.")
 pergunta_digitada = st.chat_input(
     "Faça sua pergunta", max_chars=MAX_PERGUNTA,
 )
@@ -601,7 +603,7 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
 
         _inicio = time.perf_counter()
 
-        with st.spinner("Consultando fontes oficiais da FCT/UFPA..."):
+        with st.spinner("Consultando fontes oficiais da FCT/UFPA...", show_time=True):
             nova_msg, rota_resposta = processar_pergunta(ultima_pergunta, stream_area=stream_area)
 
         latencia_ms = int((time.perf_counter() - _inicio) * 1000)
