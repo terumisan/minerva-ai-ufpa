@@ -612,6 +612,9 @@ def responder_minerva(pergunta, conn=None, llm_func=None):
 Retorne APENAS JSON no formato {{"ids": [ID, ...]}}.
 Use apenas IDs do contexto que sustentem a consulta. Sem sustentação,
 retorne {{"ids": []}}. Não escreva uma resposta ou acrescente campos.
+IDs de trechos permitidos: {[f['id'] for f in fontes]}.
+Copie os números dos marcadores [T:ID]. Números de artigos, páginas,
+horas e resoluções não são IDs de trechos.
 Não confunda níveis de ensino: uma regra de especialização não é uma regra
 geral da graduação. Para pergunta sem nível especificado, prefira disposições
 gerais e não selecione uma norma específica como se fosse universal.

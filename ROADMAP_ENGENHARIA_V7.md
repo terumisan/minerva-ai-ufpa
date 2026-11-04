@@ -1,5 +1,32 @@
 # Roadmap de Engenharia — MINERVA AI V7
 
+### Correção de roteamento — 04/11/2026
+
+A proteção de perguntas com contexto documental único foi centralizada em
+`priority_answer` e `classify_question`. A interface e os consumidores diretos
+agora preservam o encaminhamento ao RAG versionado, sem interceptação por
+respostas temáticas genéricas. O matching continua exigindo alias explícito
+e único; nenhuma aprovação literal foi modificada.
+
+Validação local: 208 testes passaram e 15 foram ignorados pelas condições
+da suíte. Regressão cobre perguntas e variações de todas as entradas
+contextuais ativas. `ruff check app` passou; o lint global encontrou E402 no
+script não versionado `scripts/atualizar_documentos_ufpa.py`, fora desta alteração.
+Não houve validação operacional com banco/LLM nessa verificação inicial.
+
+Na sequência, a validação operacional de 04/11 foi executada na ordem:
+seis perguntas cadastradas, conferência das evidências nos PDFs locais,
+seis formulações fora dos aliases e correções com repetição. Cinco das
+formulações novas eram interceptadas por respostas genéricas; foram
+incluídas seis variações explícitas e únicas e sincronizado o catálogo QA.
+Uma seleção de ID inexistente pelo LLM foi bloqueada; o prompt passou a
+listar os IDs permitidos e distinguir IDs de números de artigos.
+Na rodada final, as seis novas formulações recuperaram e apresentaram
+evidências do contexto correto, com IDs válidos e condições esperadas.
+Suíte local final: 214 aprovados, 15 ignorados; lint de `app/` aprovado.
+Método, registros e resultados estão no
+[relatório operacional](docs/VALIDACAO_ROTEAMENTO_20261104.md).
+
 > Planejamento proposto em 29/10/2026 para a branch `melhorias/roadmap-engenharia`.
 > Planejamento com atualização incremental registrada abaixo; a integração não equivale à homologação de toda a V7.
 

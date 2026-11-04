@@ -39,6 +39,34 @@ def test_pergunta_deitica_nao_herda_contexto_indevido():
     assert not _pergunta_bate(_norm("conselho faculdade palavra aleatória"),e)
 
 
+def test_catalogo_contextual_nao_e_interceptado_por_rotas_genericas(monkeypatch):
+    import minerva_priority_router as router
+
+    def atalho_indevido(*args):
+        pytest.fail("Pergunta contextual não pode chegar às respostas fixas")
+
+    monkeypatch.setattr(router, "_minerva_basic_answer", atalho_indevido)
+    monkeypatch.setattr(router, "_minerva_resposta_dataset", atalho_indevido)
+    monkeypatch.setattr(router, "_minerva_router_before_basic_answer", atalho_indevido)
+    for entrada in dataset_real()["respostas_especificas"]:
+        if entrada.get("ativo", True) and entrada.get("contexto_documental"):
+            for pergunta in [entrada["pergunta"], *entrada.get("variacoes", [])]:
+                assert router.priority_answer(pergunta) is None, pergunta
+                assert router.classify_question(pergunta) is None, pergunta
+
+
+@pytest.mark.parametrize(('numero', 'pergunta'), [
+    (70, 'Para entrar no TCC I da FCT, quais disciplinas preciso ter concluído?'),
+    (71, 'Passei em TCC I: o que preciso entregar para me matricular no TCC II?'),
+    (76, 'Quero fazer estágio de 200 horas em Engenharia da Computação: quais são os requisitos?'),
+    (77, 'Quero fazer estágio de 390 horas em Engenharia da Computação: quais são os requisitos?'),
+    (79, 'Como as 120 horas de atividades complementares se dividem entre AC-I e AC-II?'),
+    (90, 'Só completar as horas basta para passar em AC-I e AC-II?'),
+])
+def test_formulacoes_operacionais_tem_contexto_explicito_unico(numero, pergunta):
+    assert entrada_contextual(pergunta)['id'] == f'MINERVA_{numero:04d}'
+
+
 def test_ramificacao_nao_e_confundida_com_parafrase():
     es={e["id"]:e for e in dataset_real()["respostas_especificas"]}
     base=es["MINERVA_0067"]

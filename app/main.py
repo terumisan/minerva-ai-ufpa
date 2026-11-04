@@ -536,10 +536,8 @@ def _processar_pergunta(pergunta, stream_area=None):
     5. DEVOLUÇÃO DA CONEXÃO — putconn() no finally, senão o pool esgota.
     """
     # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    from minerva_dataset import entrada_contextual
-    # Uma pergunta com contexto documental específico segue para o RAG
-    # versionado, evitando atalhos temáticos mais amplos.
-    _minerva_priority_result = None if entrada_contextual(pergunta) else priority_answer(pergunta)
+    # O próprio roteador preserva o caminho documental das perguntas específicas.
+    _minerva_priority_result = priority_answer(pergunta)
     if _minerva_priority_result is not None:
         rota = classify_question(pergunta) or "dataset_ou_basico"
         return _minerva_priority_result, rota

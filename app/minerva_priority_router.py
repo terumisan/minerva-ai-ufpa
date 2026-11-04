@@ -2019,8 +2019,10 @@ except (ImportError, ValueError):
 
 # MINERVA_DATASET_BEGIN
 try:
+    from .minerva_dataset import entrada_contextual as _entrada_contextual
     from .minerva_dataset import resposta_dataset as _minerva_resposta_dataset
 except (ImportError, ValueError):
+    from minerva_dataset import entrada_contextual as _entrada_contextual
     from minerva_dataset import resposta_dataset as _minerva_resposta_dataset
 # MINERVA_DATASET_END
 
@@ -2053,6 +2055,9 @@ def classify_question(question: str):
     if not isinstance(question, str):
         return None
 
+    if _entrada_contextual(question) is not None:
+        return None
+
     basic_route = _minerva_classify_basic_question(
         question
     )
@@ -2078,6 +2083,12 @@ def priority_answer(question: str):
     - normas
     - RAG
     """
+
+    # A mesma regra vale na UI e nos consumidores diretos (CLI/avaliações).
+    # Alias contextual único exige recuperação das páginas versionadas;
+    # nenhuma rota temática ou básica pode encerrar esse fluxo.
+    if _entrada_contextual(question) is not None:
+        return None
 
     basic_result = _minerva_basic_answer(
         question

@@ -88,6 +88,8 @@ def test_prompt_pede_selecao_e_nao_norma_fabricada(monkeypatch, normas):
     def llm(prompt):
         assert 'Não confunda níveis de ensino' in prompt
         assert 'condições, exceções' in prompt
+        assert 'IDs de trechos permitidos: [101]' in prompt
+        assert 'horas e resoluções não são IDs de trechos' in prompt
         assert normas[0]['trecho'] in prompt
         assert normas[1]['trecho'] not in prompt
         return json.dumps({'ids':[101]})

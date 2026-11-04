@@ -4710,7 +4710,8 @@
       "pergunta": "Quais condições acadêmicas e documento são previstos para matrícula em TCC I na Resolução FCT 01/2012?",
       "variacoes": [
         "O que a resolução de Engenharia da Computação exige para me matricular em TCC I?",
-        "Quais blocos, dependências e anteprojeto devo observar para TCC I na resolução de 2012?"
+        "Quais blocos, dependências e anteprojeto devo observar para TCC I na resolução de 2012?",
+        "Para entrar no TCC I da FCT, quais disciplinas preciso ter concluído?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -4800,7 +4801,8 @@
       "pergunta": "Qual aprovação prévia e documentação são previstas para matrícula em TCC II na Resolução FCT 01/2012?",
       "variacoes": [
         "Depois de TCC I, qual condição e anexo são exigidos para TCC II na resolução de Engenharia da Computação?",
-        "O que deve ser observado para passar de TCC I a TCC II segundo a resolução de 2012?"
+        "O que deve ser observado para passar de TCC I a TCC II segundo a resolução de 2012?",
+        "Passei em TCC I: o que preciso entregar para me matricular no TCC II?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -5205,7 +5207,8 @@
       "pergunta": "Quais aprovações e plano são previstos para estágio de 200 horas na Resolução EngComp 02/2006?",
       "variacoes": [
         "Quais blocos preciso ter concluído para estágio de 200 horas segundo a resolução de 2006?",
-        "O estágio de 200 horas exige quais pré-requisitos e aprovação do plano?"
+        "O estágio de 200 horas exige quais pré-requisitos e aprovação do plano?",
+        "Quero fazer estágio de 200 horas em Engenharia da Computação: quais são os requisitos?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -5283,7 +5286,8 @@
       "pergunta": "Quais aprovações e plano são previstos para estágio de 390 horas na Resolução EngComp 02/2006?",
       "variacoes": [
         "Quais blocos preciso ter concluído para estágio de 390 horas segundo a resolução de 2006?",
-        "O estágio de 390 horas exige aprovação em quais disciplinas e no plano?"
+        "O estágio de 390 horas exige aprovação em quais disciplinas e no plano?",
+        "Quero fazer estágio de 390 horas em Engenharia da Computação: quais são os requisitos?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -5446,7 +5450,8 @@
       "variacoes": [
         "Quantas horas de atividades complementares são exigidas na resolução da FCT de 2013?",
         "Como as 120 horas de atividades complementares se distribuem entre AC-I e AC-II?",
-        "Quantas horas de Atividades Complementares são necessárias para integralizar o curso?"
+        "Quantas horas de Atividades Complementares são necessárias para integralizar o curso?",
+        "Como as 120 horas de atividades complementares se dividem entre AC-I e AC-II?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -6229,7 +6234,8 @@
       "pergunta": "Qual conceito mínimo é previsto para aprovação em AC-I e AC-II na Resolução FCT 01/2013?",
       "variacoes": [
         "A resolução de atividades complementares exige qual conceito para aprovação em AC-I e AC-II?",
-        "Apenas completar horas garante aprovação em AC-I e AC-II pela resolução de 2013?"
+        "Apenas completar horas garante aprovação em AC-I e AC-II pela resolução de 2013?",
+        "Só completar as horas basta para passar em AC-I e AC-II?"
       ],
       "entidades": [],
       "palavras_chave": [],
