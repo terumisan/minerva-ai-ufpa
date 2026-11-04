@@ -452,9 +452,8 @@ if st.session_state.messages:
 # -------------------------------------------------------------------------
 if len(st.session_state.messages) == 0:
 
-    render_cards_categorias(
-        prefixo="home_v2"
-    )
+    with st.container(key="acessos_home"):
+        render_cards_categorias(prefixo="home_v2")
 
 else:
 
@@ -462,9 +461,8 @@ else:
         "Sugestões de perguntas",
         expanded=False,
     ):
-        render_cards_categorias(
-            prefixo="chat_v2"
-        )
+        with st.container(key="acessos_chat"):
+            render_cards_categorias(prefixo="chat_v2")
 
 
 # -------------------------------------------------------------------------

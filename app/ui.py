@@ -136,21 +136,6 @@ def aplicar_css(tema: str = "auto") -> None:
             padding-bottom: 2.5rem !important;
         }
 
-        @media (max-width: 640px) {
-            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] {
-                flex-wrap: nowrap !important;
-                gap: 0.4rem !important;
-            }
-            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
-                min-width: 0 !important;
-                flex: 0 0 44px !important;
-                width: 44px !important;
-            }
-            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
-                flex: 1 !important;
-            }
-        }
-
         /* Sidebar */
         [data-testid="stSidebar"] {
             background: var(--minerva-white) !important;
@@ -418,102 +403,147 @@ def aplicar_css(tema: str = "auto") -> None:
             height: auto;
         }
 
-        /* ------------------------------------------------------------
-           RESPONSIVO — MOBILE (celular e tablets estreitos)
-           ------------------------------------------------------------ */
-        @media (max-width: 768px) {
+        /* Regras restritas aos componentes: não alteram formulários e menus. */
+        [data-testid="stChatMessageContent"] {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 1024px) {
             .block-container {
-                padding-left: 0.85rem !important;
-                padding-right: 0.85rem !important;
-                padding-top: 0.85rem !important;
+                padding-left: 1.25rem !important;
+                padding-right: 1.25rem !important;
+                padding-bottom: 3.5rem !important;
             }
-
-            /* Logo do cabeçalho: cap menor pra não competir por espaço
-               com o título "Minerva AI" numa tela estreita. */
-            [data-testid="stImage"] img {
-                max-width: 40px !important;
-            }
-
-            h2 {
-                font-size: 1.3rem !important;
-            }
-
-            .minerva-v2-intro {
-                padding: 16px 16px !important;
-            }
-
-            .minerva-v2-intro h2 {
-                font-size: 1.15rem;
-            }
-
-            .minerva-v2-intro p {
-                font-size: 0.9rem;
-            }
-
-            /* Grades de botões (categorias, perguntas sugeridas) quebram
-               em 2 colunas em vez de espremer 3-4 lado a lado. Linhas que
-               já tinham só 2 colunas mantêm o mesmo visual de antes. */
-            [data-testid="stHorizontalBlock"] {
+            [class*="st-key-acessos_"] [data-testid="stHorizontalBlock"] {
                 flex-wrap: wrap !important;
-                row-gap: 0.6rem !important;
+                gap: 0.65rem !important;
             }
-
-            [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-                flex: 1 1 45% !important;
-                min-width: 45% !important;
-                width: 45% !important;
+            [class*="st-key-acessos_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                flex: 1 1 calc(50% - 0.65rem) !important;
+                min-width: 0 !important;
+                max-width: calc(50% - 0.325rem) !important;
             }
-
-            /* O cabeçalho não é uma grade de sugestões: mantém logo,
-               título e tema na mesma linha em vez de aplicar o wrap acima. */
             .st-key-header_card [data-testid="stHorizontalBlock"] {
-                flex-wrap: nowrap !important;
-                gap: 0.35rem !important;
+                display: grid !important;
+                grid-template-columns: 40px minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 0.65rem !important;
             }
-
-            .st-key-header_card [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-                flex: 0 1 auto !important;
+            .st-key-header_card [data-testid="stColumn"] {
                 min-width: 0 !important;
                 width: auto !important;
             }
-
+            .st-key-header_card [data-testid="stImage"] img {
+                max-width: 40px !important;
+            }
             .st-key-header_card h2 {
-                font-size: 1.1rem !important;
-                white-space: nowrap;
+                font-size: 1.25rem !important;
+                padding-bottom: 0.2rem;
             }
-
-            .st-key-header_card .stCaptionContainer {
-                display: none;
+            [data-testid="stSidebar"][aria-expanded="true"] {
+                width: min(19rem, calc(100vw - 3rem)) !important;
+                min-width: 0 !important;
+                max-width: calc(100vw - 3rem) !important;
             }
-
-            /* Alvo de toque confortável (mínimo recomendado ~44px). */
-            div.stButton > button {
+            [data-testid="stSidebarCollapseButton"],
+            [data-testid="stSidebarCollapseButton"] button {
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            div.stButton > button,
+            [data-testid="stButton"] button,
+            [data-testid="stLinkButton"] a,
+            [data-testid="stDownloadButton"] button,
+            [role="radiogroup"] button,
+            [data-testid="stChatInput"] button,
+            [data-testid="stSidebarCollapseButton"] button,
+            [data-testid="stExpandSidebarButton"] {
                 min-height: 44px !important;
-                font-size: 0.85rem !important;
-                padding: 0.5rem 0.6rem !important;
+            }
+            [class*="st-key-acoes_resposta_"] button,
+            [role="radiogroup"] button,
+            [data-testid="stChatInput"] button,
+            [data-testid="stExpandSidebarButton"] {
+                min-height: 44px !important;
+                min-width: 44px !important;
+            }
+            div.stButton > button {
                 white-space: normal !important;
+                overflow-wrap: anywhere;
             }
-
-            [data-testid="stChatInput"] {
-                max-width: 100% !important;
+            [data-testid="stChatInput"] textarea {
+                font-size: 16px !important;
+                min-height: 44px;
             }
-
             [data-testid="stBottom"] {
                 padding-bottom: env(safe-area-inset-bottom, 0px) !important;
             }
-
-            div[data-testid="stChatMessage"] {
-                padding: 8px 12px !important;
-                font-size: 0.94rem;
+            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] {
+                flex-wrap: nowrap !important;
+                gap: 0.4rem !important;
+            }
+            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                min-width: 0 !important;
+                flex: 0 0 44px !important;
+                width: 44px !important;
+            }
+            [class*="st-key-acoes_resposta_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+                flex: 1 !important;
             }
         }
 
-        /* Celulares bem estreitos: 1 botão por linha nas grades. */
-        @media (max-width: 420px) {
-            [data-testid="stHorizontalBlock"] > [data-testid="column"] {
-                flex: 1 1 100% !important;
-                min-width: 100% !important;
-                width: 100% !important;
+        @media (max-width: 600px) {
+            .block-container {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                padding-top: 0.75rem !important;
+            }
+            .st-key-header_card > div {
+                padding: 0.65rem !important;
+            }
+            .st-key-header_card [data-testid="stHorizontalBlock"] {
+                grid-template-columns: 32px minmax(0, 1fr);
+                gap: 0.35rem 0.65rem !important;
+            }
+            .st-key-header_card [data-testid="stColumn"]:last-child {
+                grid-column: 1 / -1;
+                justify-self: end;
+            }
+            .st-key-header_card [data-testid="stImage"] img {
+                max-width: 32px !important;
+            }
+            .minerva-v2-intro {
+                padding: 14px;
+                border-radius: 14px;
+            }
+            .minerva-v2-intro h2 {
+                font-size: 1.2rem;
+            }
+            .minerva-v2-active {
+                padding: 10px 12px;
+            }
+            div[data-testid="stChatMessage"] {
+                padding: 10px 8px !important;
+                gap: 0.5rem !important;
+            }
+            [data-testid="stChatMessage"] [data-testid^="stChatMessageAvatar"] {
+                width: 24px !important;
+                height: 24px !important;
+                flex: 0 0 24px !important;
+            }
+            [data-testid="stChatMessageContent"] p {
+                line-height: 1.6;
+            }
+            [class*="st-key-acessos_"] div.stButton > button {
+                font-size: 0.9rem !important;
+                padding: 0.55rem 0.65rem !important;
+            }
+        }
+        @media (max-width: 360px) {
+            [class*="st-key-acessos_"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {
+                flex-basis: 100% !important;
+                max-width: 100% !important;
             }
         }
         </style>
@@ -1041,7 +1071,7 @@ def render_acoes_resposta(msg: dict[str, Any], idx: int) -> None:
                     border-radius: 12px; border: 1px solid #CBD5E1;
                     background: #FFFFFF; color: #0F172A;
                     padding: 0.25rem 0.6rem; cursor: pointer; font-size: 1rem;
-                    height: 2.3rem; width: 100%;
+                    height: 44px; width: 100%;
                 }}
                 @media (prefers-color-scheme: dark) {{
                     button {{
@@ -1059,7 +1089,7 @@ def render_acoes_resposta(msg: dict[str, Any], idx: int) -> None:
                 }});
             </script>
             """,
-            height=40,
+            height=48,
         )
 
     with col_regenerar:

@@ -44,6 +44,19 @@ ignorados; lint de `app/` aprovado. Não equivale a estudo de usabilidade ou
 homologação de conteúdo. Evidências e limites no
 [relatório de interface](docs/VALIDACAO_INTERFACE_20261104.md).
 
+### Responsividade — 04/11/2026
+
+Aplicados layouts específicos para celulares e tablets: grades com seletores
+compatíveis com o Streamlit atual, cabeçalho que reorganiza o tema, margens
+e avatares compactos, alvos de toque de 44 px, campo de pergunta com texto
+de 16 px e barra lateral limitada à tela. Regras das grades foram isoladas
+para não afetar menus e formulários. Ações do chat permanecem em uma linha.
+
+Validação de página inicial e chat entre 320 e 1440 px, incluindo tablets
+em retrato e paisagem, com Chromium e serviços reais. Testes locais: 221
+aprovados, 15 ignorados; lint de `app/` aprovado. Método e limites no
+[relatório de responsividade](docs/RESPONSIVIDADE_20261104.md).
+
 > Planejamento proposto em 29/10/2026 para a branch `melhorias/roadmap-engenharia`.
 > Planejamento com atualização incremental registrada abaixo; a integração não equivale à homologação de toda a V7.
 
