@@ -22,6 +22,7 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 - **Sem autenticação** na frente do app. Mencionar isso se surgir discussão sobre expor algo mais sensível.
 - Domínio ngrok não é escolhível (plano free); confirmar sempre em https://dashboard.ngrok.com/domains antes de assumir o nome.
 - `loginctl enable-linger terumi` ativo — túnel sobrevive a reboot/logout.
+- Início automático (12/11/2026): `scripts/instalar_inicio_automatico.sh` cria `minerva.service` (usuário; espera o Docker e roda `docker compose up -d`) e recria `ngrok-minerva.service` com `After=minerva.service`. Não usar crontab nem `@reboot` para isso.
 
 ## LLM (`ufpa_rag_llm`, llama.cpp)
 - Modelo ativo conferido em 30/10/2026: `gemma-4-E4B_q4_0-it.gguf`. Qwen2.5-7B e Llama-3.2-3B foram preservados no arquivo da consolidação; comparações abaixo são históricas, não medições do modelo ativo.
@@ -46,7 +47,8 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 - Aprovações literais exigem reviewer/validated_at/valid_until, além de hashes e fonte. Curadoria e vigência são humanas; não preencher aprovações automaticamente.
 
 ## Convenções de trabalho observadas
-- Catálogo QA: `app/minerva_dataset.json` contém 92 entradas (91 ativas), com 87 contextos documentais (86 ativos), 195 variações contextuais e relações tipadas. Uma duplicata permanece inativa para auditoria.
+- Catálogo QA (v1.3.0, 12/11/2026): `app/minerva_dataset.json` contém 138 entradas (137 ativas), com 133 contextos documentais (132 ativos), 293 variações contextuais e relações tipadas. As 46 entradas `ampliacao_documental` (0093–0138) não foram avaliadas quanto à qualidade; antes de publicar, rodar `scripts/atualizar_evidencias_ampliacao.py` no container.
+- Não criar aliases contextuais para temas que o `priority_router` já responde com texto fixo (trancamento, aproveitamento, segunda chamada, revisão de conceito, banca de TCC, "o que é SAGITTA"): o alias tem precedência e troca a resposta instantânea por geração. Uma duplicata permanece inativa para auditoria.
 - Publicar QA com `docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py`: valida PDF/página/hash e sincroniza tabelas próprias de perguntas, aliases, relações e evidências. Não inserir perguntas sintéticas como fonte factual na tabela de documentos.
 - Matching contextual exige alias explícito e único; RAG restringe documento/versão/páginas. Nunca restaurar o matching por palavras-chave para questões dependentes de contexto. Contexto localizado não autoriza texto literal.
 - Novas variações foram escritas a partir das entradas e PDFs existentes, sem consumir conjuntos de avaliação; não tratá-las como holdout independente de qualidade.

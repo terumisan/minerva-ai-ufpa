@@ -40,9 +40,14 @@ Interface web em Streamlit, conversas múltiplas por sessão (estilo ChatGPT), e
 
 A revalidação de 30/10/2026 aprovou 222 testes com PostgreSQL/pgvector,
 Ruff, compilação, os fluxos de TCC e SAGITTA no navegador e a restauração de
-backup em banco separado. A base contém 413 trechos de 15 documentos; o
-catálogo tem 92 entradas, das quais 91 estão ativas. Os resultados e seus
-limites estão no [roadmap](ROADMAP_ENGENHARIA_V7.md), seção 18.
+backup em banco separado. A base contém 413 trechos de 15 documentos. Os
+resultados e seus limites estão no [roadmap](ROADMAP_ENGENHARIA_V7.md), seção 18.
+
+Em 12/11/2026 o catálogo foi ampliado de 92 para 138 entradas (137 ativas),
+cobrindo o Regulamento do Ensino de Graduação, orientação/avaliação/defesa da
+Resolução FCT 01/2012 e os manuais do SAGITTA e do SIGAA. As 46 entradas novas
+passaram pela validação do catálogo e pelos testes sem banco, mas não foram
+avaliadas quanto à qualidade das respostas; ver roadmap, seção 20.
 
 Essas verificações dão suporte a uma rodada controlada de avaliação. Ainda
 é necessário verificar se as respostas são corretas, completas, pertinentes
@@ -118,6 +123,7 @@ minerva-ai-ufpa/
 ├── documentos/                 # PDFs oficiais fonte (não versionados)
 ├── models/                     # modelos .gguf locais (não versionados)
 ├── pyproject.toml              # config do ruff + pytest
+├── scripts/                    # operação do host: backup, validação de backup, início automático
 ├── .github/workflows/ci.yml    # CI
 └── app/
     ├── main.py                 # orquestrador: session state, sidebar, fluxo do chat
@@ -137,6 +143,8 @@ minerva-ai-ufpa/
     ├── operacao.py                # identidade anônima, entrada e limite de capacidade
     ├── web_segura.py              # acesso HTTPS oficial e validação de destino
     ├── scripts/ingestao.py        # extrai PDFs de documentos/, gera embeddings, popula o Postgres
+    ├── scripts/sincronizar_qa.py  # valida PDFs/páginas e publica o catálogo no PostgreSQL
+    ├── scripts/atualizar_evidencias_ampliacao.py # recalcula páginas das entradas de ampliação
     ├── tests/                     # suíte pytest e integração PostgreSQL/pgvector
     ├── requirements.txt            # dependências de produção (pinadas)
     ├── requirements-dev.txt        # + pytest/ruff, só pra dev/CI
@@ -215,6 +223,34 @@ URL pública atual: `https://preschool-unsaid-doodle.ngrok-free.dev` (fixa — n
 
 ⚠️ Sem autenticação na frente do app (mesma limitação de antes) — qualquer pessoa com o link acessa a Minerva.
 
+### Início automático no boot (local + link externo)
+
+Para a Minerva subir sozinha quando o computador ligar, rodando localmente e
+acessível pelo link externo, execute **uma vez**:
+
+```bash
+./scripts/instalar_inicio_automatico.sh
+```
+
+O script habilita o Docker no boot (pede `sudo` só se necessário), cria
+`~/.config/systemd/user/minerva.service` (espera o Docker e roda
+`docker compose up -d` na pasta do projeto), instala o ngrok e pede o authtoken
+se faltarem, recria `ngrok-minerva.service` para subir depois da Minerva, ativa
+o linger e, ao final, mostra o estado local e o link externo. Outro domínio:
+`NGROK_URL=https://SEU-DOMINIO.ngrok-free.dev ./scripts/instalar_inicio_automatico.sh`.
+
+Verificação após reiniciar:
+
+```bash
+systemctl --user status minerva.service ngrok-minerva.service --no-pager
+docker compose ps
+journalctl --user -u minerva.service -b --no-pager | tail -30   # se não subir
+```
+
+Desfazer: `systemctl --user disable --now minerva.service ngrok-minerva.service`.
+O link externo só funciona com o computador ligado e online; o plano gratuito do
+ngrok mostra uma página de aviso na primeira visita ("Visit Site").
+
 ## Configuração
 
 Tudo lido via `app/config.py::get_config()`, na ordem: `.streamlit/secrets.toml` → variável de ambiente → valor padrão.
@@ -276,7 +312,19 @@ páginas físicas, hash do PDF e evidências textuais; 40 respostas foram
 corrigidas ou tiveram condições explicitadas. Há 12 ramificações novas,
 195 variações nas entradas contextualizadas e relações tipadas entre assuntos.
 Uma intenção duplicada foi inativada, preservando o registro anterior.
-Total: 92 entradas, 91 ativas; 87 contextualizadas, sendo 86 ativas.
+
+A ampliação de 12/11/2026 (versão 1.3.0, `MINERVA_0093` a `MINERVA_0138`)
+acrescentou 46 entradas redigidas a partir de páginas dos PDFs locais:
+Regulamento do Ensino de Graduação (28), Resolução FCT 01/2012 páginas 3–6 (9),
+Manual SAGITTA (4), Manual SIGAA (2) e Resoluções EngComp de intercâmbio e
+práticas de ensino (3). Cada uma tem duas variações, relações com o mesmo tema
+e `origem_entrada.tipo = "ampliacao_documental"`. Temas já respondidos por
+rotas fixas (trancamento, aproveitamento, segunda chamada, revisão de conceito,
+composição de banca de TCC, "o que é SAGITTA") não receberam aliases, para não
+trocar respostas instantâneas por geração.
+
+Total: 138 entradas, 137 ativas; 133 contextualizadas, sendo 132 ativas;
+293 variações nas entradas contextualizadas.
 
 Variações são formulações da mesma pergunta. Ramificações são perguntas
 diferentes sobre condições, exceções, limites ou etapas relacionadas. Não
@@ -287,8 +335,15 @@ auditoria e não ganham contexto implícito por palavras-chave.
 Publicação do catálogo no banco, depois da ingestão dos PDFs:
 
 ```bash
+# só quando houver entradas de ampliação com evidências redigidas fora do container
+docker compose exec -T ufpa_rag_ui python scripts/atualizar_evidencias_ampliacao.py
 docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py
 ```
+
+`atualizar_evidencias_ampliacao.py` recalcula, com o pypdf do container, o
+texto e o hash das páginas citadas apenas nas entradas de ampliação; aborta se
+o PDF não for o mesmo usado na redação e não altera perguntas, respostas nem
+autorizações. É idempotente.
 
 O comando confere hashes e texto das páginas locais, valida aliases/relações
 e publica em uma transação: `minerva_perguntas_respostas`,

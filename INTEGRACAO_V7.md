@@ -134,3 +134,32 @@ registro de correção factual, sustentação, abstenções, clareza e latência
 Melhorias visuais nas fontes e nos detalhes de auditoria são propostas;
 esta atualização documental não altera a interface nem autoriza respostas
 literais. O prazo de retenção e a homologação institucional seguem pendentes.
+
+## Ampliação do catálogo e operação — 12/11/2026
+
+O catálogo passou de 92 para 138 entradas (versão 1.3.0). As 46 novas
+(`MINERVA_0093`–`MINERVA_0138`) seguem o mesmo contrato das contextualizadas:
+documento, SHA-256 do PDF, páginas físicas, dispositivo, escopo, evidências por
+página, duas variações, relações por tema e `autorizacao_literal: "pendente"`.
+Documentos cobertos: Regulamento do Ensino de Graduação, Resolução FCT 01/2012
+(páginas 3–6), Manual SAGITTA, Manual SIGAA e Resoluções EngComp 01/2008 e
+01/2009.
+
+O texto das evidências foi extraído com pypdf diferente do container; por isso
+`app/scripts/atualizar_evidencias_ampliacao.py` recalcula as páginas das
+entradas `ampliacao_documental` antes da publicação:
+
+```bash
+docker compose exec -T ufpa_rag_ui python scripts/atualizar_evidencias_ampliacao.py
+docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py
+```
+
+Verificação feita: `validar_dataset`, `validar_pdfs` das entradas novas,
+unicidade dos 138 aliases novos, ausência de interceptação pelo roteador e 88
+testes sem PostgreSQL (`test_minerva_dataset`, `test_minerva_priority_router`,
+`test_qa_catalogo`, `test_normas_sustentacao`; 4 ignorados por exigirem banco).
+Não houve avaliação de correção das respostas nem revisão institucional.
+
+Operação: `scripts/instalar_inicio_automatico.sh` configura o início
+automático (`minerva.service`) e o link externo (`ngrok-minerva.service`).
+Detalhes no README, seção "Início automático no boot".

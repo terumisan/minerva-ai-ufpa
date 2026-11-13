@@ -650,3 +650,26 @@ Esta atualização altera apenas documentação. Não executa a avaliação
 proposta, modifica a interface, aprova respostas literais ou estabelece
 retenção automática. A V7 permanece sem homologação integral; os critérios
 de M6 e as pendências das seções anteriores continuam aplicáveis.
+
+## 20. Ampliação do catálogo e início automático — 12/11/2026
+
+A pedido do usuário, o catálogo foi ampliado antes da avaliação controlada
+prevista na seção 19. A ordem difere da recomendada: as entradas novas
+aumentam a cobertura de aliases, mas sua qualidade ainda não foi medida.
+
+| Item | Situação |
+|---|---|
+| Catálogo v1.3.0 | 138 entradas (137 ativas); 46 novas `ampliacao_documental`, 0093–0138 |
+| Documentos novos no catálogo | Regulamento da Graduação (28), Resolução TCC p. 3–6 (9), SAGITTA (4), SIGAA (2), EngComp 01/2008 e 01/2009 (3) |
+| Fora de propósito | temas com rota fixa (trancamento, aproveitamento, segunda chamada, revisão de conceito, banca de TCC, identidade SAGITTA) |
+| Evidências | recalculadas no container por `atualizar_evidencias_ampliacao.py` antes de `sincronizar_qa.py` |
+| Testes | 88 aprovados sem PostgreSQL, 4 ignorados; suíte com banco pendente de reexecução |
+| Literais | todas pendentes; nenhuma aprovação automática |
+| Operação | `scripts/instalar_inicio_automatico.sh`: `minerva.service` + `ngrok-minerva.service` no boot, link externo fixo, sem autenticação |
+| Dissertação | V37 com inserções marcadas (seção 5.3, limitações, Quadro A1), descrevendo a mudança como engenharia, sem efeito sobre os resultados |
+
+Pendências: reexecutar a suíte completa com `MINERVA_TEST_DSN`, publicar o
+catálogo e incluir perguntas das entradas novas na avaliação controlada
+(`docs/AVALIACAO_CONTROLADA_V7.md`), com formulações diferentes dos aliases.
+Regulamento (2013) e resoluções (2008–2012) precisam de conferência de vigência
+antes de qualquer aprovação literal.
