@@ -571,8 +571,10 @@ def _processar_pergunta(pergunta, stream_area=None):
     except Exception:
         conn = None
 
-    def llm_func(prompt):
-        return consultar_modelo_local(prompt)
+    def llm_func(prompt, max_tokens=None):
+        if max_tokens is None:
+            return consultar_modelo_local(prompt)
+        return consultar_modelo_local(prompt, max_tokens=max_tokens)
 
     # try/finally: sem ele, uma exceção em responder_minerva vazava a
     # conexão (nunca voltava ao pool) — com DB_POOL_MAX=10, dez erros
@@ -614,7 +616,11 @@ if len(st.session_state.messages) >= 1 and mensagem_role(st.session_state.messag
 
         _inicio = time.perf_counter()
 
-        with st.spinner("Consultando fontes oficiais da FCT/UFPA...", show_time=True):
+        with st.spinner(
+            "Consultando fontes oficiais da FCT/UFPA... Buscas completas nos "
+            "documentos podem levar cerca de 1 minuto.",
+            show_time=True,
+        ):
             nova_msg, rota_resposta = processar_pergunta(ultima_pergunta, stream_area=stream_area)
 
         latencia_ms = int((time.perf_counter() - _inicio) * 1000)

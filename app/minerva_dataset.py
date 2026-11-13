@@ -58,18 +58,52 @@ def _norm(texto: str) -> str:
     return re.sub(r"\s+", " ", texto).strip()
 
 
+_CACHE_DATASET: dict = {"assinatura": None, "entradas": []}
+
+
 def _carregar_entradas() -> list[dict]:
+    # Uma pergunta consulta o catálogo várias vezes (roteador, busca e
+    # resposta). Relê o JSON só quando o arquivo muda (mtime/tamanho).
+    try:
+        st = DATASET_PATH.stat()
+        assinatura = (str(DATASET_PATH), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return []
+    if _CACHE_DATASET["assinatura"] == assinatura:
+        return list(_CACHE_DATASET["entradas"])
     try:
         dados = json.loads(DATASET_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return []
 
-    entradas = dados.get("respostas_especificas", [])
-
-    return sorted(
-        entradas,
+    entradas = sorted(
+        dados.get("respostas_especificas", []),
         key=lambda e: _ORDEM_PRIORIDADE.get(_norm(e.get("prioridade", "baixa")), 2),
     )
+    _CACHE_DATASET.update(assinatura=assinatura, entradas=entradas)
+    return list(entradas)
+
+
+# Saudações, vocativos e cortesias que não mudam a pergunta. Retirados só
+# das pontas e só quando a frase inteira não casa; o restante ainda precisa
+# ser idêntico a um alias cadastrado.
+_PREFIXOS_CORTESIA = re.compile(
+    r"^(?:(?:ola|oi|bom dia|boa tarde|boa noite|minerva|por favor|"
+    r"me diga|me diz|me fala|me fale|me explica|me explique|"
+    r"(?:eu )?(?:gostaria|queria) de saber|(?:eu )?(?:gostaria|queria) saber|"
+    r"voce sabe|voce pode me dizer|pode me dizer|tudo bem)\s+)+"
+)
+_SUFIXOS_CORTESIA = re.compile(
+    r"(?:\s+(?:por favor|minerva|obrigado|obrigada|grato|grata))+$"
+)
+
+
+def _variantes_pergunta(normalizada: str) -> list[str]:
+    variantes = [normalizada]
+    sem = _SUFIXOS_CORTESIA.sub("", _PREFIXOS_CORTESIA.sub("", normalizada)).strip()
+    if sem and sem != normalizada:
+        variantes.append(sem)
+    return variantes
 
 
 def _pergunta_bate(pergunta_norm: str, entrada: dict) -> bool:
@@ -131,11 +165,13 @@ def entrada_contextual(pergunta: str) -> Optional[dict]:
     """Identifica uma pergunta específica; nunca autoriza sua resposta fixa."""
     if not isinstance(pergunta, str) or not pergunta.strip():
         return None
-    normalizada = _norm(pergunta)
-    encontradas = [e for e in _carregar_entradas()
-                   if e.get("ativo", True) and e.get("contexto_documental")
-                   and _pergunta_bate(normalizada, e)]
-    return encontradas[0] if len(encontradas) == 1 else None
+    entradas = [e for e in _carregar_entradas()
+                if e.get("ativo", True) and e.get("contexto_documental")]
+    for normalizada in _variantes_pergunta(_norm(pergunta)):
+        encontradas = [e for e in entradas if _pergunta_bate(normalizada, e)]
+        if encontradas:
+            return encontradas[0] if len(encontradas) == 1 else None
+    return None
 
 
 def perguntas_relacionadas(pergunta: str) -> list[dict]:

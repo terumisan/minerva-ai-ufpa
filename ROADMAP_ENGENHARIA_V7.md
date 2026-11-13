@@ -705,3 +705,19 @@ Pendente: medir de novo após o deploy (p50/p95 por rota em `historico_minerva`)
 e verificar, na avaliação controlada, se os 3 primeiros trechos do catálogo
 respondem à pergunta. Não avaliados: `-fa on`, menos trechos no seletor e
 troca de modelo.
+
+Medição após o deploy (link público, uma execução cada): pergunta do catálogo
+(defesa de TCC) ~1 s, antes 45–80 s; pergunta fora do catálogo (tutoria) ~70 s
+na primeira vez e menos de 4 s ao repetir com outra grafia (`rag_cache`).
+
+## 22. Ajustes de robustez e latência — 12/11/2026 (noite)
+
+| Ajuste | Motivo | Risco |
+|---|---|---|
+| Seletor normativo com `max_tokens` 64 (`MAX_TOKENS_SELECAO`) | a seleção só devolve JSON; um modelo fora do formato gastava até 320 tokens (~50 s em CPU) antes da abstenção | JSON maior que 64 tokens vira abstenção (exigiria >15 IDs) |
+| Cortesia nas pontas ignorada no casamento do catálogo | "Minerva, <alias>" ou "<alias>, obrigado" caíam no caminho lento | só remove prefixos/sufixos de uma lista fechada; o miolo precisa ser alias exato; nenhum alias atual depende disso (teste) |
+| Catálogo em memória, relido por mtime/tamanho | o JSON (~0,5 MB) era lido várias vezes por pergunta | edição do arquivo com mesmo mtime e tamanho não seria vista até reiniciar |
+| Aviso de espera no spinner | buscas completas levam ~1 min | nenhum |
+
+Testes: 249 aprovados sem PostgreSQL, 15 ignorados (`test_velocidade.py` com 12
+casos novos). Pendente: medir p50/p95 por rota após alguns dias de uso.

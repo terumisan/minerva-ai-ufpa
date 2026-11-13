@@ -263,7 +263,7 @@ def _texto_sem_palavra_incompleta(texto: str) -> str:
     return re.sub(r"\S+$", "", texto)
 
 
-def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
+def consultar_modelo_local(pergunta: str, on_chunk=None, max_tokens: int = 320) -> str:
     """
     Consulta a API local compatível com /v1/chat/completions.
 
@@ -309,7 +309,7 @@ def consultar_modelo_local(pergunta: str, on_chunk=None) -> str:
         "temperature": 0.0,
         # O limite de palavras no prompt evita a verbosidade observada no
         # Gemma; 320 tokens ainda deixa margem para listas acadêmicas úteis.
-        "max_tokens": 320,
+        "max_tokens": max_tokens,
         # O Gemma 4 "pensa" antes de responder por padrão (gasta ~400
         # tokens em raciocínio interno numa pergunta de 4 palavras, estourando
         # o max_tokens antes de gerar a resposta de verdade). Modelos sem

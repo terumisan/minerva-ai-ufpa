@@ -232,3 +232,77 @@ def test_ui_nao_guarda_fallback(monkeypatch):
     processar = _processar_da_ui(monkeypatch, responder, mc.CacheRespostas(capacidade=8, ttl=60))
     processar("Pergunta sem base")
     assert processar("Pergunta sem base")[1] == "rag_generico" and len(chamadas) == 2
+
+
+# ------------------------------------------------- ajustes de 12/11 (noite)
+
+import minerva_dataset as md  # noqa: E402
+
+ALIAS = "Quanto tempo dura a defesa de TCC na Resolução FCT 01/2012?"
+
+
+@pytest.mark.parametrize("pergunta", [
+    "Minerva, " + ALIAS,
+    "Oi Minerva! " + ALIAS + " Obrigado",
+    "Boa noite, por favor: " + ALIAS,
+    "Eu queria saber " + ALIAS.lower(),
+])
+def test_cortesia_nas_pontas_nao_impede_o_catalogo(pergunta):
+    assert md.entrada_contextual(pergunta)["id"] == md.entrada_contextual(ALIAS)["id"]
+
+
+@pytest.mark.parametrize("pergunta", [
+    "Minerva", "boa noite", "Minerva qual é a função do item VIII?",
+    "Minerva, quanto tempo dura a defesa?",
+])
+def test_cortesia_nao_cria_contexto_implicito(pergunta):
+    assert md.entrada_contextual(pergunta) is None
+
+
+def test_nenhum_alias_do_catalogo_depende_da_remocao_de_cortesia():
+    for e in md._carregar_entradas():
+        if not e.get("contexto_documental"):
+            continue  # só o catálogo contextual usa as variantes
+        for q in [e["pergunta"], *e.get("variacoes", [])]:
+            assert md._variantes_pergunta(md._norm(q)) == [md._norm(q)], q
+
+
+def test_catalogo_relido_so_quando_o_arquivo_muda(tmp_path, monkeypatch):
+    arq = tmp_path / "d.json"
+    arq.write_text('{"respostas_especificas": [{"id": "A"}]}')
+    monkeypatch.setattr(md, "DATASET_PATH", arq)
+    monkeypatch.setattr(md, "_CACHE_DATASET", {"assinatura": None, "entradas": []})
+    leituras = []
+    original = type(arq).read_text
+
+    def contar(self, *a, **k):
+        leituras.append(self)
+        return original(self, *a, **k)
+
+    monkeypatch.setattr(type(arq), "read_text", contar)
+    assert [e["id"] for e in md._carregar_entradas()] == ["A"]
+    md._carregar_entradas()
+    assert len(leituras) == 1
+    import os
+    arq.write_text('{"respostas_especificas": [{"id": "B"}, {"id": "C"}]}')
+    os.utime(arq, ns=(1, 10**18))
+    assert [e["id"] for e in md._carregar_entradas()] == ["B", "C"]
+    assert len(leituras) == 2
+
+
+def test_seletor_normativo_pede_resposta_curta(monkeypatch):
+    fontes = _fontes()
+    monkeypatch.setattr(rag, "buscar_em_documentos_postgres", lambda *a, **k: fontes)
+    monkeypatch.setattr(rag, "_entrada_contextual", lambda pergunta: None)
+    pedidos = []
+
+    def llm(prompt, max_tokens=None):
+        pedidos.append(max_tokens)
+        return '{"ids":[1]}'
+
+    rag.responder_minerva("Qual a regra do TCC na resolução?", llm_func=llm)
+    assert pedidos == [rag.MAX_TOKENS_SELECAO]
+
+
+def test_chamar_llm_aceita_funcao_sem_opcoes():
+    assert rag._chamar_llm(lambda p: p.upper(), "ok", max_tokens=10) == "OK"

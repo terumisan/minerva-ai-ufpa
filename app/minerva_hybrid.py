@@ -560,6 +560,24 @@ TEXTO_EXCERTOS = (
     "no seu próprio dispositivo. Artigos podem continuar em trechos não recuperados."
 )
 
+# A seleção normativa só devolve {"ids": [...]}: poucas dezenas de tokens.
+# Sem limite curto, um modelo que fuja do formato gera até 320 tokens de
+# prosa descartada (~50 s em CPU) antes de cair na abstenção.
+MAX_TOKENS_SELECAO = 64
+
+
+def _chamar_llm(llm_func, prompt, **opcoes):
+    """Repassa opções só se a função aceitar (testes usam lambdas simples)."""
+    import inspect
+    try:
+        parametros = inspect.signature(llm_func).parameters
+    except (TypeError, ValueError):
+        return llm_func(prompt)
+    aceita_tudo = any(p.kind is p.VAR_KEYWORD for p in parametros.values())
+    extras = {k: v for k, v in opcoes.items() if aceita_tudo or k in parametros}
+    return llm_func(prompt, **extras)
+
+
 # Quantos trechos, na ordem da busca restrita, uma pergunta do catálogo exibe.
 LIMITE_TRECHOS_CONTEXTUAIS = 3
 
@@ -675,7 +693,8 @@ Contexto:
 {contexto}
 """
         try:
-            ids = selecionar_ids_normativos(llm_func(prompt), fontes)
+            ids = selecionar_ids_normativos(
+                _chamar_llm(llm_func, prompt, max_tokens=MAX_TOKENS_SELECAO), fontes)
         except Exception:
             return fallback_sem_base()
         if ids is None:
