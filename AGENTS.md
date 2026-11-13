@@ -48,6 +48,7 @@ Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline d
 
 ## Convenções de trabalho observadas
 - Catálogo QA (v1.3.0, 12/11/2026): `app/minerva_dataset.json` contém 138 entradas (137 ativas), com 133 contextos documentais (132 ativos), 293 variações contextuais e relações tipadas. As 46 entradas `ampliacao_documental` (0093–0138) não foram avaliadas quanto à qualidade; antes de publicar, rodar `scripts/atualizar_evidencias_ampliacao.py` no container.
+- Velocidade (12/11/2026): pergunta do catálogo não chama o LLM (`minerva_hybrid.resposta_contextual`, ~40 s → segundos); respostas RAG repetidas vêm de `minerva_cache.py` (rota `rag_cache`). Não guardar fallbacks no cache nem remover o catálogo/corpus da chave.
 - Não criar aliases contextuais para temas que o `priority_router` já responde com texto fixo (trancamento, aproveitamento, segunda chamada, revisão de conceito, banca de TCC, "o que é SAGITTA"): o alias tem precedência e troca a resposta instantânea por geração. Uma duplicata permanece inativa para auditoria.
 - Publicar QA com `docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py`: valida PDF/página/hash e sincroniza tabelas próprias de perguntas, aliases, relações e evidências. Não inserir perguntas sintéticas como fonte factual na tabela de documentos.
 - Matching contextual exige alias explícito e único; RAG restringe documento/versão/páginas. Nunca restaurar o matching por palavras-chave para questões dependentes de contexto. Contexto localizado não autoriza texto literal.

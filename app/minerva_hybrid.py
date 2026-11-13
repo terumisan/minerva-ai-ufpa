@@ -552,6 +552,49 @@ def resposta_extrativa(fontes):
         return sanitizar_resposta(texto)
     return _anexar_referencias(texto, usadas, [f["id"] for f in usadas])
 
+TEXTO_EXCERTOS = (
+    "Excertos documentais para consulta, com o escopo, as condições e as "
+    "exceções presentes nos trechos preservados. Não constituem uma "
+    "conclusão sobre um caso individual nem uma lista completa da norma. "
+    "Incluem ressalvas recuperadas do mesmo documento, que devem ser lidas "
+    "no seu próprio dispositivo. Artigos podem continuar em trechos não recuperados."
+)
+
+# Quantos trechos, na ordem da busca restrita, uma pergunta do catálogo exibe.
+LIMITE_TRECHOS_CONTEXTUAIS = 3
+
+
+def _entrada_contextual(pergunta):
+    try:
+        from minerva_dataset import entrada_contextual
+        return entrada_contextual(pergunta)
+    except Exception:
+        return None
+
+
+def resposta_contextual(pergunta, fontes):
+    """Excertos de uma pergunta do catálogo, sem chamar o modelo.
+
+    A pergunta casou com uma entrada que fixa documento, versão (SHA-256) e
+    páginas; a busca já ficou restrita a essas páginas. Em vez de pedir ao
+    LLM que escolha IDs (a etapa mais lenta, ~40 s em CPU), os trechos são
+    escolhidos pela ordem da própria busca. Mantém as mesmas barreiras do
+    fluxo normativo: abandono, nível de ensino/competência e ressalvas do
+    mesmo documento. Nunca publica a resposta literal cadastrada.
+    """
+    if not evidencia_suficiente_para_abandono(pergunta, fontes):
+        return fallback_sem_base()
+    filtradas = filtrar_contexto_normativo(pergunta, fontes)
+    if not filtradas:
+        return fallback_sem_base()
+    ids = [f["id"] for f in filtradas[:LIMITE_TRECHOS_CONTEXTUAIS]]
+    ids = incluir_ressalvas_recuperadas(ids, filtradas)
+    selecionadas = [f for f in filtradas if f["id"] in ids]
+    if not evidencia_suficiente_para_abandono(pergunta, selecionadas):
+        return fallback_sem_base()
+    return _anexar_referencias(TEXTO_EXCERTOS, filtradas, ids)
+
+
 def responder_minerva(pergunta, conn=None, llm_func=None):
     """Pipeline do RAG genérico — última camada do roteador (ver README).
 
@@ -589,6 +632,11 @@ def responder_minerva(pergunta, conn=None, llm_func=None):
     fontes = list(_evidencias_rastreaveis(
         buscar_em_documentos_postgres(conn, pergunta)
     ).values())
+
+    # Pergunta do catálogo: busca já restrita às páginas cadastradas; os
+    # trechos são escolhidos sem LLM (ver resposta_contextual).
+    if fontes and _entrada_contextual(pergunta) is not None:
+        return resposta_contextual(pergunta, fontes)
 
     contexto = "\n\n".join(
         f"[T:{f['id']}] Documento: {f['titulo']}\nTrecho: {f['trecho']}"
@@ -636,16 +684,9 @@ Contexto:
         selecionadas = [f for f in fontes if f['id'] in ids]
         if not evidencia_suficiente_para_abandono(pergunta, selecionadas):
             return fallback_sem_base()
-        texto = (
-            "Excertos documentais para consulta, com o escopo, as condições e as "
-            "exceções presentes nos trechos preservados. Não constituem uma "
-            "conclusão sobre um caso individual nem uma lista completa da norma. "
-            "Incluem ressalvas recuperadas do mesmo documento, que devem ser lidas "
-            "no seu próprio dispositivo. Artigos podem continuar em trechos não recuperados."
-        )
         # Não publica prosa normativa gerada: preserva integralmente os blocos
         # selecionados, incluindo restrições anteriores e posteriores à regra.
-        return _anexar_referencias(texto, fontes, ids)
+        return _anexar_referencias(TEXTO_EXCERTOS, fontes, ids)
 
     if llm_func and contexto:
         prompt = f"""

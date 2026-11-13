@@ -7,7 +7,8 @@ except (ImportError, ValueError):
     from minerva_priority_router import classify_question, priority_answer
 # MINERVA_PRIORITY_ROUTER_IMPORT_END
 
-from minerva_hybrid import responder_minerva
+from minerva_hybrid import responder_minerva, fallback_sem_base
+from minerva_cache import CACHE, versao_base, resposta_cacheavel
 import time
 import uuid
 
@@ -577,11 +578,23 @@ def _processar_pergunta(pergunta, stream_area=None):
     # conexão (nunca voltava ao pool) — com DB_POOL_MAX=10, dez erros
     # seguidos esgotariam o pool e derrubariam o app inteiro.
     try:
-        return responder_minerva(
+        # Pergunta repetida com o mesmo catálogo e o mesmo corpus: devolve a
+        # resposta documental já validada (rota "rag_cache"), sem LLM.
+        versao = versao_base(conn)
+        guardada = CACHE.obter(pergunta, versao)
+        if guardada is not None:
+            return guardada, "rag_cache"
+        resposta = responder_minerva(
             pergunta=pergunta,
             conn=conn,
             llm_func=llm_func
-        ), "rag_generico"
+        )
+        if resposta_cacheavel(resposta, (
+            fallback_sem_base(),
+            "Com base nas fontes institucionais disponíveis",
+        )):
+            CACHE.guardar(pergunta, versao, resposta)
+        return resposta, "rag_generico"
     finally:
         if conn:
             try:

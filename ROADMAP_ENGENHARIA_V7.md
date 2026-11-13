@@ -673,3 +673,35 @@ catálogo e incluir perguntas das entradas novas na avaliação controlada
 (`docs/AVALIACAO_CONTROLADA_V7.md`), com formulações diferentes dos aliases.
 Regulamento (2013) e resoluções (2008–2012) precisam de conferência de vigência
 antes de qualquer aprovação literal.
+
+## 21. Latência das respostas documentais — 12/11/2026
+
+Medição pelo link público (cronômetro do spinner, uma execução por pergunta,
+modelo `gemma-4-E4B_q4_0-it.gguf` em CPU):
+
+| Pergunta | Caminho | Tempo observado |
+|---|---|---|
+| Trancamento de matrícula | rota fixa | ~1,5 s |
+| Duração da defesa de TCC (catálogo) | seleção de IDs pelo LLM | 45–80 s |
+| Tutoria presencial (catálogo) | seleção de IDs pelo LLM | 40–48 s |
+
+Diagnóstico: no modo normativo o LLM só devolve um JSON de IDs; o tempo é
+dominado pela leitura (prefill) de ~6 trechos de ~900 caracteres em CPU.
+`max_tokens` não é o gargalo.
+
+Mudanças:
+
+1. Perguntas do catálogo deixam de chamar o LLM (`resposta_contextual`): até 3
+   trechos pela ordem da busca restrita a documento/versão/páginas, mais
+   ressalvas do mesmo documento; barreiras de abandono e nível de ensino
+   mantidas. Perde-se a filtragem do LLM dentro das páginas cadastradas.
+2. Cache em memória de respostas documentais repetidas (`minerva_cache.py`),
+   invalidado por mudança do catálogo ou do manifesto do corpus; rota
+   `rag_cache` no histórico.
+
+Testes: `tests/test_velocidade.py` (17 casos) e ajuste em
+`test_rag_referencias.py`; 237 aprovados sem PostgreSQL, 15 ignorados.
+Pendente: medir de novo após o deploy (p50/p95 por rota em `historico_minerva`)
+e verificar, na avaliação controlada, se os 3 primeiros trechos do catálogo
+respondem à pergunta. Não avaliados: `-fa on`, menos trechos no seletor e
+troca de modelo.

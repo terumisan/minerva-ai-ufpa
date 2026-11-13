@@ -1,5 +1,6 @@
 import pytest
 
+import minerva_cache as mc
 import minerva_hybrid as rag
 
 
@@ -133,6 +134,9 @@ def test_fluxo_da_ui_nao_exibe_referencia_invalida_antes_de_validar(monkeypatch,
         "pergunta_menciona_instituicao_externa": lambda p: False,
         "db_pool": pool, "consultar_modelo_local": llm,
         "responder_minerva": rag.responder_minerva,
+        "fallback_sem_base": rag.fallback_sem_base,
+        "CACHE": mc.CacheRespostas(), "versao_base": lambda conn: "v",
+        "resposta_cacheavel": mc.resposta_cacheavel,
     }
     exec(compile(ast.Module(body=functions, type_ignores=[]), "main.py", "exec"), namespace)
     answer, route = namespace["processar_pergunta"]("Pergunta?", stream_area=Area())

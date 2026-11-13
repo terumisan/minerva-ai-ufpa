@@ -94,12 +94,14 @@ Três serviços principais e um worker opcional no `docker-compose.yml`:
 2. **Contexto específico:** `minerva_dataset.py` reconhece perguntas e variações explícitas do catálogo. Quando há correspondência única com contexto documental, a consulta segue para o RAG com restrição de documento, versão e páginas, evitando respostas temáticas mais amplas.
 3. **Roteamento das demais perguntas:** `minerva_priority_router.py` combina fatos básicos, dataset e rotas temáticas. Algumas rotas consultam páginas oficiais da UFPA com validação de domínio, redirecionamento e endereço de destino. Resposta literal do dataset exige manifesto aprovado, hashes, revisor e validade; na ausência dessa aprovação, a entrada não libera texto fixo.
 4. **Recuperação documental:** `minerva_hybrid.py` combina busca lexical e semântica por RRF. Para um alias exato cujo formulário curto não atinja correspondência suficiente, pode recuperar as páginas cadastradas, conferindo o hash do documento. Isso não reduz o limiar semântico global.
-5. **Resposta e referências:** no modo normativo conservador, o LLM seleciona IDs e a aplicação transcreve os excertos com ressalvas. Nas demais consultas RAG, a geração precisa usar referências válidas do contexto. A aplicação aguarda a validação antes de exibir o texto; evidência insuficiente ou referência inválida pode produzir abstenção.
+5. **Resposta e referências:** pergunta do catálogo (passo 2) não chama o LLM: os trechos são escolhidos pela ordem da busca restrita às páginas cadastradas (até 3, mais ressalvas do mesmo documento), com as mesmas barreiras de abandono e nível de ensino (`resposta_contextual`). No modo normativo conservador, o LLM seleciona IDs e a aplicação transcreve os excertos com ressalvas. Nas demais consultas RAG, a geração precisa usar referências válidas do contexto. A aplicação aguarda a validação antes de exibir o texto; evidência insuficiente ou referência inválida pode produzir abstenção.
 
 As barreiras institucionais e de referências reduzem falhas específicas da
 geração. Elas não demonstram que toda afirmação está sustentada ou que uma
 norma permanece vigente. A revisão editorial das rotas fixas e de
 `minerva_basic_facts.py` também continua pendente.
+
+6. **Cache de repetição:** `minerva_cache.py` guarda em memória (256 itens, 12 h; `MINERVA_CACHE_CAPACIDADE`, `MINERVA_CACHE_TTL`) respostas documentais bem-sucedidas, pela pergunta normalizada. A chave inclui o `minerva_dataset.json` e o manifesto do corpus, então mudar o catálogo ou os PDFs invalida tudo. Fallbacks e degradações nunca são guardados. A rota registrada no histórico é `rag_cache`.
 
 ## Stack técnica
 
@@ -139,6 +141,7 @@ minerva-ai-ufpa/
     ├── minerva_dataset.py         # respostas cadastradas manualmente (minerva_dataset.json)
     ├── minerva_dataset.json       # perguntas, respostas candidatas, contextos e variações
     ├── minerva_qa_catalogo.py      # validação e publicação do catálogo no PostgreSQL
+    ├── minerva_cache.py           # cache em memória de respostas RAG repetidas
     ├── minerva_static.py          # verificação da aprovação das respostas literais
     ├── operacao.py                # identidade anônima, entrada e limite de capacidade
     ├── web_segura.py              # acesso HTTPS oficial e validação de destino
@@ -427,7 +430,7 @@ histórico, avaliações e backups ainda contêm texto e devem permanecer privad
 - **Limites de memória** (`mem_limit` no `docker-compose.yml`): `ufpa_rag_llm` 6g, `ufpa_rag_ui` 2g, `ufpa_rag_db` 1g — calibrados com uso real observado, contendo o vazamento de memória conhecido do LLM (ver Limitações abaixo) num teto por container em vez de deixar em aberto. Ao trocar de modelo `.gguf`, ajuste o limite do `ufpa_rag_llm` proporcionalmente ao tamanho do arquivo (o `--mlock` do llama.cpp trava páginas na RAM — um limite menor que o footprint real do modelo o mata no próprio carregamento).
 - **Healthcheck nos 3 containers**: `ufpa_rag_db` (`pg_isready`), `ufpa_rag_ui` (`urllib` contra `/_stcore/health` — a imagem `python:3.10-slim` não tem `curl`) e `ufpa_rag_llm` (`curl` contra `/health`, já existia). `docker compose ps` mostra o status real de cada um.
 - **Rotação de log** nos 3 serviços (`logging.max-size: 10m`, `max-file: 3`) — sem isso, o log do `ufpa_rag_llm` (uma linha de timing por token gerado) cresce sem limite em produção de longa duração.
-- **Rastreamento de rota/latência**: cada linha de `historico_minerva` grava `rota` (qual camada respondeu — nome da rota do `priority_router`, `dataset_ou_basico`, `barreira_institucional` ou `rag_generico`) e `latencia_ms`. Permite medir cobertura de rotas e tempo de resposta direto no banco, sem varredura manual:
+- **Rastreamento de rota/latência**: cada linha de `historico_minerva` grava `rota` (qual camada respondeu — nome da rota do `priority_router`, `dataset_ou_basico`, `barreira_institucional`, `rag_generico` ou `rag_cache`) e `latencia_ms`. Permite medir cobertura de rotas e tempo de resposta direto no banco, sem varredura manual:
   ```sql
   SELECT rota, COUNT(*), ROUND(AVG(latencia_ms)) AS media_ms
   FROM historico_minerva
