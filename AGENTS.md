@@ -1,0 +1,60 @@
+# AGENTS.md — Minerva AI (ufpa_rag)
+
+Contexto operacional do projeto, consolidado a partir do histórico de trabalho com Claude Code. Ler antes de sugerir mudanças em deploy, embeddings, LLM ou ingestão de documentos.
+
+## Visão geral
+Minerva AI é um app Streamlit (RAG) rodando em `localhost:8501`, com pipeline de ingestão de PDFs (`documentos/` → Postgres `documentos_ufpa`) e um LLM local via llama.cpp em container Docker (`ufpa_rag_llm`).
+
+## Pasta principal — consolidação em 30/10/2026
+- Trabalhar em `~/minerva-ai-ufpa`. `~/ufpa_rag` é um link simbólico para essa mesma pasta, não outro checkout.
+- O `.venv` de desenvolvimento foi transferido para a pasta principal. O link antigo mantém os caminhos dos executáveis compatíveis.
+- Docker usa os bind mounts da pasta principal e o volume `minerva-ai-ufpa_pgdata_rag`; preservar esse volume.
+- Serviços systemd de backup/reinício usam a pasta principal. Histórico Git/stashes antigos, relatórios privados, configurações antigas e modelos alternativos estão em `~/ufpa_rag_backups/consolidacao_20261030/`, fora do repositório.
+
+## Autorização de trabalho registrada em 30/10/2026
+- O usuário autorizou melhorias e implementações neste projeto, execução das validações, atualização do roadmap e commit/push na branch `melhorias/roadmap-engenharia`. Prosseguir com correções necessárias aos checks e registrar o resultado concreto.
+- Essa autorização de trabalho não muda as permissões técnicas do ambiente. Usar o mecanismo de aprovação para comandos que precisem de acesso adicional; não desabilitar o sandbox ou ampliar permissões de arquivos indiscriminadamente.
+- A autorização de engenharia não constitui aprovação institucional de conteúdo: hashes, fontes e testes não autorizam automaticamente respostas literais nem homologam vigência normativa.
+
+## Deploy / infraestrutura
+- Exposto publicamente via **ngrok** (conta free, `srterumi1@gmail.com`), serviço systemd `ngrok-minerva.service`. URL fixa (dev-domain): `https://preschool-unsaid-doodle.ngrok-free.dev` — não muda em reconexão. `ngrok` instalado em `~/.local/bin/ngrok` (sem root).
+- Antes era Cloudflare quick tunnel (`cloudflared-minerva.service`) — desativado (não deletado) porque a URL mudava a cada reconexão.
+- **Sem autenticação** na frente do app. Mencionar isso se surgir discussão sobre expor algo mais sensível.
+- Domínio ngrok não é escolhível (plano free); confirmar sempre em https://dashboard.ngrok.com/domains antes de assumir o nome.
+- `loginctl enable-linger terumi` ativo — túnel sobrevive a reboot/logout.
+- Início automático (12/11/2026): `scripts/instalar_inicio_automatico.sh` cria `minerva.service` (usuário; espera o Docker e roda `docker compose up -d`) e recria `ngrok-minerva.service` com `After=minerva.service`. Não usar crontab nem `@reboot` para isso.
+
+## LLM (`ufpa_rag_llm`, llama.cpp)
+- Modelo ativo desde 14/11/2026: `Qwen_Qwen3.5-4B-Q4_0.gguf` (via `LLM_MODEL` no `.env`, com `--jinja --reasoning-budget 0`). Trocado do Gemma 4 E4B a pedido do usuário após a reexecução D115 (roadmap, seção 26). Qwen2.5-7B e Llama-3.2-3B seguem preservados no arquivo da consolidação.
+- Comparação medida (`app/scripts/comparar_llms.py`): Qwen3-4B ~2x mais rápido isolado (12.7 vs 6.1 tok/s gen), qualidade comparável/melhor em nuances. Mas a reversão para Qwen2.5-7B foi pedida pelo usuário sem explicação — **não presumir que foi por qualidade/velocidade**; perguntar antes de re-recomendar a troca.
+- Timing de pipeline completo é enganoso: contenção de CPU no host distorce comparações wall-clock entre modelos. Preferir benchmark isolado, back-to-back, na mesma sessão.
+- **Vazamento de memória conhecido**: o container cresce RAM sem limite com uptime longo (observado 11.2GB vs ~5GB esperado) ou após rajadas de ~50+ chamadas sequenciais — pode derrubar o container (`Connection refused`/`503`). Mitigado por timer systemd `ufpa_rag_restart_llm.timer` (reinicia às 04:00 diariamente). Se lento: checar `docker stats ufpa_rag_llm` e `free -h`; `docker compose restart ufpa_rag_llm` resolve na hora.
+- `--threads`/`--threads-batch` já ajustados (8/12) — mais threads pioram a fase de geração (memory-bandwidth-bound) nesta máquina (i5-1245U).
+- Scripts de avaliação longos contra o LLM devem ser resumíveis (append-as-you-go em JSONL, skip de itens já processados) — ver `app/scripts/avaliar_fidelidade_llm.py`.
+
+## Embeddings / RAG
+- Modelo de embedding: `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` (768d), trocado do MiniLM (384d) após ganho medido (hit@6 semântico 44.2%→63.5%).
+- `multilingual-e5-large` (2.3GB) foi testado e teve melhor score, mas **rejeitado por risco de memória** — RAM total da máquina é só 14GB e já houve incidente de swap-thrashing com o LLM. Só revisitar se a situação de memória do LLM estiver estável/monitorada.
+- `ingestao.py` usa migração aditiva e rejeita dimensões incompatíveis, preservando o índice ativo. Não trocar modelo/dimensão sem planejar um índice separado e validar a migração.
+
+## Dados / ingestão
+- Corpus conferido em 30/10/2026: 15 PDFs, 413 chunks com embeddings. Duplicata e arquivos vazios foram removidos anteriormente.
+- `ManualSagitta.pdf` foi substituído pelo PDF oficial íntegro (12 páginas, edição de 2015); 18 trechos inseridos, preservando os 395 anteriores. Fonte: https://sagitta.ufpa.br/sagitta/documentos/manual_sagitta.pdf.
+- Ingestão corrigida: lotes de até 8, staging temporário, publicação atômica e manifesto incremental. Qualquer falha aborta a publicação inteira; arquivos ausentes não são removidos automaticamente. Não usa DROP/TRUNCATE da base ativa.
+- Prefira o worker isolado: `docker compose --profile manutencao run --rm --build ufpa_rag_ingestao --fontes /app/fontes_documentais.json`. Evita carregar dois modelos no teto de memória da UI.
+- IDs numéricos são preservados para texto idêntico; chunks têm hash/ID estável, versão SHA-256 do PDF e páginas físicas. Origens desconhecidas permanecem nulas; não inventar URLs.
+- Identidade anônima agora é gerada no servidor, sem aceitar `sid` pela URL. Reload cria nova identidade; exportação deve ocorrer na sessão atual. Não reintroduzir sid como credencial.
+- Aprovações literais exigem reviewer/validated_at/valid_until, além de hashes e fonte. Curadoria e vigência são humanas; não preencher aprovações automaticamente.
+
+## Convenções de trabalho observadas
+- Catálogo QA (v1.3.0, 12/11/2026): `app/minerva_dataset.json` contém 138 entradas (137 ativas), com 133 contextos documentais (132 ativos), 293 variações contextuais e relações tipadas. As 46 entradas `ampliacao_documental` (0093–0138) não foram avaliadas quanto à qualidade; antes de publicar, rodar `scripts/atualizar_evidencias_ampliacao.py` no container.
+- Velocidade (12/11/2026): pergunta do catálogo não chama o LLM (`minerva_hybrid.resposta_contextual`, ~40 s → segundos); respostas RAG repetidas vêm de `minerva_cache.py` (rota `rag_cache`). Não guardar fallbacks no cache nem remover o catálogo/corpus da chave.
+- Roteador (13/11/2026): pergunta de DETALHE sobre TCC, estágio, AC ou docente (quantas, prazo, mínimo, páginas, nota, conta como…) não usa as rotas genéricas (`_pede_detalhe_normativo`); composição de banca segue em `tcc_board`. A barreira de instituição externa roda ANTES das rotas fixas.
+- Vigência: `MINERVA_0104/0105` seguem inativas; o exercício domiciliar agora é coberto por `MINERVA_0142` (Res. 5.799/2024).
+- Corpus (13/11/2026): 26 PDFs em `documentos/` (pasta fora do git). `Guia_FCT_TCC_Instrucoes.pdf` e `Guia_FCT_Estagio_Integralizacao.pdf` são transcrições de páginas do Google Docs da FCT; ao atualizar, recapturar o texto e recalcular evidências. Catálogo 1.5.0: 217 entradas (lote `20261113b`, 0168–0217, só páginas antes sem cobertura). `contexto_documental.niveis_permitidos` (com justificativa) libera menção a especialização/mestrado/doutorado que seja regra de graduação; não usar para conteúdo de pós-graduação.
+- Não criar aliases contextuais para temas que o `priority_router` já responde com texto fixo (trancamento, aproveitamento, segunda chamada, revisão de conceito, banca de TCC, "o que é SAGITTA"): o alias tem precedência e troca a resposta instantânea por geração. Uma duplicata permanece inativa para auditoria.
+- Publicar QA com `docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py`: valida PDF/página/hash e sincroniza tabelas próprias de perguntas, aliases, relações e evidências. Não inserir perguntas sintéticas como fonte factual na tabela de documentos.
+- Matching contextual exige alias explícito e único; RAG restringe documento/versão/páginas. Nunca restaurar o matching por palavras-chave para questões dependentes de contexto. Contexto localizado não autoriza texto literal.
+- Novas variações foram escritas a partir das entradas e PDFs existentes, sem consumir conjuntos de avaliação; não tratá-las como holdout independente de qualidade.
+- Eval set principal: 720 perguntas geradas por LLM a partir dos chunks-fonte (hit-rate@1, hit@6 lexical/semântico/híbrido RRF).
+- Scripts de comparação/avaliação ficam em `app/scripts/` (`comparar_embeddings.py`, `comparar_llms.py`, `avaliar_fidelidade_llm.py`, `testar_retrieval_configs.py`), resultados em `app/tests/data/*.jsonl`.

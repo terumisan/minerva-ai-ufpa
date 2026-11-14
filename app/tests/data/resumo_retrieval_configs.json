@@ -1,0 +1,23 @@
+{
+  "C1_lexico": {
+    "n": 720,
+    "precision_at_5": 0.1383,
+    "recall_at_5": 0.6917,
+    "mrr": 0.561,
+    "ndcg_at_5": 0.5917
+  },
+  "C2_semantico": {
+    "n": 720,
+    "precision_at_5": 0.1292,
+    "recall_at_5": 0.6458,
+    "mrr": 0.5093,
+    "ndcg_at_5": 0.5362
+  },
+  "C3_hibrido": {
+    "n": 720,
+    "precision_at_5": 0.1608,
+    "recall_at_5": 0.8042,
+    "mrr": 0.6461,
+    "ndcg_at_5": 0.6803
+  }
+}

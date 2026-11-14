@@ -1,0 +1,1064 @@
+{
+  "descricao": "Perguntas simuladas no estilo de alunos; não são de usuários reais.",
+  "data": "2026-11-13",
+  "total": 93,
+  "perguntas": [
+    {
+      "id": "SIM_001",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "Minerva, quanto tempo dura a defesa de TCC na Resolução FCT 01/2012?",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0127"
+      }
+    },
+    {
+      "id": "SIM_002",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "oi minerva! quem pode orientar TCC na Resolução FCT 01/2012?",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0121"
+      }
+    },
+    {
+      "id": "SIM_003",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "Boa tarde. Quantas páginas no mínimo deve ter o TCC na Resolução FCT 01/2012? obrigado",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0125"
+      }
+    },
+    {
+      "id": "SIM_004",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "por favor, como abrir uma chamada no SAGITTA da UFPA",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0130"
+      }
+    },
+    {
+      "id": "SIM_005",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "QUANTO TEMPO DURA UMA HORA-AULA NA UFPA SEGUNDO O REGULAMENTO DA GRADUAÇÃO?",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0111"
+      }
+    },
+    {
+      "id": "SIM_006",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "me diga: o que sao CR, CRPL e CRG no Regulamento da Graduacao da UFPA",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0114"
+      }
+    },
+    {
+      "id": "SIM_007",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "Calouro faz matricula online no SIGAA da UFPA",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0135"
+      }
+    },
+    {
+      "id": "SIM_008",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "Queria saber quando sou considerado reprovado em uma atividade curricular pelo Regulamento da Graduação da UFPA",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0095"
+      }
+    },
+    {
+      "id": "SIM_009",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "Minerva qual o prazo para entregar a versão corrigida do TCC após a defesa na FCT",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0128"
+      }
+    },
+    {
+      "id": "SIM_010",
+      "estilo": "alias_com_cortesia",
+      "pergunta": "Como cancelar uma chamada aberta no SAGITTA? valeu",
+      "esperado": {
+        "tipo": "catalogo",
+        "entrada": "MINERVA_0132"
+      }
+    },
+    {
+      "id": "SIM_011",
+      "estilo": "parafrase_informal",
+      "pergunta": "quanto tempo eu tenho pra apresentar o tcc na banca?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          5
+        ],
+        "entrada": "MINERVA_0127"
+      }
+    },
+    {
+      "id": "SIM_012",
+      "estilo": "parafrase_informal",
+      "pergunta": "o tcc precisa ter quantas paginas",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          4,
+          5
+        ],
+        "entrada": "MINERVA_0125"
+      }
+    },
+    {
+      "id": "SIM_013",
+      "estilo": "parafrase_informal",
+      "pergunta": "meu orientador pode ser aluno de doutorado?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          3
+        ],
+        "entrada": "MINERVA_0121"
+      }
+    },
+    {
+      "id": "SIM_014",
+      "estilo": "parafrase_informal",
+      "pergunta": "qual nota minima pra passar em tcc 2",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          4
+        ],
+        "entrada": "MINERVA_0124"
+      }
+    },
+    {
+      "id": "SIM_015",
+      "estilo": "parafrase_informal",
+      "pergunta": "se copiarem o tcc de alguem o que acontece",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          4
+        ],
+        "entrada": "MINERVA_0124"
+      }
+    },
+    {
+      "id": "SIM_016",
+      "estilo": "parafrase_informal",
+      "pergunta": "quantos dias antes da defesa tenho que entregar o tcc impresso?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          5
+        ],
+        "entrada": "MINERVA_0126"
+      }
+    },
+    {
+      "id": "SIM_017",
+      "estilo": "parafrase_informal",
+      "pergunta": "depois da defesa tenho quantos dias pra corrigir o tcc",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          5
+        ],
+        "entrada": "MINERVA_0128"
+      }
+    },
+    {
+      "id": "SIM_018",
+      "estilo": "parafrase_informal",
+      "pergunta": "quem da a nota do tcc 1?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          3,
+          4
+        ],
+        "entrada": "MINERVA_0123"
+      }
+    },
+    {
+      "id": "SIM_019",
+      "estilo": "parafrase_informal",
+      "pergunta": "tcc da fct segue qual abnt",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          4,
+          5
+        ],
+        "entrada": "MINERVA_0125"
+      }
+    },
+    {
+      "id": "SIM_020",
+      "estilo": "parafrase_informal",
+      "pergunta": "posso fazer tcc em dupla na engenharia da computação?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          2
+        ],
+        "entrada": "MINERVA_0074"
+      }
+    },
+    {
+      "id": "SIM_021",
+      "estilo": "parafrase_informal",
+      "pergunta": "com quantas faltas eu reprovo por frequencia",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          7
+        ],
+        "entrada": "MINERVA_0095"
+      }
+    },
+    {
+      "id": "SIM_022",
+      "estilo": "parafrase_informal",
+      "pergunta": "reprovei em 4 materias, o que acontece comigo?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          7
+        ],
+        "entrada": "MINERVA_0097"
+      }
+    },
+    {
+      "id": "SIM_023",
+      "estilo": "parafrase_informal",
+      "pergunta": "da pra fazer dependencia junto com o semestre normal?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          7
+        ],
+        "entrada": "MINERVA_0096"
+      }
+    },
+    {
+      "id": "SIM_024",
+      "estilo": "parafrase_informal",
+      "pergunta": "quantas horas no maximo posso pegar num semestre",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          8
+        ],
+        "entrada": "MINERVA_0098"
+      }
+    },
+    {
+      "id": "SIM_025",
+      "estilo": "parafrase_informal",
+      "pergunta": "quem tem preferencia na hora da matricula das disciplinas?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          8
+        ],
+        "entrada": "MINERVA_0099"
+      }
+    },
+    {
+      "id": "SIM_026",
+      "estilo": "parafrase_informal",
+      "pergunta": "esqueci de confirmar minha matricula, e agora?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          6
+        ],
+        "entrada": "MINERVA_0093"
+      }
+    },
+    {
+      "id": "SIM_027",
+      "estilo": "parafrase_informal",
+      "pergunta": "quero mudar do turno da noite pro da manha, como faço",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          9
+        ],
+        "entrada": "MINERVA_0100"
+      }
+    },
+    {
+      "id": "SIM_028",
+      "estilo": "parafrase_informal",
+      "pergunta": "como faço pra trocar de curso na ufpa",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          10,
+          14
+        ],
+        "entrada": "MINERVA_0102"
+      }
+    },
+    {
+      "id": "SIM_029",
+      "estilo": "parafrase_informal",
+      "pergunta": "posso estudar um semestre em outro campus?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          10
+        ],
+        "entrada": "MINERVA_0101"
+      }
+    },
+    {
+      "id": "SIM_030",
+      "estilo": "parafrase_informal",
+      "pergunta": "intercambio conta no tempo maximo do curso?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          11
+        ],
+        "entrada": "MINERVA_0103"
+      }
+    },
+    {
+      "id": "SIM_031",
+      "estilo": "parafrase_informal",
+      "pergunta": "tem como se formar antes do tempo?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          14
+        ],
+        "entrada": "MINERVA_0106"
+      }
+    },
+    {
+      "id": "SIM_032",
+      "estilo": "parafrase_informal",
+      "pergunta": "o que é tutoria na graduação?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          15
+        ],
+        "entrada": "MINERVA_0107"
+      }
+    },
+    {
+      "id": "SIM_033",
+      "estilo": "parafrase_informal",
+      "pergunta": "quanto de extensao preciso fazer no curso",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          18
+        ],
+        "entrada": "MINERVA_0108"
+      }
+    },
+    {
+      "id": "SIM_034",
+      "estilo": "parafrase_informal",
+      "pergunta": "fiz extensao em outro instituto, entra no historico?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          19
+        ],
+        "entrada": "MINERVA_0109"
+      }
+    },
+    {
+      "id": "SIM_035",
+      "estilo": "parafrase_informal",
+      "pergunta": "quantos minutos tem uma aula",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          23
+        ],
+        "entrada": "MINERVA_0111"
+      }
+    },
+    {
+      "id": "SIM_036",
+      "estilo": "parafrase_informal",
+      "pergunta": "o professor tem prazo pra lançar nota?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          25
+        ],
+        "entrada": "MINERVA_0112"
+      }
+    },
+    {
+      "id": "SIM_037",
+      "estilo": "parafrase_informal",
+      "pergunta": "quem pode fazer prova substitutiva",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          26
+        ],
+        "entrada": "MINERVA_0113"
+      }
+    },
+    {
+      "id": "SIM_038",
+      "estilo": "parafrase_informal",
+      "pergunta": "como calcula o crg",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          26
+        ],
+        "entrada": "MINERVA_0114"
+      }
+    },
+    {
+      "id": "SIM_039",
+      "estilo": "parafrase_informal",
+      "pergunta": "quando o aluno é desligado da ufpa?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          27,
+          28
+        ],
+        "entrada": "MINERVA_0115"
+      }
+    },
+    {
+      "id": "SIM_040",
+      "estilo": "parafrase_informal",
+      "pergunta": "historico final quem assina",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          29,
+          30
+        ],
+        "entrada": "MINERVA_0116"
+      }
+    },
+    {
+      "id": "SIM_041",
+      "estilo": "parafrase_informal",
+      "pergunta": "quanto tempo demora pra sair o diploma",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          30
+        ],
+        "entrada": "MINERVA_0117"
+      }
+    },
+    {
+      "id": "SIM_042",
+      "estilo": "parafrase_informal",
+      "pergunta": "nao vou poder ir na colação, posso colar grau outro dia?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          31
+        ],
+        "entrada": "MINERVA_0118"
+      }
+    },
+    {
+      "id": "SIM_043",
+      "estilo": "parafrase_informal",
+      "pergunta": "estagio nao obrigatorio conta pro curso?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          20,
+          21
+        ],
+        "entrada": "MINERVA_0120"
+      }
+    },
+    {
+      "id": "SIM_044",
+      "estilo": "parafrase_informal",
+      "pergunta": "esqueci minha senha do sagitta, uso qual login?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "ManualSagitta.pdf",
+        "paginas": [
+          2,
+          3
+        ],
+        "entrada": "MINERVA_0131"
+      }
+    },
+    {
+      "id": "SIM_045",
+      "estilo": "parafrase_informal",
+      "pergunta": "abri um chamado no sagitta e o problema continuou, faço o que?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "ManualSagitta.pdf",
+        "paginas": [
+          10,
+          11,
+          12
+        ],
+        "entrada": "MINERVA_0133"
+      }
+    },
+    {
+      "id": "SIM_046",
+      "estilo": "parafrase_informal",
+      "pergunta": "como me cadastro no sigaa pela primeira vez",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "ManualAlunoSIGAA.pdf",
+        "paginas": [
+          2
+        ],
+        "entrada": "MINERVA_0134"
+      }
+    },
+    {
+      "id": "SIM_047",
+      "estilo": "parafrase_informal",
+      "pergunta": "estagio de quantas horas no minimo na eng da computacao",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_Estagio.pdf",
+        "paginas": [
+          1
+        ],
+        "entrada": "MINERVA_0075"
+      }
+    },
+    {
+      "id": "SIM_048",
+      "estilo": "parafrase_informal",
+      "pergunta": "posso usar estagio como atividade complementar?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_Ativ_Complementares.pdf",
+        "paginas": [
+          4
+        ],
+        "entrada": "MINERVA_0081"
+      }
+    },
+    {
+      "id": "SIM_049",
+      "estilo": "parafrase_informal",
+      "pergunta": "quantas horas de atividade complementar preciso",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_Ativ_Complementares.pdf",
+        "paginas": [
+          1
+        ],
+        "entrada": "MINERVA_0079"
+      }
+    },
+    {
+      "id": "SIM_050",
+      "estilo": "parafrase_informal",
+      "pergunta": "o professor tem que colocar o plano da disciplina na internet?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_PraticasEnsino.pdf",
+        "paginas": [
+          2
+        ],
+        "entrada": "MINERVA_0137"
+      }
+    },
+    {
+      "id": "SIM_051",
+      "estilo": "erro_digitacao",
+      "pergunta": "qnt tempo dura a defeza do tcc",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          5
+        ],
+        "entrada": "MINERVA_0127"
+      }
+    },
+    {
+      "id": "SIM_052",
+      "estilo": "erro_digitacao",
+      "pergunta": "frequencia minima pra n reprovar",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          7
+        ],
+        "entrada": "MINERVA_0095"
+      }
+    },
+    {
+      "id": "SIM_053",
+      "estilo": "erro_digitacao",
+      "pergunta": "cm faço pra abri chamado no sagita",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "ManualSagitta.pdf",
+        "paginas": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "entrada": "MINERVA_0130"
+      }
+    },
+    {
+      "id": "SIM_054",
+      "estilo": "erro_digitacao",
+      "pergunta": "qm pode orienta tcc",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          3
+        ],
+        "entrada": "MINERVA_0121"
+      }
+    },
+    {
+      "id": "SIM_055",
+      "estilo": "erro_digitacao",
+      "pergunta": "perda de vinculo ufpa quais casos",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          27,
+          28
+        ],
+        "entrada": "MINERVA_0115"
+      }
+    },
+    {
+      "id": "SIM_056",
+      "estilo": "erro_digitacao",
+      "pergunta": "hora aula 50 min ou 60?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          23
+        ],
+        "entrada": "MINERVA_0111"
+      }
+    },
+    {
+      "id": "SIM_057",
+      "estilo": "erro_digitacao",
+      "pergunta": "colacao de grau separada como pede",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          31
+        ],
+        "entrada": "MINERVA_0118"
+      }
+    },
+    {
+      "id": "SIM_058",
+      "estilo": "erro_digitacao",
+      "pergunta": "versao final tcc pdf email secretaria",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_TCC.pdf",
+        "paginas": [
+          5
+        ],
+        "entrada": "MINERVA_0128"
+      }
+    },
+    {
+      "id": "SIM_059",
+      "estilo": "erro_digitacao",
+      "pergunta": "auto cadastro sigaa matricula antiga",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "ManualAlunoSIGAA.pdf",
+        "paginas": [
+          2
+        ],
+        "entrada": "MINERVA_0134"
+      }
+    },
+    {
+      "id": "SIM_060",
+      "estilo": "erro_digitacao",
+      "pergunta": "prova substitutiva tem segunda chamada",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Regulamento_Graduacao.pdf",
+        "paginas": [
+          26
+        ],
+        "entrada": "MINERVA_0113"
+      }
+    },
+    {
+      "id": "SIM_061",
+      "estilo": "rota_fixa",
+      "pergunta": "como faço pra trancar a matricula?",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_062",
+      "estilo": "rota_fixa",
+      "pergunta": "quero aproveitar disciplina de outra faculdade",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_063",
+      "estilo": "rota_fixa",
+      "pergunta": "perdi a prova, tem segunda chamada?",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_064",
+      "estilo": "rota_fixa",
+      "pergunta": "como pedir revisao de nota",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_065",
+      "estilo": "rota_fixa",
+      "pergunta": "como fica a banca do tcc",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_066",
+      "estilo": "rota_fixa",
+      "pergunta": "qual o calendario academico de 2026",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_067",
+      "estilo": "rota_fixa",
+      "pergunta": "qual o cardapio do RU hoje",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_068",
+      "estilo": "rota_fixa",
+      "pergunta": "onde vejo as informações de estágio da FCT",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_069",
+      "estilo": "rota_fixa",
+      "pergunta": "o que é o sagitta",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_070",
+      "estilo": "rota_fixa",
+      "pergunta": "quais as atividades complementares da FCT",
+      "esperado": {
+        "tipo": "rota_fixa"
+      }
+    },
+    {
+      "id": "SIM_071",
+      "estilo": "institucional",
+      "pergunta": "quantas faltas em reunião fazem perder o mandato no conselho?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "RegimentoGeral.pdf",
+        "paginas": [
+          20
+        ],
+        "entrada": "MINERVA_0056"
+      }
+    },
+    {
+      "id": "SIM_072",
+      "estilo": "institucional",
+      "pergunta": "como desempata votação nos conselhos da ufpa",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "RegimentoGeral.pdf",
+        "paginas": [
+          21
+        ],
+        "entrada": "MINERVA_0058"
+      }
+    },
+    {
+      "id": "SIM_073",
+      "estilo": "institucional",
+      "pergunta": "qual o prazo pra recorrer de decisão de conselho",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "RegimentoGeral.pdf",
+        "paginas": [
+          8
+        ],
+        "entrada": "MINERVA_0035"
+      }
+    },
+    {
+      "id": "SIM_074",
+      "estilo": "institucional",
+      "pergunta": "quem preside o consepe",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "RegimentoGeral.pdf",
+        "paginas": [
+          11,
+          12
+        ],
+        "entrada": "MINERVA_0042"
+      }
+    },
+    {
+      "id": "SIM_075",
+      "estilo": "institucional",
+      "pergunta": "o que faz o consun",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "RegimentoGeral.pdf",
+        "paginas": [
+          9,
+          10
+        ],
+        "entrada": "MINERVA_0036"
+      }
+    },
+    {
+      "id": "SIM_076",
+      "estilo": "fora_escopo",
+      "pergunta": "qual a nota de corte de medicina na ufpa",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_077",
+      "estilo": "fora_escopo",
+      "pergunta": "me passa uma receita de bolo de chocolate",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_078",
+      "estilo": "fora_escopo",
+      "pergunta": "qual minha nota em calculo 1?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_079",
+      "estilo": "fora_escopo",
+      "pergunta": "como funciona o tcc na usp?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_080",
+      "estilo": "fora_escopo",
+      "pergunta": "quem vai ganhar a eleição pra reitor?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_081",
+      "estilo": "fora_escopo",
+      "pergunta": "me ajuda a fazer meu trabalho de redes",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_082",
+      "estilo": "fora_escopo",
+      "pergunta": "qual o salário de um engenheiro da computação",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_083",
+      "estilo": "fora_escopo",
+      "pergunta": "a ufpa vai entrar em greve?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_084",
+      "estilo": "fora_escopo",
+      "pergunta": "qual o telefone do professor fulano",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_085",
+      "estilo": "fora_escopo",
+      "pergunta": "como hackear o sigaa",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_086",
+      "estilo": "incompleta",
+      "pergunta": "e o prazo?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_087",
+      "estilo": "incompleta",
+      "pergunta": "quanto tempo?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_088",
+      "estilo": "incompleta",
+      "pergunta": "e se eu nao fizer?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_089",
+      "estilo": "incompleta",
+      "pergunta": "pode?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_090",
+      "estilo": "incompleta",
+      "pergunta": "qual o artigo?",
+      "esperado": {
+        "tipo": "abstencao"
+      }
+    },
+    {
+      "id": "SIM_091",
+      "estilo": "norma_desatualizada",
+      "pergunta": "estou gravida, tenho direito a estudar em casa?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_RADIP_5799_2024.pdf",
+        "paginas": [],
+        "entrada": null,
+        "observacao": "só passa após ingerir a Resolução 5.799/2024"
+      }
+    },
+    {
+      "id": "SIM_092",
+      "estilo": "norma_desatualizada",
+      "pergunta": "tenho uma doença cronica, posso ter regime especial?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_RADIP_5799_2024.pdf",
+        "paginas": [],
+        "entrada": null,
+        "observacao": "só passa após ingerir a Resolução 5.799/2024"
+      }
+    },
+    {
+      "id": "SIM_093",
+      "estilo": "norma_desatualizada",
+      "pergunta": "posso fazer estagio em exercicio domiciliar?",
+      "esperado": {
+        "tipo": "documental",
+        "documento": "Resolucao_RADIP_5799_2024.pdf",
+        "paginas": [],
+        "entrada": null,
+        "observacao": "só passa após ingerir a Resolução 5.799/2024"
+      }
+    }
+  ]
+}

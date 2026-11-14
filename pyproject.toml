@@ -1,0 +1,20 @@
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["app/.fastembed_cache", "app/minerva_dataset.json"]
+
+[tool.ruff.lint]
+# Conjunto enxuto e de alto sinal: erros reais (E), imports/variáveis não
+# usadas (F), bugs comuns tipo mutable-default-argument (B). Sem regras de
+# estilo/formatação (aquelas o autoformatter resolveria; não faz parte
+# deste roadmap mexer no formato de 5000+ linhas já escritas).
+select = ["E", "F", "B"]
+ignore = [
+    # Linhas de prompt/texto institucional em português passam de 100
+    # colunas com frequência; line-length já cobre o que importa (código).
+    "E501",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["app"]
+testpaths = ["app/tests"]
