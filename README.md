@@ -348,7 +348,22 @@ PROEG (julho/2026). Os SHA-256 dos PDFs foram conferidos contra os sites na capt
 Divergência a confirmar com a Faculdade: o guia de estágio cita componentes de 120 h e 240 h
 (360 h), enquanto a Resolução EngComp 02/2006 do corpus cita 200 h e 390 h.
 
-Total: 167 entradas, 164 ativas; 162 contextualizadas, sendo 159 ativas.
+Ampliação de 13/11/2026, segundo ciclo (versão 1.5.0, `MINERVA_0168` a `MINERVA_0217`): 50 entradas
+escritas só a partir de páginas que ainda não tinham pergunta no catálogo (mapa de cobertura por
+documento e página) e de falhas vistas num teste exploratório no site com perguntas no estilo dos
+alunos. Por documento: RADIP-EG 5.799/2024 (14: doenças, transtornos mentais, deficiência, TDAH e
+neurodesenvolvimento, provas adaptadas, Trabalho de Curso, avaliação substitutiva, dilação de prazo,
+altas habilidades, recurso e suspensão), Resolução EngComp 02/2006 de estágio (7), Regulamento da
+Graduação (6: aproveitamento e CR, complementação, plano de ensino, SIAV, regimes, atividades
+curriculares), manual de extensão da PROEX (4), IN PROEG 02/2025 (3), Resolução FCT 01/2012 anexos
+(3), Resolução FCT 01/2013 (3), outorga de grau (2), guia de atividades complementares (2) e uma
+de cada para 5.824/2024, IN 05/2023, guia de estágio, Resolução EngComp 01/2008, regimento local e
+manual SAGITTA. As 167 entradas anteriores não foram alteradas. As respostas da Resolução de estágio
+de 2006 avisam que o passo a passo atual da FCT pode ter procedimento diferente. Como perguntas do
+catálogo agora respondem sem o modelo (cerca de 3 s), aproveitamento passou a ter aliases
+específicos (CR, complementação), sem alterar a rota fixa para perguntas genéricas.
+
+Total: 217 entradas, 214 ativas; 212 contextualizadas, sendo 209 ativas.
 
 Depois de colocar PDFs novos em `documentos/`, vetorize e publique nesta ordem:
 

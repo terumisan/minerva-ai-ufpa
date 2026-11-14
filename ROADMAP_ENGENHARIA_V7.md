@@ -785,3 +785,30 @@ interceptação pelo roteador); 273 testes sem PostgreSQL. Pendente: ingestão/v
 hospedeiro, medição da qualidade, confirmação da divergência de carga horária de estágio
 (120+240 h no guia × 200/390 h na Resolução de 2006) e revisão pela coordenação
 (`docs/revisao_catalogo_20261113.xlsx`, agora com 167 linhas).
+
+## 25. Segundo ciclo de ampliação e teste ponta a ponta — 13/11/2026 (noite)
+
+Teste ponta a ponta no site público (ngrok) das 29 perguntas do catálogo 1.4.0, cada uma pela pergunta
+principal e por uma variação (58 consultas): 58/58 com documento e página cadastrados, primeiro trecho
+na página certa, média de 2,8 s. O teste achou um defeito na 0150 (IN 05/2023): só um trecho era
+exibido. Duas causas e duas correções:
+
+- busca restrita às páginas do catálogo descartava trechos sem dois termos da pergunta ou acima do
+  limiar semântico; agora `buscar_em_documentos_postgres` completa até 3 trechos com os demais trechos
+  das páginas cadastradas (`_trechos_do_escopo`, `LIMITE_COMPLEMENTO_ESCOPO`);
+- o filtro de nível de ensino cortava "discente de doutorado" (regra de quem orienta TC na graduação);
+  agora uma entrada pode declarar `contexto_documental.niveis_permitidos` com
+  `niveis_permitidos_justificativa` obrigatória (validada em `validar_dataset`); só a 0150 usa.
+
+Segundo ciclo (catálogo 1.5.0, `MINERVA_0168`–`MINERVA_0217`, lote `20261113b`): mapa de cobertura por
+página mostrou lacunas no RADIP-EG (22 páginas), na Resolução de estágio de 2006, em anexos das
+Resoluções FCT de TCC e de atividades complementares, no Regulamento da Graduação e no manual de
+extensão. Um teste exploratório com 16 perguntas de aluno confirmou as lacunas (por exemplo,
+"ansiedade dá direito a fazer as provas em casa?" caía no fallback, e "preciso já estar estagiando pra
+me matricular no estágio supervisionado?" caía na rota genérica de estágio). Foram escritas 50
+entradas com evidência da página, duas a três variações cada (incluindo as frases do teste
+exploratório) e relações com o mesmo tema e com entradas antigas do mesmo documento. Validação:
+`validar_dataset`, todos os aliases casam com a própria entrada, nenhuma página com nível de
+pós-graduação não pedido, 283 testes sem PostgreSQL. As 167 entradas anteriores ficaram idênticas.
+Planilha de revisão: `docs/revisao_catalogo_20261113.xlsx`, agora com 217 linhas.
+
