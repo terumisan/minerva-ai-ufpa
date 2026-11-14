@@ -721,3 +721,67 @@ na primeira vez e menos de 4 s ao repetir com outra grafia (`rag_cache`).
 
 Testes: 249 aprovados sem PostgreSQL, 15 ignorados (`test_velocidade.py` com 12
 casos novos). Pendente: medir p50/p95 por rota após alguns dias de uso.
+
+## 23. Vigência, perguntas simuladas, revisão e monitoramento — 13/11/2026
+
+Sem acesso a alunos, a rodada usou verificação documental e perguntas simuladas.
+
+**Vigência.** 4.399/2013 segue citada como vigente em resoluções de 2024–2025, mas complementada
+pelas Res. 5.799/2024 (RADIP-EG; exercício domiciliar, tutoria, estágio e substitutiva para
+pessoas com deficiência, doenças crônicas, transtornos, gestantes e puérperas; vigente desde
+2025.2), 5.791/2024 (outorga de grau) e 5.467/2022 (extensão). `MINERVA_0104/0105` inativadas
+(catálogo 1.3.1). Resoluções da FCT seguem publicadas sem substituta localizada. Busca não
+comprova vigência; a coordenação deve confirmar.
+
+**Perguntas simuladas (93).** Roteamento medido localmente com o código da Minerva:
+
+| Estilo | Antes dos ajustes | Depois |
+|---|---|---|
+| Alias com cortesia (10) | 9 catálogo | 10 catálogo |
+| Paráfrase informal (40) | 16 capturadas por rota genérica sem resposta | 2 em rota fixa, 38 para os documentos |
+| Erro de digitação (10) | 4 em rota genérica | 2 |
+| Rota fixa esperada (10) | 9 | 10 |
+| Fora de escopo (10) | "tcc na usp" respondido como FCT | barrado; 1 cai na rota de docentes (link da página) |
+
+Ajustes: `_pede_detalhe_normativo` no roteador; barreira de instituição externa antes das rotas
+fixas e siglas (USP, UNICAMP, UEPA, IFPA etc.); "aproveitar disciplina" → aproveitamento;
+"valeu/vlw/obg" como cortesia. Qualidade das respostas (documento e página certos) depende do
+banco e do modelo: `scripts/avaliar_simuladas.py` mede no container. Consequência: perguntas de
+detalhe que antes recebiam um texto genérico instantâneo agora levam ~1 min pelo RAG, a menos
+que estejam no catálogo; o relatório da avaliação sugere quais cadastrar.
+
+**Revisão.** `docs/revisao_catalogo_20261113.xlsx` (138 linhas) para a coordenação.
+
+**Operação.** Tarefa agendada "Monitor Minerva" (diária, 7h44 Belém) avisa se o link cair.
+`instalar_inicio_automatico.sh`: a versão no git era a primeira (sem ngrok), corrigida; senha
+opcional por `MINERVA_LINK_SENHA` (basic auth do ngrok).
+
+Testes: 273 aprovados sem PostgreSQL, 15 ignorados.
+
+## 24. Documentos novos e catálogo 1.4.0 — 13/11/2026
+
+Levantamento nas páginas de legislação da PROEG, de resoluções do CONSEPE e de documentação da
+FCT. Baixados pelo navegador do computador hospedeiro, com SHA-256 conferido contra o site:
+
+| Documento | Origem | Páginas |
+|---|---|---|
+| Resolucao_RADIP_5799_2024.pdf | CONSEPE | 28 |
+| Resolucao_5824_2024_Altera_RADIP.pdf | CONSEPE | 1 |
+| Resolucao_OutorgaGrau_5791_2024.pdf | CONSEPE | 9 |
+| IN_05_2023_PROEG_TrabalhoDeCurso.pdf | PROEG | 5 |
+| IN_04_2023_PROEG_Reintegracao.pdf | PROEG | 4 |
+| IN_01_2025_PROEG_Tutoria.pdf | PROEG | 2 |
+| IN_02_2025_PROEG_Prescricao.pdf | PROEG | 10 |
+| Guia_FCT_Atividades_Complementares.pdf | Google Docs da FCT (PDF exportado) | 6 |
+| Guia_FCT_Extensao_Integralizacao.pdf | Google Docs da FCT (PDF exportado) | 2 |
+| Guia_FCT_TCC_Instrucoes.pdf | Google Docs da FCT (transcrição) | 1 |
+| Guia_FCT_Estagio_Integralizacao.pdf | Google Docs da FCT (transcrição) | 2 |
+| CalendarioAcademico2026.pdf | PROEG, versão de julho/2026 (substitui a anterior) | 1 |
+
+Não incluídos: IN PROEG 01/2024 (expirada); calendário de 2027 (não localizado); páginas
+"Seguro Viagem" e apresentações dos cursos. Catálogo 1.4.0: 29 entradas novas (0139–0167),
+validadas (`validar_dataset`, `validar_pdfs` do lote, 225 aliases sem ambiguidade nem
+interceptação pelo roteador); 273 testes sem PostgreSQL. Pendente: ingestão/vetorização no
+hospedeiro, medição da qualidade, confirmação da divergência de carga horária de estágio
+(120+240 h no guia × 200/390 h na Resolução de 2006) e revisão pela coordenação
+(`docs/revisao_catalogo_20261113.xlsx`, agora com 167 linhas).

@@ -313,6 +313,34 @@ def _has_any(
 #   "UFPA significa..."
 # ======================================================================
 
+_TEMAS_DETALHE = (
+    "tcc", "trabalho de conclusao", "trabalho de curso", "estagio",
+    "atividade complementar", "atividades complementares",
+)
+_MARCAS_DETALHE = (
+    "quantas", "quantos", "quanto tempo", "qnt", "qnts", "qts", "qtd",
+    "conta como", "conta pro", "conta para", "contar como", "contabiliz",
+    "como atividade complementar", "como atividades complementares", "prazo", "minimo", "minima",
+    "maximo", "maxima", "dias", "paginas", "horas", "minutos", "nota",
+    "conceito", "plagio", "copiar", "copiarem", "copia ", "dupla", "trio",
+    "abnt", "frequencia", "versao corrigida", "versao final", "corrigir",
+)
+_MARCAS_DOCENTE_DETALHE = (
+    "prazo", "lancar nota", "lancar a nota", "lancar o conceito", "plano da disciplina",
+    "plano de disciplina", "plano de ensino", "falta", "faltar", "repor", "reposicao",
+    "afastamento", "se afastar",
+)
+_MARCAS_COMPOSICAO_BANCA = ("membros", "composicao", "compoe", "quem participa", "avaliadores")
+
+
+def _pede_detalhe_normativo(q: str) -> bool:
+    if _has_any(q, _TEMAS_DETALHE) and _has_any(q, _MARCAS_DETALHE):
+        return not _has_any(q, _MARCAS_COMPOSICAO_BANCA)
+    if _has_any(q, ("professor", "docente")) and _has_any(q, _MARCAS_DOCENTE_DETALHE):
+        return True
+    return False
+
+
 def classify_question(
     question: str,
 ) -> Optional[str]:
@@ -383,6 +411,21 @@ def classify_question(
     ):
         return "menu"
 
+
+    # ------------------------------------------------------------------
+    # 1.5. DETALHE NORMATIVO (13/11/2026)
+    #
+    # As rotas genéricas de TCC, estágio, atividades complementares e
+    # corpo docente devolvem um texto geral com links. Perguntas simuladas
+    # mostraram que elas capturavam perguntas de detalhe ("o TCC precisa
+    # ter quantas páginas?", "o professor tem prazo pra lançar nota?") e
+    # respondiam sem responder. Pergunta de detalhe sobre esses temas
+    # segue para os documentos (catálogo ou RAG). Composição de banca
+    # continua na rota tcc_board, que a responde.
+    # ------------------------------------------------------------------
+
+    if _pede_detalhe_normativo(q):
+        return None
 
     # ------------------------------------------------------------------
     # 2. BANCA DE TCC
@@ -527,6 +570,11 @@ def classify_question(
             "dispensa de disciplina",
             "dispensa de disciplinas",
             "como solicitar aproveitamento",
+            "aproveitar disciplina",
+            "aproveitar disciplinas",
+            "aproveitar materia",
+            "aproveitar materias",
+            "aproveitar as disciplinas",
         ),
     ):
         return "aproveitamento_estudos"

@@ -536,17 +536,11 @@ def _processar_pergunta(pergunta, stream_area=None):
        docstring de responder_minerva.
     5. DEVOLUÇÃO DA CONEXÃO — putconn() no finally, senão o pool esgota.
     """
-    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
-    # O próprio roteador preserva o caminho documental das perguntas específicas.
-    _minerva_priority_result = priority_answer(pergunta)
-    if _minerva_priority_result is not None:
-        rota = classify_question(pergunta) or "dataset_ou_basico"
-        return _minerva_priority_result, rota
-    # MINERVA_PRIORITY_ROUTER_GUARD_END
-
     # Checagem de instituição externa feita aqui, sobre a pergunta CRUA do
     # usuário — e não dentro de consultar_modelo_local, que só recebe o
     # prompt já montado (pergunta + contexto + instruções institucionais).
+    # Vem antes das rotas fixas (13/11/2026): "como funciona o tcc na usp?"
+    # recebia a resposta fixa de TCC da FCT.
     if pergunta_menciona_instituicao_externa(pergunta):
         return (
             "Meu escopo institucional está restrito à "
@@ -555,6 +549,14 @@ def _processar_pergunta(pergunta, stream_area=None):
             "Não utilizo informações de outras universidades para responder "
             "como se fossem dados da UFPA."
         ), "barreira_institucional"
+
+    # MINERVA_PRIORITY_ROUTER_GUARD_BEGIN
+    # O próprio roteador preserva o caminho documental das perguntas específicas.
+    _minerva_priority_result = priority_answer(pergunta)
+    if _minerva_priority_result is not None:
+        rota = classify_question(pergunta) or "dataset_ou_basico"
+        return _minerva_priority_result, rota
+    # MINERVA_PRIORITY_ROUTER_GUARD_END
 
     # Bug real: este trecho procurava por get_connection/conectar_postgres/
     # conectar_banco, nenhuma das quais existe neste módulo (main.py usa

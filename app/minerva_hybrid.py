@@ -421,6 +421,9 @@ def _fusao_rrf(lista_lexica, lista_semantica, k=60, limite=5):
     ]
 
 
+LIMITE_COMPLEMENTO_ESCOPO = 3
+
+
 def buscar_em_documentos_postgres(conn, pergunta, limite=6):
     # limite=6 (não 5): com a fusão RRF, um chunk correto mas ranqueado só em
     # 4º/5º lugar na lista semântica (paráfrases mais abstratas, ex. "desistir
@@ -453,23 +456,47 @@ def buscar_em_documentos_postgres(conn, pergunta, limite=6):
         # termos da pergunta no corpo. Para alias exato com contexto
         # explicitamente cadastrado, recupera as páginas versionadas. Isso
         # não reduz o limiar global nem usa a resposta fixa como evidência.
-        filtro, params = _filtro_contexto(escopo)
-        try:
-            with conn.cursor() as cur:
-                cur.execute(f"""SELECT id,nome_arquivo,conteudo,
-                    to_jsonb(documentos_ufpa) - 'embedding' - 'conteudo'
-                    FROM documentos_ufpa WHERE embedding IS NOT NULL {filtro}
-                    ORDER BY id LIMIT %s""", (*params,limite))
-                return [{"id":r[0],"titulo":r[1],"trecho":r[2],
-                         "fonte":"Páginas do contexto documental cadastrado",
-                         **_metadados(r[3])} for r in cur.fetchall() if r[2]]
-        except Exception:
-            return []
+        return _trechos_do_escopo(conn, escopo, limite)
 
     if not lista_lexica and not lista_semantica:
         return []
 
-    return _fusao_rrf(lista_lexica, lista_semantica, limite=limite)
+    fundidos = _fusao_rrf(lista_lexica, lista_semantica, limite=limite)
+    if entrada and len(fundidos) < LIMITE_COMPLEMENTO_ESCOPO:
+        # Catálogo: as páginas já foram fixadas pela curadoria. O filtro de
+        # "2 termos da pergunta no trecho" e o limiar semântico podem
+        # descartar a outra metade do dispositivo cadastrado (ex.: 0150 — o
+        # § 2º do Art. 5º da IN 05/2023, que diz quem pode orientar, não usa
+        # "banca"/"trabalho"/"PROEG" e ficava de fora). Completa com os
+        # demais trechos das mesmas páginas, depois dos ranqueados.
+        vistos = {f["id"] for f in fundidos}
+        for extra in _trechos_do_escopo(conn, escopo, limite):
+            if len(fundidos) >= LIMITE_COMPLEMENTO_ESCOPO:
+                break
+            if extra["id"] not in vistos:
+                fundidos.append(extra)
+                vistos.add(extra["id"])
+    return fundidos
+
+
+def _trechos_do_escopo(conn, escopo, limite):
+    """Trechos das páginas cadastradas no contexto documental, em ordem."""
+    filtro, params = _filtro_contexto(escopo)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(f"""SELECT id,nome_arquivo,conteudo,
+                to_jsonb(documentos_ufpa) - 'embedding' - 'conteudo'
+                FROM documentos_ufpa WHERE embedding IS NOT NULL {filtro}
+                ORDER BY id LIMIT %s""", (*params, limite))
+            return [{"id": r[0], "titulo": r[1], "trecho": r[2],
+                     "fonte": "Páginas do contexto documental cadastrado",
+                     **_metadados(r[3])} for r in cur.fetchall() if r[2]]
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return []
 
 def _evidencias_rastreaveis(fontes):
     """Aceita apenas trechos identificáveis; IDs valem no corpus ativo."""

@@ -94,7 +94,7 @@ _PREFIXOS_CORTESIA = re.compile(
     r"voce sabe|voce pode me dizer|pode me dizer|tudo bem)\s+)+"
 )
 _SUFIXOS_CORTESIA = re.compile(
-    r"(?:\s+(?:por favor|minerva|obrigado|obrigada|grato|grata))+$"
+    r"(?:\s+(?:por favor|minerva|obrigado|obrigada|obrigadao|obg|grato|grata|valeu|vlw))+$"
 )
 
 

@@ -91,6 +91,11 @@ def pergunta_menciona_instituicao_externa(pergunta: str) -> bool:
     if any(sigla != "ufpa" for sigla in siglas):
         return True
 
+    # Siglas de outras instituições que não seguem o padrão UFxx (perguntas
+    # simuladas: "como funciona o tcc na usp?" recebia a regra da FCT).
+    if re.search(r"\b(?:usp|unicamp|unesp|unifesp|uerj|uepa|unifesspa|ifpa|unama|cesupa|puc)\b", texto):
+        return True
+
     # "FCT" sozinha não basta pra bloquear (é a sigla da própria FCT/UFPA),
     # mas "FCT" associada a Portugal/Lisboa é o mesmo caso de confusão com
     # a Faculdade de Ciências e Tecnologia da Universidade Nova de Lisboa

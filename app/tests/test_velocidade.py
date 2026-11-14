@@ -306,3 +306,145 @@ def test_seletor_normativo_pede_resposta_curta(monkeypatch):
 
 def test_chamar_llm_aceita_funcao_sem_opcoes():
     assert rag._chamar_llm(lambda p: p.upper(), "ok", max_tokens=10) == "OK"
+
+
+# --------------------------------------- perguntas simuladas (13/11/2026)
+
+import minerva_priority_router as router  # noqa: E402
+
+
+@pytest.mark.parametrize("pergunta", [
+    "o tcc precisa ter quantas paginas",
+    "quanto tempo eu tenho pra apresentar o tcc na banca?",
+    "qual nota minima pra passar em tcc 2",
+    "depois da defesa tenho quantos dias pra corrigir o tcc",
+    "estagio de quantas horas no minimo na eng da computacao",
+    "posso usar estagio como atividade complementar?",
+    "o professor tem prazo pra lançar nota?",
+    "o professor tem que colocar o plano da disciplina na internet?",
+    "qnt tempo dura a defeza do tcc",
+])
+def test_detalhe_normativo_vai_para_documentos(pergunta):
+    assert router.classify_question(pergunta) is None
+    assert router.priority_answer(pergunta) is None
+
+
+@pytest.mark.parametrize("pergunta, rota", [
+    ("Quais são as regras de estágio?", "internship"),
+    ("Quero saber o regulamento do TCC", "tcc"),
+    ("Quantos membros deve ter a banca do TCC?", "tcc_board"),
+    ("Quem são os professores da FCT?", "faculty"),
+    ("Como faço para integralizar atividades complementares?", "atividades_complementares"),
+    ("quero aproveitar disciplina de outra faculdade", "aproveitamento_estudos"),
+])
+def test_rotas_gerais_continuam(pergunta, rota):
+    assert router.classify_question(pergunta) == rota
+
+
+@pytest.mark.parametrize("pergunta", [
+    "como funciona o tcc na usp?", "regras de estágio da UNICAMP", "a uepa tem segunda chamada?",
+])
+def test_siglas_externas_sao_barradas(pergunta):
+    from prompts import pergunta_menciona_instituicao_externa
+    assert pergunta_menciona_instituicao_externa(pergunta)
+
+
+
+def test_siglas_externas_sem_falso_positivo():
+    from prompts import pergunta_menciona_instituicao_externa
+    for pergunta in ("como faço o tcc?", "qual o prazo da ufpa?", "usuario do sigaa"):
+        assert not pergunta_menciona_instituicao_externa(pergunta), pergunta
+
+
+def test_barreira_externa_vem_antes_das_rotas_fixas(monkeypatch):
+    import ast
+    from pathlib import Path
+    tree = ast.parse((Path(__file__).parents[1] / "main.py").read_text())
+    func = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "_processar_pergunta")
+    src = ast.get_source_segment((Path(__file__).parents[1] / "main.py").read_text(), func)
+    assert src.index("pergunta_menciona_instituicao_externa(pergunta)") < src.index("priority_answer(pergunta)")
+
+
+def test_cortesia_informal_no_fim():
+    assert md.entrada_contextual("Como cancelar uma chamada aberta no SAGITTA? valeu") is not None
+
+
+def test_entradas_de_exercicio_domiciliar_inativas_ate_radip():
+    por_id = {e["id"]: e for e in md._carregar_entradas()}
+    for i in ("MINERVA_0104", "MINERVA_0105"):
+        assert por_id[i]["ativo"] is False and "5.799/2024" in por_id[i]["motivo_inativacao"]
+
+
+def test_avaliacao_simulada_le_citacoes_e_pontua():
+    from scripts import avaliar_simuladas as av
+    resp = ("Trechos...\nResolucao_TCC.pdf · página física 5 · [T:1]\n"
+            "Regulamento_Graduacao.pdf · páginas físicas 27–28 · [T:2]")
+    assert av.citacoes(resp) == [("Resolucao_TCC.pdf", 5), ("Regulamento_Graduacao.pdf", 27),
+                                 ("Regulamento_Graduacao.pdf", 28)]
+    caso = {"esperado": {"tipo": "documental", "documento": "Regulamento_Graduacao.pdf", "paginas": [28]}}
+    assert av.avaliar(caso, resp, "rag_generico", "FB")["ok"]
+    assert not av.avaliar({"esperado": {"tipo": "abstencao"}}, resp, "rag_generico", "FB")["ok"]
+    assert av.avaliar({"esperado": {"tipo": "abstencao"}}, "FB", "rag_generico", "FB")["ok"]
+    linhas = [{"id": "S1", "estilo": "x", "pergunta": "q", "rota": "rag_generico", "ms": 100,
+               "esperado": {**caso["esperado"], "entrada": "MINERVA_0115"},
+               "avaliacao": av.avaliar(caso, resp, "rag_generico", "FB")}]
+    assert av.resumir(linhas)["sugestoes_variacoes_catalogo"][0]["entrada"] == "MINERVA_0115"
+
+
+def test_perguntas_simuladas_sao_validas():
+    import json
+    from pathlib import Path
+    d = json.loads((Path(__file__).parent / "data" / "perguntas_simuladas_20261113.json").read_text())
+    ids = [p["id"] for p in d["perguntas"]]
+    assert len(ids) == len(set(ids)) == d["total"]
+    por_id = {e["id"]: e for e in md._carregar_entradas()}
+    for p in d["perguntas"]:
+        e = p["esperado"].get("entrada")
+        if e:
+            assert por_id[e]["ativo"] is not False, p["id"]
+
+
+# ---------------------------------------------------------------------------
+# Catálogo: complementa com trechos das páginas cadastradas (caso 0150)
+# ---------------------------------------------------------------------------
+import minerva_dataset as _md  # noqa: E402
+
+
+def _item(i):
+    return {"id": i, "titulo": "IN_05_2023_PROEG_TrabalhoDeCurso.pdf",
+            "trecho": f"trecho {i}", "pagina_inicio": 4, "pagina_fim": 4}
+
+
+def _cenario_escopo(monkeypatch, lexico, semantico, escopo_ids):
+    entrada = {"pergunta": "Quem pode orientar?", "contexto_documental": {
+        "documento": "IN_05_2023_PROEG_TrabalhoDeCurso.pdf",
+        "documento_sha256": "x" * 64, "paginas_fisicas": [4]}}
+    monkeypatch.setattr(_md, "entrada_contextual", lambda p: entrada)
+    monkeypatch.setattr(rag, "_buscar_lexico", lambda *a, **k: [_item(i) for i in lexico])
+    monkeypatch.setattr(rag, "_buscar_semantico", lambda *a, **k: [_item(i) for i in semantico])
+    chamadas = []
+
+    def escopo(conn, esc, limite):
+        chamadas.append(esc["paginas_fisicas"])
+        return [_item(i) for i in escopo_ids]
+    monkeypatch.setattr(rag, "_trechos_do_escopo", escopo)
+    return chamadas
+
+
+def test_catalogo_completa_com_trechos_das_paginas_cadastradas(monkeypatch):
+    _cenario_escopo(monkeypatch, [558], [], [557, 558, 559])
+    ids = [f["id"] for f in rag.buscar_em_documentos_postgres(object(), "x")]
+    assert ids == [558, 557, 559]  # o ranqueado primeiro, depois as páginas
+
+
+def test_catalogo_com_tres_trechos_nao_consulta_escopo(monkeypatch):
+    chamadas = _cenario_escopo(monkeypatch, [1, 2, 3], [3, 4], [9])
+    ids = [f["id"] for f in rag.buscar_em_documentos_postgres(object(), "x")]
+    assert chamadas == [] and 9 not in ids
+
+
+def test_pergunta_livre_nunca_recebe_complemento(monkeypatch):
+    chamadas = _cenario_escopo(monkeypatch, [1], [], [9])
+    monkeypatch.setattr(_md, "entrada_contextual", lambda p: None)
+    ids = [f["id"] for f in rag.buscar_em_documentos_postgres(object(), "x")]
+    assert ids == [1] and chamadas == []

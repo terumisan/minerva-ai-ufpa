@@ -40,7 +40,8 @@ Interface web em Streamlit, conversas múltiplas por sessão (estilo ChatGPT), e
 
 A revalidação de 30/10/2026 aprovou 222 testes com PostgreSQL/pgvector,
 Ruff, compilação, os fluxos de TCC e SAGITTA no navegador e a restauração de
-backup em banco separado. A base contém 413 trechos de 15 documentos. Os
+backup em banco separado. A base continha 413 trechos de 15 documentos em 30/10/2026; em 13/11/2026
+foram acrescentados 11 documentos (26 no total), cuja ingestão muda essa contagem. Os
 resultados e seus limites estão no [roadmap](ROADMAP_ENGENHARIA_V7.md), seção 18.
 
 Em 12/11/2026 o catálogo foi ampliado de 92 para 138 entradas (137 ativas),
@@ -250,6 +251,14 @@ docker compose ps
 journalctl --user -u minerva.service -b --no-pager | tail -30   # se não subir
 ```
 
+Senha no link (opcional; padrão sem senha): `MINERVA_LINK_SENHA='usuario:senha-de-8+' ./scripts/instalar_inicio_automatico.sh`.
+O script guarda a senha em `~/.config/systemd/user/ngrok-minerva.env` (permissão 600) e passa
+`--basic-auth` ao ngrok; rodar de novo sem a variável remove a senha. Confirme no painel do ngrok se o seu
+plano aceita basic auth.
+
+Monitor: uma tarefa agendada no claude.ai ("Monitor Minerva", diária às 7h44 de Belém) abre o link e
+avisa por notificação se ele estiver fora do ar, com o comando para religar.
+
 Desfazer: `systemctl --user disable --now minerva.service ngrok-minerva.service`.
 O link externo só funciona com o computador ligado e online; o plano gratuito do
 ngrok mostra uma página de aviso na primeira visita ("Visit Site").
@@ -326,8 +335,43 @@ rotas fixas (trancamento, aproveitamento, segunda chamada, revisão de conceito,
 composição de banca de TCC, "o que é SAGITTA") não receberam aliases, para não
 trocar respostas instantâneas por geração.
 
-Total: 138 entradas, 137 ativas; 133 contextualizadas, sendo 132 ativas;
-293 variações nas entradas contextualizadas.
+Ampliação de 13/11/2026 (versão 1.4.0, `MINERVA_0139` a `MINERVA_0167`): 29 entradas a partir de 11
+documentos novos colocados em `documentos/` — Resoluções CONSEPE 5.799/2024 (RADIP-EG), 5.824/2024
+e 5.791/2024 (outorga de grau); Instruções Normativas PROEG 05/2023 (Trabalho de Curso), 04/2023
+(reintegração), 01/2025 (tutoria, válida até o fim do calendário de 2026) e 02/2025 (prescrição); e
+quatro guias da FCT publicados no Google Docs (TCC, estágio, atividades complementares, extensão).
+Os guias de TCC e de estágio só existem como página publicada; os PDFs são transcrições do texto,
+identificadas no cabeçalho. O calendário acadêmico de 2026 foi trocado pela versão atualizada da
+PROEG (julho/2026). Os SHA-256 dos PDFs foram conferidos contra os sites na captura. A IN PROEG
+01/2024 (tutoria) não foi incluída por ter expirado em 31/12/2024.
+
+Divergência a confirmar com a Faculdade: o guia de estágio cita componentes de 120 h e 240 h
+(360 h), enquanto a Resolução EngComp 02/2006 do corpus cita 200 h e 390 h.
+
+Total: 167 entradas, 164 ativas; 162 contextualizadas, sendo 159 ativas.
+
+Depois de colocar PDFs novos em `documentos/`, vetorize e publique nesta ordem:
+
+```bash
+docker compose --profile manutencao run --rm --build ufpa_rag_ingestao --fontes /app/fontes_documentais.json
+docker compose exec -T ufpa_rag_ui python scripts/atualizar_evidencias_ampliacao.py
+docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py
+docker compose restart ufpa_rag_ui
+```
+
+Verificação de vigência (13/11/2026, versão 1.3.1): o Regulamento da Graduação (4.399/2013) segue
+citado como vigente, mas foi complementado pelas Resoluções CONSEPE 5.799/2024 (RADIP-EG, regime
+acadêmico diferenciado, vigente desde 2025.2), 5.791/2024 (outorga de grau) e 5.467/2022 (extensão).
+`MINERVA_0104` e `MINERVA_0105` (exercício domiciliar) foram inativadas até a ingestão da 5.799/2024;
+as demais complementações estão registradas em `curadoria_contextual.verificacao_vigencia_20261113`.
+As resoluções da FCT (TCC 2012, estágio 2006, AC 2013, práticas 2008) seguem publicadas no site da
+FCT e nenhuma substituta foi localizada. Para ingerir as resoluções de 2024 (URLs já em
+`fontes_documentais.json`), baixe os PDFs para `documentos/` com os nomes
+`Resolucao_RADIP_5799_2024.pdf` e `Resolucao_OutorgaGrau_5791_2024.pdf` e rode a ingestão.
+
+Revisão pela coordenação: `docs/revisao_catalogo_20261113.xlsx` traz uma linha por entrada
+(pergunta, variações, resposta proposta, texto das páginas, situação da norma) e colunas para
+decisão (Aprovar/Corrigir/Recusar/Pendente), resposta corrigida, revisor e data.
 
 Variações são formulações da mesma pergunta. Ramificações são perguntas
 diferentes sobre condições, exceções, limites ou etapas relacionadas. Não
@@ -342,6 +386,17 @@ Publicação do catálogo no banco, depois da ingestão dos PDFs:
 docker compose exec -T ufpa_rag_ui python scripts/atualizar_evidencias_ampliacao.py
 docker compose exec -T ufpa_rag_ui python scripts/sincronizar_qa.py
 ```
+
+Perguntas simuladas (93, no estilo de alunos; não são de usuários reais) ficam em
+`app/tests/data/perguntas_simuladas_20261113.json`. Para rodá-las no fluxo real e medir caminho, tempo,
+documento/página citados e recusas (retomável; ~1 h com o modelo em CPU):
+
+```bash
+docker compose exec -T ufpa_rag_ui python scripts/avaliar_simuladas.py
+```
+
+O resultado vai para `tests/data/resultado_simuladas.jsonl` e `tests/data/resumo_simuladas.json`, que
+lista falhas e sugere novas variações para o catálogo (perguntas que o RAG acertou devagar).
 
 `atualizar_evidencias_ampliacao.py` recalcula, com o pypdf do container, o
 texto e o hash das páginas citadas apenas nas entradas de ampliação; aborta se
