@@ -109,13 +109,15 @@ services:
   # revertido a pedido do usuário — ver memória/conversa). Em ago/2026,
   # Gemma 4 E4B venceu a comparação local entre os três modelos em tempo
   # médio e respostas corretas. LLM_MODEL permite trocar sem editar o YAML.
+  # 14/11/2026: Qwen3.5-4B Q4_0 passou a ser o padrão (reexecução D115:
+  # 47/57 corretas contra 38/57 do Gemma 4 E4B; ROADMAP, seção 26).
   ufpa_rag_llm:
     image: ghcr.io/ggml-org/llama.cpp:server
     container_name: ufpa_rag_llm
     restart: unless-stopped
     command:
       - "-m"
-      - "/models/${LLM_MODEL:-gemma-4-E4B_q4_0-it.gguf}"
+      - "/models/${LLM_MODEL:-Qwen_Qwen3.5-4B-Q4_0.gguf}"
       - "--host"
       - "0.0.0.0"
       - "--port"
@@ -138,9 +140,16 @@ services:
       - "12"
       - "--parallel"
       - "1"
-      # Trava o modelo na RAM (evita page-out que degrada a geração quando
-      # outros containers disputam memória).
-      - "--mlock"
+      # --mlock removido (14/11/2026): a versão atual do llama.cpp não aceita
+      # mais a opção, e ela já falhava em silêncio ("failed to mlock ...
+      # Cannot allocate memory", limite RLIMIT_MEMLOCK), ou seja, o modelo
+      # nunca chegou a ficar travado na RAM.
+      # Template de chat do próprio GGUF e modo "thinking" desligado: o
+      # Qwen3.5 raciocina por padrão (<think>), o que multiplica a latência
+      # sem melhorar respostas curtas ancoradas em trechos. Inofensivo no Gemma.
+      - "--jinja"
+      - "--reasoning-budget"
+      - "0"
     ports:
       - "8002:8002"
     volumes:

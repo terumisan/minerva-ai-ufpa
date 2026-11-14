@@ -827,3 +827,75 @@ correções:
   coincidência com a resposta curada (`_ordenar_pela_curadoria`). A resposta curada continua sem
   ser exibida. Trechos acrescentados só por estarem na página não viram ressalva automática.
 
+
+## 26. Troca para Qwen3.5-4B e reexecução da avaliação D115 — 14/11/2026
+
+Objetivo: atualizar os resultados ponta a ponta da dissertação para o modelo em uso, isolando o
+efeito do modelo. Scripts em `scripts/replicacao/`.
+
+**Fase A — protocolo da dissertação** (`replicar_d115.sh`). Worktrees em `~/minerva-repl` com o
+código de geração (`ed7f6cc`) e do juiz (`7cf72c2`), banco próprio e corpus do snapshot (13 PDFs
+do gabarito + Calendário Acadêmico 2026 anterior). Conferência antes de gerar: 395 trechos,
+trecho-gabarito idêntico nas 115 perguntas e nas 720 consultas do D720 (`CORPUS_OK`). Só o GGUF
+muda; o `--mlock` saiu porque a imagem atual do llama.cpp não o aceita. O Qwen3.5 roda com
+`--jinja --reasoning-budget 0`.
+
+| Fase A (código e corpus do snapshot) | Qwen2.5-7B (original) | Gemma 4 E4B | Qwen3.5-4B |
+|---|---|---|---|
+| Perguntas no fluxo generativo | 62 | 57 | 57 |
+| Corretas (juiz) | 49 (79,0%) | 38 (66,7%) | 47 (82,5%; Wilson 70,6–90,2%) |
+| Parciais / erradas | – | 12 / 7 | 8 / 2 |
+| Faithfulness (média por resposta) | 0,902 | 0,929 | 0,930 |
+| Gabarito no contexto | 46/62 | 47/57 | 47/57 |
+| Latência média / mediana / faixa | 89,2 / 88,1 / 14–126 s | 73,9 / 70,8 / 44–107 s | 89,0 / 85,0 / 26–153 s |
+| Tamanho médio da resposta | – | 863 car. | 1.121 car. |
+
+Nove perguntas mudaram de rota em relação à execução original (sete para o `priority_router`,
+duas para o RAG), com rotas idênticas nas duas reexecuções; a mudança não vem do gerador e sua
+causa não foi investigada. Em cada execução o próprio modelo é o juiz.
+
+**Velocidade isolada** (`atualizar_qwen35.sh`, mesma pergunta, 150 tokens): Gemma 31,5 s,
+Qwen3.5 12,8 s. Com `--reasoning-budget 0` o Gemma escreveu o raciocínio na resposta. No
+protocolo completo o Qwen3.5 não ficou mais rápido porque escreve respostas mais longas.
+
+**Fase B — código atual V7** (`repetir_fase_b.sh`, mesmas 115 perguntas):
+
+| V7 + Qwen3.5-4B | Valor |
+|---|---|
+| Rotas | 79 RAG / 36 `priority_router` |
+| Corretas | 42/79 (53,2%); 5 parciais; 32 erradas |
+| Abstenções | 31 (30 contadas como erradas) |
+| Corretas entre as que responderam | 41/48; 2 erradas |
+| Faithfulness | 0,942 (48 respostas com afirmações) |
+| Gabarito no contexto | 59/79 |
+| Latência média / mediana (RAG) | 44,3 / 48,1 s |
+
+A V7 é conservadora: quase toda a diferença para a Fase A vem de abstenções, não de respostas
+erradas. Seis respostas RAG levaram 0,1 s porque saíram pelo catálogo contextual (trechos sem
+LLM), não por falha do modelo; nenhum reinício do modelo ocorreu durante as rodadas.
+
+**Vazamento de memória.** Sob carga contínua o `llama-server` foi morto por OOM aos 41 min
+(teto 6 GiB) e aos 32 min (teto 9 GiB), e o timer diário das 04:05 também interrompeu uma
+rodada. `repetir_fase_b.sh` roda em rodadas de 12 min, reinicia o modelo antes de cada uma,
+descarta linhas gravadas se o modelo reiniciar no meio e retoma de onde parou.
+
+Resultados: `app/tests/data/resultado_{e2e,fidelidade}_{qwen35,gemma4}_v6.jsonl` (Fase A) e
+`resultado_{e2e,fidelidade}_v7_qwen35.jsonl` (Fase B). As tentativas inválidas do Gemma na Fase
+B ficaram com sufixo `_INVALIDO_*`. Dissertação: V39 substitui os números do D115 pelos da
+Fase A com Qwen3.5-4B e mantém os do Qwen2.5-7B como execução original.
+
+**Teste exploratório no site após a troca** (15 perguntas, 14/11/2026, ~16h). Respostas
+corretas e diretas para trancamento, aproveitamento de estudos e segunda chamada (rotas
+prioritárias, ~1 s). Achados a corrigir:
+
+- "Estou com dengue, posso fazer as provas em casa?" e "Quebrei a perna e não consigo ir às
+  aulas, o que faço?" caem no fallback: o exercício domiciliar (RADIP-EG / Regulamento) não é
+  alcançado por doença infecciosa ou lesão física; faltam variações no catálogo;
+- "Quem é o diretor da FCT?" devolve uma associação sem sentido da sigla "DIRETOR" com "Adjunto do
+  Instituto de Tecnologia" (rota de siglas dos portais); a rota deveria abster-se ou indicar a
+  página da direção;
+- perguntas gerais respondidas pelo RAG (segundo semestre de 2026, nota mínima, RADIP, monitoria,
+  reprovações) levam 25–32 s e exibem só trechos, sem resposta redigida; o primeiro trecho nem
+  sempre responde (monitoria → atividades complementares; reprovações → Art. 179 sobre aprovação);
+- "Quantas horas de atividades complementares…" e "prazo da versão final do TCC" exibem trechos
+  do documento certo, mas o primeiro trecho não traz o número pedido.

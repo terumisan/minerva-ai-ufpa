@@ -56,6 +56,12 @@ ao curso e sustentadas por fontes vigentes. Recuperar o documento certo e
 validar a referência são partes dessa avaliação. A V7 permanece sem
 homologação técnica e institucional integral.
 
+Em 14/11/2026 o modelo do serviço passou a ser o Qwen3.5-4B. A avaliação ponta a ponta
+da dissertação (D115) foi refeita com o código e o corpus originais, trocando só o modelo:
+82,5% de respostas corretas (47/57), Faithfulness 0,930 e latência média de 89 s. Com o
+Gemma 4 E4B, nas mesmas condições, foram 66,7% (38/57). As mesmas 115 perguntas no código
+atual (V7) estão no roadmap, seção 26.
+
 A próxima etapa proposta é revisar de 20 a 30 perguntas importantes, com
 formulações diferentes das usadas no desenvolvimento, antes de ampliar o
 catálogo ou trocar modelos. O [plano de avaliação controlada](docs/AVALIACAO_CONTROLADA_V7.md)
@@ -109,7 +115,7 @@ norma permanece vigente. A revisão editorial das rotas fixas e de
 - **Python 3.10**
 - **Streamlit 1.59** — interface web
 - **PostgreSQL + pgvector** — histórico de conversas e busca vetorial
-- **llama.cpp** — inferência local em CPU; modelo ativo conferido em 30/10/2026: `gemma-4-E4B_q4_0-it.gguf`. Comparações anteriores com Qwen/Llama são históricas.
+- **llama.cpp** — inferência local em CPU; modelo ativo desde 14/11/2026: `Qwen_Qwen3.5-4B-Q4_0.gguf` (definido por `LLM_MODEL` no `.env`), com `--jinja --reasoning-budget 0` para desligar o modo de raciocínio. O Gemma 4 E4B, usado de 30/10 a 14/11/2026, continua em `models/`. Ver roadmap, seção 26.
 - **fastembed** — embeddings (`paraphrase-multilingual-mpnet-base-v2`, 768d, ONNX, sem depender de GPU/torch — trocado do MiniLM-L12 384d após medir com `app/scripts/comparar_embeddings.py`: hit-rate@6 semântico saltou de 44,2% para 63,5% na base real. O `multilingual-e5-large` media ainda melhor, mas 2,3GB era arriscado demais de memória nesta máquina)
 - **langchain-text-splitters** + **pypdf** — extração e *chunking* dos PDFs institucionais na ingestão
 - **python-docx** — geração de documentos `.docx` a partir do conteúdo indexado
@@ -157,7 +163,7 @@ minerva-ai-ufpa/
 
 ## Como rodar
 
-**Pré-requisitos**: Docker + Docker Compose. O modelo indicado no `command` de `ufpa_rag_llm` deve existir em `models/` (atualmente `gemma-4-E4B_q4_0-it.gguf`). PDFs institucionais em `documentos/`.
+**Pré-requisitos**: Docker + Docker Compose. O modelo indicado no `command` de `ufpa_rag_llm` deve existir em `models/` (atualmente `Qwen_Qwen3.5-4B-Q4_0.gguf`, escolhido pela variável `LLM_MODEL` do `.env`). PDFs institucionais em `documentos/`.
 
 ```bash
 # 1. Credenciais do Postgres
@@ -502,7 +508,7 @@ ativada. Logs operacionais omitem respostas bloqueadas e corpos de erro do LLM;
 histórico, avaliações e backups ainda contêm texto e devem permanecer privados.
 
 - **Backup diário do Postgres**: `scripts/backup_postgres.sh` (`pg_dump` gzipado, rotação de 14 dias) roda via timer systemd de usuário (`ufpa_rag_backup_postgres.timer`, 03h30, antes do restart do LLM às 4h). Os dumps ficam em `~/ufpa_rag_backups/`, **fora do repositório git** — contêm dado real de aluno (perguntas do chat, respostas abertas do formulário de avaliação) e nunca devem ser versionados. Rodar manualmente: `./scripts/backup_postgres.sh`. Restaurar: `gunzip -c ~/ufpa_rag_backups/ufpa_rag_AAAAMMDD_HHMMSS.sql.gz | docker exec -i ufpa_rag_db psql -U admin ufpa_rag`.
-- **Limites de memória** (`mem_limit` no `docker-compose.yml`): `ufpa_rag_llm` 6g, `ufpa_rag_ui` 2g, `ufpa_rag_db` 1g — calibrados com uso real observado, contendo o vazamento de memória conhecido do LLM (ver Limitações abaixo) num teto por container em vez de deixar em aberto. Ao trocar de modelo `.gguf`, ajuste o limite do `ufpa_rag_llm` proporcionalmente ao tamanho do arquivo (o `--mlock` do llama.cpp trava páginas na RAM — um limite menor que o footprint real do modelo o mata no próprio carregamento).
+- **Limites de memória** (`mem_limit` no `docker-compose.yml`): `ufpa_rag_llm` 6g, `ufpa_rag_ui` 2g, `ufpa_rag_db` 1g — calibrados com uso real observado, contendo o vazamento de memória conhecido do LLM (ver Limitações abaixo) num teto por container em vez de deixar em aberto. Ao trocar de modelo `.gguf`, ajuste o limite do `ufpa_rag_llm` proporcionalmente ao tamanho do arquivo. O `--mlock` foi retirado em 14/11/2026: a versão atual do llama.cpp não aceita a opção, e ela já falhava em silêncio por `RLIMIT_MEMLOCK`.
 - **Healthcheck nos 3 containers**: `ufpa_rag_db` (`pg_isready`), `ufpa_rag_ui` (`urllib` contra `/_stcore/health` — a imagem `python:3.10-slim` não tem `curl`) e `ufpa_rag_llm` (`curl` contra `/health`, já existia). `docker compose ps` mostra o status real de cada um.
 - **Rotação de log** nos 3 serviços (`logging.max-size: 10m`, `max-file: 3`) — sem isso, o log do `ufpa_rag_llm` (uma linha de timing por token gerado) cresce sem limite em produção de longa duração.
 - **Rastreamento de rota/latência**: cada linha de `historico_minerva` grava `rota` (qual camada respondeu — nome da rota do `priority_router`, `dataset_ou_basico`, `barreira_institucional`, `rag_generico` ou `rag_cache`) e `latencia_ms`. Permite medir cobertura de rotas e tempo de resposta direto no banco, sem varredura manual:
@@ -516,10 +522,10 @@ histórico, avaliações e backups ainda contêm texto e devem permanecer privad
 
 ## Limitações conhecidas
 
-- Inferência em CPU: latências históricas de outros modelos não representam um SLO do Gemma ativo; medir aquecimento, concorrência e p50/p95 antes de comparar.
+- Inferência em CPU: na avaliação de 14/11/2026 (roadmap, seção 26), as respostas geradas pelo Qwen3.5-4B levaram em média 44 s no código atual (V7) e 89 s no protocolo da dissertação. Não é um SLO; medir aquecimento, concorrência e p50/p95 antes de comparar.
 - Acesso anônimo, sem login institucional. Identidade criada no servidor; `sid` da URL é ignorado. Histórico disponível durante a sessão WebSocket; reload inicia outra identidade. Exporte antes de sair.
 - Uma consulta por processo da UI, sem fila de espera; intervalo mínimo de 3 s por sessão e perguntas de até 4.000 caracteres. Réplicas exigirão limitação compartilhada. HTTP do LLM: timeout de conexão de 5 s e leitura de 180 s; streaming verifica prazo entre eventos. Não é cancelamento forçado do processo do modelo.
-- **Vazamento de memória do llama.cpp em uso prolongado**: o cache interno de "compute graphs" do servidor cresce sem limite (observado: 11,2GB de RAM depois de dias no ar, contra ~4,5GB esperados de um modelo 7B Q4 — forçava a máquina inteira pro swap e degradava a latência de todos os containers, não só do LLM). Mitigado com um timer systemd de usuário (`ufpa_rag_restart_llm.timer`, reinicia o container `ufpa_rag_llm` diariamente às 4h — ver `systemctl --user list-timers`). Sem estado persistente no container, reiniciar é seguro.
+- **Vazamento de memória do llama.cpp em uso prolongado**: o cache interno de "compute graphs" do servidor cresce sem limite (observado: 11,2GB de RAM depois de dias no ar, contra ~4,5GB esperados de um modelo 7B Q4 — forçava a máquina inteira pro swap e degradava a latência de todos os containers, não só do LLM). Mitigado com um timer systemd de usuário (`ufpa_rag_restart_llm.timer`, reinicia o container `ufpa_rag_llm` diariamente às 4h — ver `systemctl --user list-timers`). Sem estado persistente no container, reiniciar é seguro. Em carga contínua o reinício diário não basta: em 14/11/2026 o processo foi morto por falta de memória após 41 min (teto de 6 GiB) e 32 min (teto de 9 GiB) de perguntas seguidas. Avaliações longas devem reiniciar o modelo entre blocos, como faz `scripts/replicacao/repetir_fase_b.sh`.
 
 
 
