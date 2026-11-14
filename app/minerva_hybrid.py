@@ -421,7 +421,8 @@ def _fusao_rrf(lista_lexica, lista_semantica, k=60, limite=5):
     ]
 
 
-LIMITE_COMPLEMENTO_ESCOPO = 3
+LIMITE_ESCOPO_CANDIDATOS = 12
+FONTE_ESCOPO = "Páginas do contexto documental cadastrado"
 
 
 def buscar_em_documentos_postgres(conn, pergunta, limite=6):
@@ -462,16 +463,17 @@ def buscar_em_documentos_postgres(conn, pergunta, limite=6):
         return []
 
     fundidos = _fusao_rrf(lista_lexica, lista_semantica, limite=limite)
-    if entrada and len(fundidos) < LIMITE_COMPLEMENTO_ESCOPO:
+    if entrada:
         # Catálogo: as páginas já foram fixadas pela curadoria. O filtro de
         # "2 termos da pergunta no trecho" e o limiar semântico podem
         # descartar a outra metade do dispositivo cadastrado (ex.: 0150 — o
         # § 2º do Art. 5º da IN 05/2023, que diz quem pode orientar, não usa
-        # "banca"/"trabalho"/"PROEG" e ficava de fora). Completa com os
-        # demais trechos das mesmas páginas, depois dos ranqueados.
+        # "banca"/"trabalho"/"PROEG" e ficava de fora). Acrescenta os demais
+        # trechos das mesmas páginas, depois dos ranqueados; quem escolhe os
+        # exibidos é resposta_contextual.
         vistos = {f["id"] for f in fundidos}
-        for extra in _trechos_do_escopo(conn, escopo, limite):
-            if len(fundidos) >= LIMITE_COMPLEMENTO_ESCOPO:
+        for extra in _trechos_do_escopo(conn, escopo, LIMITE_ESCOPO_CANDIDATOS):
+            if len(fundidos) >= LIMITE_ESCOPO_CANDIDATOS:
                 break
             if extra["id"] not in vistos:
                 fundidos.append(extra)
@@ -489,7 +491,7 @@ def _trechos_do_escopo(conn, escopo, limite):
                 FROM documentos_ufpa WHERE embedding IS NOT NULL {filtro}
                 ORDER BY id LIMIT %s""", (*params, limite))
             return [{"id": r[0], "titulo": r[1], "trecho": r[2],
-                     "fonte": "Páginas do contexto documental cadastrado",
+                     "fonte": FONTE_ESCOPO,
                      **_metadados(r[3])} for r in cur.fetchall() if r[2]]
     except Exception:
         try:
@@ -634,12 +636,42 @@ def resposta_contextual(pergunta, fontes):
     filtradas = filtrar_contexto_normativo(pergunta, fontes, niveis_permitidos=niveis)
     if not filtradas:
         return fallback_sem_base()
+    filtradas = _ordenar_pela_curadoria(filtradas, entrada.get("resposta_esperada") or "")
     ids = [f["id"] for f in filtradas[:LIMITE_TRECHOS_CONTEXTUAIS]]
-    ids = incluir_ressalvas_recuperadas(ids, filtradas)
+    # Ressalvas só entre trechos que a busca trouxe ou que foram escolhidos;
+    # os complementos de página não viram ressalva automática.
+    base_ressalvas = [f for f in filtradas if f.get("fonte") != FONTE_ESCOPO or f["id"] in ids]
+    ids = incluir_ressalvas_recuperadas(ids, base_ressalvas)
     selecionadas = [f for f in filtradas if f["id"] in ids]
     if not evidencia_suficiente_para_abandono(pergunta, selecionadas):
         return fallback_sem_base()
     return _anexar_referencias(TEXTO_EXCERTOS, filtradas, ids)
+
+
+_PALAVRAS_VAZIAS = set("""
+quando quanto quais sobre conforme apenas pelo pela pelos pelas para deve devem pode podem
+entre depois antes ainda outro outra outros outras mesmo mesma desta deste nesta neste sendo
+seja sejam tambem qualquer cada como onde ufpa resolucao normativa instrucao discente
+discentes estudante estudantes curso cursos graduacao faculdade escola unidade artigo
+""".split())
+
+
+def _ordenar_pela_curadoria(fontes, resposta_esperada):
+    """Ordena os trechos pela coincidência com a resposta curada da entrada.
+
+    A resposta curada nunca é exibida; serve só para pôr primeiro o trecho
+    que contém o que a curadoria apontou (ex.: art. 58 da 5.799/2024 com as
+    adaptações para TDAH, que a busca deixava em 4º). Empates mantêm a
+    ordem da busca. Sem resposta curada, nada muda.
+    """
+    alvo = {p for p in re.findall(r"[a-z0-9]+", _sem_acento(resposta_esperada.lower()))
+            if (len(p) >= 5 or (p.isdigit() and len(p) >= 2)) and p not in _PALAVRAS_VAZIAS}
+    if not alvo:
+        return list(fontes)
+    def pontos(fonte):
+        termos = set(re.findall(r"[a-z0-9]+", _sem_acento(fonte["trecho"].lower())))
+        return len(alvo & termos)
+    return [f for _, f in sorted(enumerate(fontes), key=lambda par: (-pontos(par[1]), par[0]))]
 
 
 def responder_minerva(pergunta, conn=None, llm_func=None):

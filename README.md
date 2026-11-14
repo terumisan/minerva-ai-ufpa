@@ -365,6 +365,11 @@ específicos (CR, complementação), sem alterar a rota fixa para perguntas gen�
 
 Total: 217 entradas, 214 ativas; 212 contextualizadas, sendo 209 ativas.
 
+Nas perguntas do catálogo, a busca fica restrita às páginas cadastradas, traz até 12 trechos delas e os
+exibidos (até 3) são os que mais coincidem com a resposta curada da entrada, sem exibi-la. Uma entrada
+pode liberar menção a especialização, mestrado ou doutorado que seja regra de graduação com
+`contexto_documental.niveis_permitidos` e justificativa obrigatória (usado em 0121–0123 e 0150).
+
 Depois de colocar PDFs novos em `documentos/`, vetorize e publique nesta ordem:
 
 ```bash

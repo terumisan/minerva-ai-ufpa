@@ -437,10 +437,29 @@ def test_catalogo_completa_com_trechos_das_paginas_cadastradas(monkeypatch):
     assert ids == [558, 557, 559]  # o ranqueado primeiro, depois as páginas
 
 
-def test_catalogo_com_tres_trechos_nao_consulta_escopo(monkeypatch):
-    chamadas = _cenario_escopo(monkeypatch, [1, 2, 3], [3, 4], [9])
+def test_catalogo_sempre_acrescenta_paginas_depois_dos_ranqueados(monkeypatch):
+    chamadas = _cenario_escopo(monkeypatch, [1, 2, 3], [3, 4], [9, 2])
     ids = [f["id"] for f in rag.buscar_em_documentos_postgres(object(), "x")]
-    assert chamadas == [] and 9 not in ids
+    assert chamadas == [[4]] and ids[-1] == 9 and ids.count(2) == 1
+
+
+def test_curadoria_ordena_trechos_sem_publicar_resposta(monkeypatch):
+    entrada = {"resposta_esperada": "rotinas e regras claras, ferramentas de organização e agendas",
+               "contexto_documental": {}}
+    monkeypatch.setattr(rag, "_entrada_contextual", lambda p: entrada)
+    fontes = [dict(_ORIENTADOR, id=10, titulo="R.pdf", trecho="Art. 57. Os transtornos do neurodesenvolvimento"),
+              dict(_ORIENTADOR, id=11, titulo="R.pdf", trecho="Art. 58. criação de rotinas e regras claras; ferramentas para a organização; agendas")]
+    resposta = rag.resposta_contextual("tenho TDAH, posso pedir adaptação?", fontes)
+    assert resposta.index("[T:11]") < resposta.index("[T:10]")
+    assert "ferramentas de organização e agendas" not in resposta
+
+
+def test_complemento_de_pagina_nao_vira_ressalva_automatica(monkeypatch):
+    monkeypatch.setattr(rag, "_entrada_contextual", lambda p: {"contexto_documental": {}})
+    base = [dict(_ORIENTADOR, id=i, titulo="R.pdf", trecho=f"regra {i}") for i in (1, 2, 3)]
+    extra = dict(_ORIENTADOR, id=9, titulo="R.pdf", trecho="Parágrafo único. exceção", fonte=rag.FONTE_ESCOPO)
+    resposta = rag.resposta_contextual("pergunta qualquer sobre regra", base + [extra])
+    assert "[T:9]" not in resposta
 
 
 def test_pergunta_livre_nunca_recebe_complemento(monkeypatch):

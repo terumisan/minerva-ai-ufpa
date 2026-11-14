@@ -8572,7 +8572,12 @@
             "texto": "UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO E TELECOMUNICAÇÕES TÍTULO IV – DA ORIENTAÇÃO DO TCC Art. 9º - O orientador e o co-orientador de TCC I e TCC II podem ser professor de qualquer unidade da UFPA, do quadro permanente ou temporário (professor substituto), aluno de pós-graduação (mestrado e doutorado), ou profissional com reconhecida competência no tema do trabalho desde que estejam devidamente credenciados junto à Faculdade. Obrigatoriamente, o orientador ou co-orientador, deve ser do membro do corpo docente da Universidade Federal do Pará. § 1º - O credenciamento será realizado através de encaminhamento, pelo provável orientador, de ofício e anteprojeto do TCC à Faculdade, que emitirá o parecer pertinente sobre o credenciamento ou não do orientador. § 2º - Todos os professores permanentes e substitutos pertencentes ao Conselho da Faculdade de Engenharia da Computação e Telecomunicações estão automaticamente credenciados. Art. 10 - Compete ao orientador de TCC: a) Acompanhar o orientando na elaboração do anteprojeto; b) Orientar as atividades ao longo do desenvolvimento do TCC; c) Comunicar ao colegiado, quando solicitado, sobre o andamento do TCC; d) Atribuir conceito ao final da disciplina TCC I; e) Informar, em tempo hábil, ao colegiado, qualquer anormalidade referente ao desenvolvimento das atividades referentes à orientação; f) Participar dos processos de avaliação do TCC sob sua orientação; g) Conhecer as normas vigentes para apresentação e redação de trabalhos acadêmicos. Art. 11 - O serviço de orientação quanto à normalização de trabalhos acadêmicos é prestado pela Biblioteca Central da UFPA, o qual obedece às normas vigentes. É função do orientador encaminhar e acompanhar o orientando no processo de formatação do TCC. TÍTULO V – DA AVALIAÇÃO DO TCC Art. 12 - A avaliação do TCC é efetivada em etapas e da seguinte forma, com os seus respectivos “atores”:",
             "texto_sha256": "a26d66cff6f618327600caaa8ce60739adacc66d107ceb42ee0b5b6df75a6ce6"
           }
-        ]
+        ],
+        "niveis_permitidos": [
+          "mestrado",
+          "doutorado"
+        ],
+        "niveis_permitidos_justificativa": "Art. 9º da Resolução FCT 01/2012 admite aluno de pós-graduação (mestrado e doutorado) como orientador ou coorientador de TCC da graduação; a menção não é norma de pós-graduação."
       },
       "relacoes": [
         {
@@ -8653,7 +8658,12 @@
             "texto": "UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO E TELECOMUNICAÇÕES TÍTULO IV – DA ORIENTAÇÃO DO TCC Art. 9º - O orientador e o co-orientador de TCC I e TCC II podem ser professor de qualquer unidade da UFPA, do quadro permanente ou temporário (professor substituto), aluno de pós-graduação (mestrado e doutorado), ou profissional com reconhecida competência no tema do trabalho desde que estejam devidamente credenciados junto à Faculdade. Obrigatoriamente, o orientador ou co-orientador, deve ser do membro do corpo docente da Universidade Federal do Pará. § 1º - O credenciamento será realizado através de encaminhamento, pelo provável orientador, de ofício e anteprojeto do TCC à Faculdade, que emitirá o parecer pertinente sobre o credenciamento ou não do orientador. § 2º - Todos os professores permanentes e substitutos pertencentes ao Conselho da Faculdade de Engenharia da Computação e Telecomunicações estão automaticamente credenciados. Art. 10 - Compete ao orientador de TCC: a) Acompanhar o orientando na elaboração do anteprojeto; b) Orientar as atividades ao longo do desenvolvimento do TCC; c) Comunicar ao colegiado, quando solicitado, sobre o andamento do TCC; d) Atribuir conceito ao final da disciplina TCC I; e) Informar, em tempo hábil, ao colegiado, qualquer anormalidade referente ao desenvolvimento das atividades referentes à orientação; f) Participar dos processos de avaliação do TCC sob sua orientação; g) Conhecer as normas vigentes para apresentação e redação de trabalhos acadêmicos. Art. 11 - O serviço de orientação quanto à normalização de trabalhos acadêmicos é prestado pela Biblioteca Central da UFPA, o qual obedece às normas vigentes. É função do orientador encaminhar e acompanhar o orientando no processo de formatação do TCC. TÍTULO V – DA AVALIAÇÃO DO TCC Art. 12 - A avaliação do TCC é efetivada em etapas e da seguinte forma, com os seus respectivos “atores”:",
             "texto_sha256": "a26d66cff6f618327600caaa8ce60739adacc66d107ceb42ee0b5b6df75a6ce6"
           }
-        ]
+        ],
+        "niveis_permitidos": [
+          "mestrado",
+          "doutorado"
+        ],
+        "niveis_permitidos_justificativa": "Art. 9º da Resolução FCT 01/2012 admite aluno de pós-graduação (mestrado e doutorado) como orientador ou coorientador de TCC da graduação; a menção não é norma de pós-graduação."
       },
       "relacoes": [
         {
@@ -8735,7 +8745,12 @@
             "texto": "UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO E TELECOMUNICAÇÕES a) Na matrícula e com a concordância prévia do orientador: cabe à Câmara de Ensino de Graduação julgar a pertinência da proposta e deferir ou não as matrículas em TCC I e em TCC II; b) Ao término da disciplina TCC I, pelo orientador, o qual atribuirá um conceito que será lançado no histórico do discente; c) Ao término da disciplina TCC II, com defesa para banca examinadora constituída por professores de reconhecido conhecimento na área fim do TCC, na qual será atribuído um conceito médio para o discente, o qual será então lançado no histórico do discente. Art. 13 - Quanto à composição da banca examinadora de final do TCC II: a) Quando houver co-orientador, sugere-se que a banca seja composta por quatro membros, incluindo o orientador e co-orientador. No caso de não haver co-orientador, sugere-se a composição com três. O número de membros da banca pode ser maior do que o sugerido, mas não menor. Deve-se contudo evitar muitas pessoas na banca para que todos tenham tempo hábil para se manifestar; b) Deve-se observar a correlação entre as áreas de atuação dos membros da banca e o assunto alvo do TCC, evitando-se a repetição de uma mesma banca simplesmente por afinidade dos participantes ou comodidade; c) É permitida a participação na banca de alunos de pós-graduação e profissionais de reconhecida competência técnica no assunto do TCC, mas exige-se um mínimo de dois professores do quadro efetivo da UFPA em cada banca; d) No caso de impossibilidade de comparecimento de um dos membros da banca examinadora e esgotada a possibilidade de substituição do referido avaliador, o orientador deve apresentar uma justificativa na ficha de avaliação (Anexo III). Art. 14 - Será considerado APROVADO nas disciplinas TCC I e TCC II o aluno que obtiver o conceito final mínimo equivalente a REGULAR. PARÁGRAFO ÚNICO – Os trabalhos que forem caracterizados como Plágio, este, segundo o que vigora no Código Penal Brasileiro para crimes contra a propriedade intelectual, Artigo 184, serão tratados através de sindicância e processo administrativos. TÍTULO VI – DO PROCESSO DE DEPÓSITO E DEFESA E SEUS RESPECTIVOS PRAZOS E TEMPOS INSTITUÍDOS Art. 15 – O número mínimo de páginas do TCC é de 35 (trinta e cinco), sem contar com apêndices e anexos.",
             "texto_sha256": "0626455da93c028c2b1aa2c2a83dc9de89c9623ee56d3d47fc5e193dd74038c3"
           }
-        ]
+        ],
+        "niveis_permitidos": [
+          "mestrado",
+          "doutorado"
+        ],
+        "niveis_permitidos_justificativa": "Art. 9º da Resolução FCT 01/2012 admite aluno de pós-graduação (mestrado e doutorado) como orientador ou coorientador de TCC da graduação; a menção não é norma de pós-graduação."
       },
       "relacoes": [
         {
@@ -14758,7 +14773,7 @@
       "pergunta": "Quais atividades de estágio são aceitas no Estágio Supervisionado de Engenharia da Computação?",
       "variacoes": [
         "Que tipo de trabalho conta como estágio supervisionado na Engenharia da Computação?",
-        "Quais funções o estágio de Engenharia da Computação deve envolver?"
+        "Que tipos de atividade o estágio de Engenharia da Computação deve envolver?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -16114,7 +16129,11 @@
         "Resolução EngComp 02/2006 (estágio) pode divergir do passo a passo atual da FCT; respostas avisam",
         "IN PROEG 02/2025 (prescrição): prazos são do processo de 2025 (temporal=true)"
       ],
-      "aprovacao_literal_automatica": false
+      "aprovacao_literal_automatica": false,
+      "correcoes_pos_teste": [
+        "0121, 0122 e 0123: niveis_permitidos mestrado/doutorado (Art. 9º admite pós-graduando como orientador); antes o trecho com o Art. 9º era descartado pelo filtro de nível",
+        "0202: variação com 'funções' trocada; a palavra ativava o filtro de competências e a resposta caía no fallback"
+      ]
     }
   }
 }

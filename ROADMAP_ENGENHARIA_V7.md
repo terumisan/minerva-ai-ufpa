@@ -812,3 +812,18 @@ exploratório) e relações com o mesmo tema e com entradas antigas do mesmo doc
 pós-graduação não pedido, 283 testes sem PostgreSQL. As 167 entradas anteriores ficaram idênticas.
 Planilha de revisão: `docs/revisao_catalogo_20261113.xlsx`, agora com 217 linhas.
 
+Teste ponta a ponta do lote 1.5.0 no site (151 consultas: as 50 perguntas e todas as variações): 150/151
+com documento e página cadastrados e primeiro trecho na página certa; média de 4,8 s. Achados e
+correções:
+
+- a variação "Quais funções o estágio…" da 0202 caía no fallback: "funções" ativa o filtro de
+  competências, que exige "compete/atribui" no trecho. A variação foi trocada;
+- varredura de todas as entradas ativas achou o mesmo defeito da 0150 em entradas antigas: 0121
+  ("Quem pode orientar TCC…") exibia o Art. 10, mas não o Art. 9º (quem pode orientar), cortado
+  por citar "mestrado e doutorado". 0121–0123 receberam `niveis_permitidos` com justificativa;
+- em perguntas com várias páginas (TDAH, dilação de prazo, cerimonial), o trecho central ficava
+  fora dos 3 exibidos. Agora, no catálogo, `buscar_em_documentos_postgres` traz até 12 trechos
+  das páginas cadastradas (`LIMITE_ESCOPO_CANDIDATOS`) e `resposta_contextual` os ordena pela
+  coincidência com a resposta curada (`_ordenar_pela_curadoria`). A resposta curada continua sem
+  ser exibida. Trechos acrescentados só por estarem na página não viram ressalva automática.
+
