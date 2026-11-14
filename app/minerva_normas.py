@@ -82,11 +82,17 @@ def incluir_ressalvas_recuperadas(ids, fontes):
     return resultado
 
 
-def filtrar_contexto_normativo(pergunta, fontes):
+NIVEIS_RESTRITOS = ('especializacao', 'mestrado', 'doutorado')
+
+
+def filtrar_contexto_normativo(pergunta, fontes, niveis_permitidos=()):
     """Filtra escopos restritos não solicitados e exige pertinência ao pedido.
 
     Heurística conservadora: não identifica todos os níveis/intentos e pode
     abster-se de fontes relevantes. Não reescreve nem promove fatos ao dataset.
+    `niveis_permitidos` vem só de uma entrada do catálogo que declarou, com
+    justificativa, que a menção ao nível faz parte da norma de graduação
+    (ex.: "discente de doutorado" pode orientar TC na IN PROEG 05/2023).
     """
     pergunta = _normalizar(pergunta)
     competencias = bool(re.search(r'competenc\w*|atribuic\w*|funco\w*', pergunta))
@@ -94,7 +100,8 @@ def filtrar_contexto_normativo(pergunta, fontes):
     for fonte in fontes:
         texto = _normalizar(fonte['trecho'])
         if any(nivel in texto and nivel not in pergunta
-               for nivel in ('especializacao', 'mestrado', 'doutorado')):
+               and nivel not in niveis_permitidos
+               for nivel in NIVEIS_RESTRITOS):
             continue
         if competencias and not re.search(r'\bcompete\b|atribui\w*|competenc\w*', texto):
             continue

@@ -448,3 +448,61 @@ def test_pergunta_livre_nunca_recebe_complemento(monkeypatch):
     monkeypatch.setattr(_md, "entrada_contextual", lambda p: None)
     ids = [f["id"] for f in rag.buscar_em_documentos_postgres(object(), "x")]
     assert ids == [1] and chamadas == []
+
+
+# ---------------------------------------------------------------------------
+# Níveis de ensino liberados por entrada do catálogo (caso 0150)
+# ---------------------------------------------------------------------------
+import copy as _copy  # noqa: E402
+import json as _json  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
+
+from minerva_normas import filtrar_contexto_normativo  # noqa: E402
+
+_ORIENTADOR = {"id": 1, "titulo": "IN.pdf", "trecho": (
+    "§ 2º O(A) orientador(a) será o(a) docente efetivo(a), substituto(a), "
+    "professor(a) visitante, pós-doutorando(a) ou discente de doutorado")}
+
+
+def test_nivel_nao_pedido_continua_filtrado_por_padrao():
+    assert filtrar_contexto_normativo("Quem pode orientar o TCC?", [_ORIENTADOR]) == []
+
+
+def test_nivel_liberado_pela_entrada_mantem_o_trecho():
+    assert filtrar_contexto_normativo("Quem pode orientar o TCC?", [_ORIENTADOR],
+                                      niveis_permitidos=("doutorado",)) == [_ORIENTADOR]
+
+
+def test_liberar_doutorado_nao_libera_mestrado():
+    fonte = dict(_ORIENTADOR, trecho="regras do curso de mestrado")
+    assert filtrar_contexto_normativo("Quem pode orientar?", [fonte],
+                                      niveis_permitidos=("doutorado",)) == []
+
+
+def _dataset():
+    return _json.loads((_Path(__file__).parents[1] / "minerva_dataset.json").read_text())
+
+
+def test_entrada_0150_libera_doutorado_com_justificativa():
+    e = [x for x in _dataset()["respostas_especificas"] if x["id"] == "MINERVA_0150"][0]
+    c = e["contexto_documental"]
+    assert c["niveis_permitidos"] == ["doutorado"] and c["niveis_permitidos_justificativa"]
+
+
+@pytest.mark.parametrize("niveis,just", [(["doutorado"], ""), (["graduacao"], "x")])
+def test_validacao_rejeita_nivel_sem_justificativa_ou_desconhecido(niveis, just):
+    from minerva_qa_catalogo import validar_dataset
+    d = _dataset()
+    e = [x for x in d["respostas_especificas"] if x["id"] == "MINERVA_0150"][0]
+    e["contexto_documental"]["niveis_permitidos"] = niveis
+    e["contexto_documental"]["niveis_permitidos_justificativa"] = just
+    with pytest.raises(ValueError, match="Níveis permitidos"):
+        validar_dataset(_copy.deepcopy(d))
+
+
+def test_resposta_contextual_usa_niveis_da_entrada(monkeypatch):
+    entrada = {"contexto_documental": {"niveis_permitidos": ["doutorado"]}}
+    monkeypatch.setattr(rag, "_entrada_contextual", lambda p: entrada)
+    resposta = rag.resposta_contextual("Quem pode orientar o TCC na IN 05/2023?",
+                                       [dict(_ORIENTADOR, id=558, titulo="IN_05.pdf")])
+    assert "discente de doutorado" in resposta

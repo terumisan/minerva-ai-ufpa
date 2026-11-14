@@ -629,7 +629,9 @@ def resposta_contextual(pergunta, fontes):
     """
     if not evidencia_suficiente_para_abandono(pergunta, fontes):
         return fallback_sem_base()
-    filtradas = filtrar_contexto_normativo(pergunta, fontes)
+    entrada = _entrada_contextual(pergunta) or {}
+    niveis = tuple((entrada.get("contexto_documental") or {}).get("niveis_permitidos", ()))
+    filtradas = filtrar_contexto_normativo(pergunta, fontes, niveis_permitidos=niveis)
     if not filtradas:
         return fallback_sem_base()
     ids = [f["id"] for f in filtradas[:LIMITE_TRECHOS_CONTEXTUAIS]]

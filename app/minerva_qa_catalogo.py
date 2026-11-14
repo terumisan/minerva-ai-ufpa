@@ -37,6 +37,10 @@ def validar_dataset(dados):
                 or not re.fullmatch(r"[a-f0-9]{64}", c["documento_sha256"])
                 or not c.get("escopo") or not c.get("dispositivo")):
             raise ValueError("Contexto documental inválido")
+        niveis = c.get("niveis_permitidos", [])
+        if niveis and (not set(niveis) <= {"especializacao", "mestrado", "doutorado"}
+                       or not str(c.get("niveis_permitidos_justificativa", "")).strip()):
+            raise ValueError("Níveis permitidos inválidos ou sem justificativa")
         paginas = c["paginas_fisicas"]
         if not paginas or any(type(p) is not int or p < 1 for p in paginas):
             raise ValueError("Páginas inválidas")

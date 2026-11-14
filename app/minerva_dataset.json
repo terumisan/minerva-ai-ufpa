@@ -10786,7 +10786,11 @@
             "texto": "§ 2º O(A) orientador(a) será o(a) docente efetivo(a), substituto(a), professor(a) visitante, pós-doutorando(a) ou discente de doutorado com supervisão do(a) or ientador(a) da Universidade Federal do Pará, podendo ser designado(a) um(a) coorientador(a) externo(a) à UFPA. Art. 6º Discente e docente – orientado(a) e orientador(a) – deverão definir conjuntamente a modalidade pela qual o(a) discente deverá apresentar seu TC. Art. 7º Todas as modalidades de TC, previstas nesta Instrução Normativa, deverão submeter-se à defesa pública aberta à comunidade acadêmica. § 1º Caberá à Subunidade Acadêmica a constituição de banca(s) para avaliação da(s) atividade(s) submetidas a crédito do TC. § 2º Recomenda-se que na composição das bancas avaliadoras seja dada oportunidade de participação para professoes(as) visitantes, pós -doutorandos(as) e alunos(as) dos cursos de doutorado da instituição. § 3º A Subunidade Acadêmica poderá o rganizar Jornadas de Defesa dos Trabalhos de Curso, com ampla divulgação à comunidade acadêmica, indicando a data, o horário e o local, observando os prazos definidos no calendário acadêmico da UFPA. § 4º A composição da banca examinadora deverá ser propos ta pelo(a) orientador(a), em diálogo com o(a) discente. O TC será defendido em sessão pública, perante banca constituída de, no mínimo, dois membros titulares, sendo um(a) deles(as), obrigatoriamente, o(a) orientador(a), que presidirá a sessão. § 5º O Conselho da Faculdade ou Escola poderá credenciar membros externos à Subunidade Acadêmica, ou mesmo à Instituição, para fins de composição de banca. § 6º As bancas examinadoras de TC poderão ser realizadas em formato não -presencial (forma remota), u tilizando plataformas de tecnologia da informação e comunicação, com ampla divulgação da forma de acesso à comunidade acadêmica.",
             "texto_sha256": "0ad05b2b0c48a7d11656275bab97c00e28ee450c0e87ef330175942069df6d29"
           }
-        ]
+        ],
+        "niveis_permitidos": [
+          "doutorado"
+        ],
+        "niveis_permitidos_justificativa": "Art. 5º, § 2º da IN PROEG 05/2023 admite discente de doutorado, com supervisão, como orientador(a) de Trabalho de Curso da graduação; a menção não é norma de pós-graduação."
       },
       "relacoes": [
         {
