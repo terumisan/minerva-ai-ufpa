@@ -45,3 +45,10 @@ def test_variacoes_do_teste_exploratorio_casam_com_a_entrada_certa():
     assert entrada_contextual(
         "Qual o prazo para entregar a versão final do TCC depois da defesa?"
     )["id"] == "MINERVA_0128"
+
+
+def test_variacoes_do_reteste_de_15_11():
+    assert entrada_contextual("Quantas vezes posso reprovar na mesma disciplina?")["id"] == "MINERVA_0097"
+    assert entrada_contextual(
+        "Peguei covid e o médico me deu atestado de 10 dias, posso fazer as atividades em casa?"
+    )["id"] == "MINERVA_0218"

@@ -935,3 +935,9 @@ doenças graves, não do Art. 40 do Regulamento. Sem mudança: trancamento, segu
 SIGAA (~1 s). Pendentes: monitoria (primeiro trecho de atividades complementares) e
 reprovações (Art. 179 sobre aprovação). As perguntas que passam pelo RAG levaram 46–85 s,
 acima dos 25–32 s de 14/11; medir de novo com o modelo aquecido antes de concluir.
+
+**Decisão (15/11/2026):** perguntas normativas continuam exibindo só os trechos das normas, sem
+resumo redigido pelo modelo. Variações acrescentadas após o reteste: 0097 ("Quantas vezes posso
+reprovar na mesma disciplina?", Art. 20) e 0218 ("Peguei covid…"). Monitoria segue pendente: a
+base só traz as horas de monitoria como atividade complementar; falta ingerir a norma de
+monitoria da UFPA.
