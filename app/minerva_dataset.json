@@ -1,5 +1,5 @@
 {
-  "versao_dataset": "1.5.0",
+  "versao_dataset": "1.6.0",
   "respostas_especificas": [
     {
       "id": "MINERVA_0001",
@@ -5451,7 +5451,8 @@
         "Quantas horas de atividades complementares são exigidas na resolução da FCT de 2013?",
         "Como as 120 horas de atividades complementares se distribuem entre AC-I e AC-II?",
         "Quantas horas de Atividades Complementares são necessárias para integralizar o curso?",
-        "Como as 120 horas de atividades complementares se dividem entre AC-I e AC-II?"
+        "Como as 120 horas de atividades complementares se dividem entre AC-I e AC-II?",
+        "Quantas horas de atividades complementares preciso cumprir em Engenharia da Computação?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -9100,7 +9101,8 @@
       "pergunta": "Qual o prazo para entregar a versão corrigida do TCC após a defesa na FCT?",
       "variacoes": [
         "Como entregar a versão final do TCC na secretaria da FCT?",
-        "O que acontece se a banca não aceitar a versão corrigida do TCC na FCT?"
+        "O que acontece se a banca não aceitar a versão corrigida do TCC na FCT?",
+        "Qual o prazo para entregar a versão final do TCC depois da defesa?"
       ],
       "entidades": [],
       "palavras_chave": [],
@@ -16036,6 +16038,80 @@
       ],
       "temas_relacionados": [
         "extensao"
+      ]
+    },
+    {
+      "id": "MINERVA_0218",
+      "macroarea": "Graduação UFPA",
+      "intent": "exercicio_domiciliar_condicao_temporaria",
+      "pergunta": "Doença infecciosa ou lesão temporária dá direito a exercício domiciliar na UFPA?",
+      "variacoes": [
+        "Estou com dengue, posso fazer as provas em casa?",
+        "Quebrei a perna e não consigo ir às aulas, o que faço?",
+        "Vou fazer uma cirurgia e ficar de repouso, posso ter exercício domiciliar?",
+        "Peguei uma infecção e o médico me deu atestado de vários dias, o que faço com as aulas?"
+      ],
+      "entidades": [],
+      "palavras_chave": [],
+      "fonte_esperada": "Regulamento_Graduacao.pdf",
+      "url_oficial": "",
+      "estrategia_recuperacao": "RESPOSTA_LITERAL",
+      "resposta_literal": "",
+      "fonte_documento": "Regulamento_Graduacao.pdf",
+      "temporal": false,
+      "prioridade": "Alta",
+      "tipo_resposta": "informativa",
+      "resposta_esperada": "O Regulamento do Ensino de Graduação (Art. 40, alínea b) assegura o exercício domiciliar ao discente com afecções congênitas ou adquiridas, infecções, traumatismos ou outras condições caracterizadas por incapacidade física, incompatível com a frequência normal às atividades acadêmicas. O requerimento é dirigido à Direção da Faculdade, acompanhado de laudo médico emitido em até 15 dias da ocorrência, e a concessão depende da continuidade didático-pedagógica. O RADIP-EG (Resolução 5.799/2024) trata de casos específicos, como doenças raras ou crônicas graves, transtornos mentais, deficiência, gestantes e puérperas.",
+      "ativo": true,
+      "versao_dataset": "1.6.0",
+      "origem_entrada": {
+        "tipo": "ampliacao_documental",
+        "data": "2026-11-15",
+        "base": "teste exploratório no site de 14/11/2026; páginas do PDF local indicadas em contexto_documental"
+      },
+      "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+      "autorizacao_literal": "pendente",
+      "contexto_documental": {
+        "status": "localizado_na_copia_local",
+        "documento": "Regulamento_Graduacao.pdf",
+        "documento_sha256": "8a02d52ce7da4d9eff340c3dcb7ff38589e97cad3396bfbe3803bfb5a4030bd6",
+        "paginas_fisicas": [
+          12,
+          13
+        ],
+        "dispositivo": "Art. 40, alínea b",
+        "escopo": "Graduação da UFPA, conforme o Regulamento do Ensino de Graduação (Resolução CONSEPE nº 4.399/2013), para condições temporárias de saúde (infecções, traumatismos); casos de doenças raras ou crônicas graves, transtornos mentais, deficiência, gestação e puerpério seguem o RADIP-EG (Resolução 5.799/2024); não estender à pós-graduação.",
+        "origem_pdf_confirmada_por_sha256": false,
+        "fonte_publicacao": "",
+        "vigencia": "nao_homologada; disponibilidade online e igualdade de bytes não comprovam vigência integral",
+        "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+        "evidencias": [
+          {
+            "pagina_fisica": 12,
+            "texto": "12 Resolução n. 4.399 CONSEPE, de 14.5.2013 – Anexo competências, bem como a adequação e a pertinência com o conteúdo e a carga horária da Atividade pleiteada. § 1º Só poderão ser validadas as Atividades desenvolvidas em Cursos reconhecidos ou autorizados por órgão competente. § 2º O Aproveitamento de Estudos será registrado no Histórico Escolar com a sigla AE e não será computado nos cálculos de coeficiente de rendimento do discente. Art. 37. O Aproveitamento de Estudos será feito conforme os seguintes critérios: I – diretamente, quando a carga horária e o conteúdo programático da Atividade Curricular estudada forem idênticos, equivalentes ou superiores aos da pleiteada; II – mediante complementação, quando o conteúdo da Atividade Curricular realizada, com carga horária equivalente ou não, for inferior à pleiteada em, no máximo, 30% (trinta por cento). Parágrafo único. A complementação prevista no Inciso II poderá, a critério da Subunidade, ser realizada por meio de: I - avaliação especial, referente ao conteúdo não estudado; II - estudos complementares, com obrigatoriedade de avaliação de aprendizagem. Art. 38. As Atividades Curriculares, quando autorizadas pela Subunidade, realizadas com aproveitamento satisfatório, em Instituição de Ensino Superior reconhecida pelo órgão competente, por meio de intercâmbio regional, nacional ou internacional, terão aproveitamento automático de estudos. Art. 39. O Conselho da Faculdade ou Escola poderá estabelecer critérios complementares para aproveitamento de estudos. SEÇÃO II DO EXERCÍCIO DOMICILIAR Art. 40. Será assegurado, conforme legislação em vigor, exercício domiciliar com vistas ao processo de ensino-aprendizagem, resguardada a qualidade do trabalho acadêmico: a) à aluna gestante que, por ordem médica, esteja impedida de frequentar as atividades acadêmicas;",
+            "texto_sha256": "d607a2385aefddf7ff526d8deee6bacb7be8408baaa37503b5d13a66270cb085"
+          },
+          {
+            "pagina_fisica": 13,
+            "texto": "13 Resolução n. 4.399 CONSEPE, de 14.5.2013 – Anexo b) ao discente com afecções congênitas ou adquiridas, infecções, traumatismos ou outras condições caracterizadas por incapacidade física, incompatível com a frequência normal às atividades acadêmicas; c) ao discente portador de necessidades educativas especiais, quando não for possível sua integração ao ambiente acadêmico. § 1º O tratamento excepcional será autorizado pelo Diretor da Faculdade ou Escola, com base em requerimento acompanhado de laudo médico, emitido até quinze dias da ocorrência do fato impeditivo. § 2º A concessão de tratamento excepcional ficará condicionada à possibilidade de garantia de continuidade do processo didático-pedagógico. § 3º O laudo médico deverá ser homologado pela junta médica da UFPA. § 4º A Subunidade deverá informar ao CIAC sobre os discentes em exercício domiciliar. Art. 41. Para atender às especificidades do exercício domiciliar, os docentes elaborarão um programa especial de estudos a ser cumprido pelo discente, com a especificação de: I - conteúdos a serem estudados; II - metodologias a serem utilizadas; III - tarefas a cumprir; IV - critérios de avaliação; V - prazos para execução das tarefas. Parágrafo único. A orientação do discente será realizada pelos próprios docentes envolvidos no programa especial de estudos. Art. 42. Não será concedido exercício domiciliar ao discente matriculado em atividade isolada e ao matriculado nas Atividades Curriculares de estágio curricular; pré-internato; internato; práticas laboratoriais ou ambulatórias; ou naquelas cuja execução não possa ocorrer fora do ambiente da UFPA. SEÇÃO III DA ABREVIAÇÃO DA DURAÇÃO DO CURSO",
+            "texto_sha256": "292bbc9d38f11de4ee51137135e3d9346aaaae05d9ec339f9c86a350c2a17500"
+          }
+        ]
+      },
+      "relacoes": [
+        {
+          "id": "MINERVA_0168",
+          "tipo": "assunto_relacionado",
+          "motivo": "exercicio_domiciliar"
+        },
+        {
+          "id": "MINERVA_0170",
+          "tipo": "assunto_relacionado",
+          "motivo": "exercicio_domiciliar"
+        }
+      ],
+      "temas_relacionados": [
+        "exercicio_domiciliar"
       ]
     }
   ],

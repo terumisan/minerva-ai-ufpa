@@ -62,6 +62,10 @@ da dissertação (D115) foi refeita com o código e o corpus originais, trocando
 Gemma 4 E4B, nas mesmas condições, foram 66,7% (38/57). As mesmas 115 perguntas no código
 atual (V7) estão no roadmap, seção 26.
 
+Em 15/11/2026: catálogo 1.6.0 (218 entradas), correção da rota de siglas que tratava
+"diretor" como sigla e vigia de memória do modelo (`scripts/instalar_vigia_memoria_llm.sh`);
+ver roadmap, seção 27.
+
 A próxima etapa proposta é revisar de 20 a 30 perguntas importantes, com
 formulações diferentes das usadas no desenvolvimento, antes de ampliar o
 catálogo ou trocar modelos. O [plano de avaliação controlada](docs/AVALIACAO_CONTROLADA_V7.md)
@@ -525,7 +529,7 @@ histórico, avaliações e backups ainda contêm texto e devem permanecer privad
 - Inferência em CPU: na avaliação de 14/11/2026 (roadmap, seção 26), as respostas geradas pelo Qwen3.5-4B levaram em média 44 s no código atual (V7) e 89 s no protocolo da dissertação. Não é um SLO; medir aquecimento, concorrência e p50/p95 antes de comparar.
 - Acesso anônimo, sem login institucional. Identidade criada no servidor; `sid` da URL é ignorado. Histórico disponível durante a sessão WebSocket; reload inicia outra identidade. Exporte antes de sair.
 - Uma consulta por processo da UI, sem fila de espera; intervalo mínimo de 3 s por sessão e perguntas de até 4.000 caracteres. Réplicas exigirão limitação compartilhada. HTTP do LLM: timeout de conexão de 5 s e leitura de 180 s; streaming verifica prazo entre eventos. Não é cancelamento forçado do processo do modelo.
-- **Vazamento de memória do llama.cpp em uso prolongado**: o cache interno de "compute graphs" do servidor cresce sem limite (observado: 11,2GB de RAM depois de dias no ar, contra ~4,5GB esperados de um modelo 7B Q4 — forçava a máquina inteira pro swap e degradava a latência de todos os containers, não só do LLM). Mitigado com um timer systemd de usuário (`ufpa_rag_restart_llm.timer`, reinicia o container `ufpa_rag_llm` diariamente às 4h — ver `systemctl --user list-timers`). Sem estado persistente no container, reiniciar é seguro. Em carga contínua o reinício diário não basta: em 14/11/2026 o processo foi morto por falta de memória após 41 min (teto de 6 GiB) e 32 min (teto de 9 GiB) de perguntas seguidas. Avaliações longas devem reiniciar o modelo entre blocos, como faz `scripts/replicacao/repetir_fase_b.sh`.
+- **Vazamento de memória do llama.cpp em uso prolongado**: o cache interno de "compute graphs" do servidor cresce sem limite (observado: 11,2GB de RAM depois de dias no ar, contra ~4,5GB esperados de um modelo 7B Q4 — forçava a máquina inteira pro swap e degradava a latência de todos os containers, não só do LLM). Mitigado com um timer systemd de usuário (`ufpa_rag_restart_llm.timer`, reinicia o container `ufpa_rag_llm` diariamente às 4h — ver `systemctl --user list-timers`). Sem estado persistente no container, reiniciar é seguro. Em carga contínua o reinício diário não basta: em 14/11/2026 o processo foi morto por falta de memória após 41 min (teto de 6 GiB) e 32 min (teto de 9 GiB) de perguntas seguidas. Avaliações longas devem reiniciar o modelo entre blocos, como faz `scripts/replicacao/repetir_fase_b.sh`. Desde 15/11/2026, o timer `ufpa_rag_vigia_llm.timer` (instalado por `scripts/instalar_vigia_memoria_llm.sh`) verifica a memória a cada 2 min e reinicia o modelo acima de 5,0 GiB quando ocioso, ou acima de 5,6 GiB mesmo ocupado.
 
 
 

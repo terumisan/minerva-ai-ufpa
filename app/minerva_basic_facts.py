@@ -467,8 +467,24 @@ def _extract_acronym(
             .upper()
         )
 
-        if (
+        if not (
             2 <= len(candidate) <= _MAX_SIGLA_LEN
+        ):
+            continue
+
+        # "Quem é o diretor da FCT?" capturava "DIRETOR" como sigla e a
+        # busca dinâmica devolvia uma associação sem sentido (15/11/2026).
+        # Fora do padrão explícito de sigla, só vale se a palavra estiver
+        # cadastrada ou escrita em maiúsculas na pergunta original.
+        explicito = pattern is patterns[0]
+        escrita_maiuscula = re.search(
+            rf"\b{re.escape(candidate)}\b",
+            original,
+        ) is not None
+        if (
+            explicito
+            or candidate in BASIC_FACTS
+            or escrita_maiuscula
         ):
             return candidate
 

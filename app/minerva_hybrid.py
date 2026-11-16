@@ -107,6 +107,15 @@ SINONIMOS_INSTITUCIONAIS: dict[str, list[str]] = {
     "aproveitamento": ["equivalencia", "dispensa"],
     "diploma": ["certificado", "colacao"],
     "bolsa": ["bolsista", "auxilio"],
+    # Teste exploratório de 14/11/2026: "Estou com dengue, posso fazer as
+    # provas em casa?" e "Quebrei a perna…" não traziam nenhum trecho. O
+    # exercício domiciliar (Regulamento, Art. 40; RADIP-EG) fala em
+    # "domiciliar", "infecções" e "traumatismos", nunca no nome da doença ou
+    # da lesão. Termos sem acento: o grupo é normalizado por _sem_acento.
+    "domiciliar": ["casa", "dengue", "covid", "gripe", "zika", "chikungunya",
+                   "doente", "fratura", "fraturei", "quebrei", "perna", "braco",
+                   "cirurgia", "repouso", "internado", "internacao",
+                   "traumatismo", "traumatismos", "acidente"],
 }
 
 _GRUPOS_SINONIMOS: list[set[str]] = [

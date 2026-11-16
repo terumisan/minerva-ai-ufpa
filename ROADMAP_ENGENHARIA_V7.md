@@ -899,3 +899,39 @@ prioritárias, ~1 s). Achados a corrigir:
   sempre responde (monitoria → atividades complementares; reprovações → Art. 179 sobre aprovação);
 - "Quantas horas de atividades complementares…" e "prazo da versão final do TCC" exibem trechos
   do documento certo, mas o primeiro trecho não traz o número pedido.
+
+## 27. Correções do teste exploratório e vigia de memória — 15/11/2026
+
+- **Siglas.** `_extract_acronym` capturava qualquer palavra depois de "quem é o"/"o que é o":
+  "Quem é o diretor da FCT?" virava a sigla `DIRETOR` e a busca dinâmica nos portais devolvia
+  "Adjunto do Instituto de Tecnologia". Agora, fora do padrão explícito ("sigla", "o que
+  significa"), a palavra só vale como sigla se estiver em `BASIC_FACTS` ou escrita em maiúsculas.
+  A pergunta passa a cair na rota `leadership` (página de contato da FCT).
+- **Catálogo 1.6.0.** Nova entrada `MINERVA_0218`: exercício domiciliar por infecção ou
+  traumatismo, ancorada no Regulamento (Art. 40, alínea b, p. 12–13), com as frases do teste
+  ("Estou com dengue…", "Quebrei a perna…"). A 0104 continua inativa porque misturava gestantes,
+  hoje no RADIP-EG. Variações acrescentadas: 0079 (horas de AC) e 0128 (prazo da versão
+  corrigida do TCC), para que o trecho com o número apareça primeiro.
+- **Sinônimos.** Grupo `domiciliar` em `SINONIMOS_INSTITUCIONAIS` (dengue, covid, fratura,
+  quebrei, cirurgia, casa…), para que paráfrases fora do catálogo alcancem o Art. 40.
+- **Respostas só com trechos (investigado, sem mudança).** Na Fase B, 69 das 79 respostas RAG
+  foram excertos e só 6 em texto redigido. É o desenho atual: se algum trecho recuperado tem
+  "Art." ou "§", `responder_minerva` usa o modelo só para escolher IDs e publica os excertos, sem
+  prosa normativa gerada. Os 25–32 s são o processamento do prompt com 6 trechos em CPU. O juiz
+  conta muitos desses excertos como abstenção, o que explica a maior parte dos 31 casos da
+  Fase B. Mudar isso (resumo redigido sobre os excertos) é decisão de produto, pendente.
+- **Vigia de memória.** `scripts/vigiar_memoria_llm.sh` + `instalar_vigia_memoria_llm.sh`: timer
+  a cada 2 min; reinicia o `ufpa_rag_llm` acima de 5,0 GiB se `/slots` indicar ocioso, ou acima
+  de 5,6 GiB mesmo ocupado. Testado com `docker`/`curl` simulados nos quatro casos.
+- Testes: `tests/test_exploratorio_20261115.py` (6 testes); 288 testes sem PostgreSQL passam
+  (as 2 falhas de `test_velocidade` dependem de `tests/data` ausente no ambiente de teste).
+
+**Reteste no site após o reinício (15/11/2026, 21h, 12 perguntas).** Corrigidas: "Quem é o
+diretor da FCT?" (2 s, rota de direção com a página de contato); dengue e perna quebrada (1–6 s,
+Regulamento p. 13, alínea b, como primeiro trecho); horas de AC (primeiro trecho com as 120 h
+do Art. 3º) e prazo da versão final do TCC (primeiro trecho com os 10 dias). Paráfrase fora do
+catálogo ("Peguei covid…") deixou de cair no fallback e trouxe o RADIP-EG p. 7, que trata de
+doenças graves, não do Art. 40 do Regulamento. Sem mudança: trancamento, segunda chamada e
+SIGAA (~1 s). Pendentes: monitoria (primeiro trecho de atividades complementares) e
+reprovações (Art. 179 sobre aprovação). As perguntas que passam pelo RAG levaram 46–85 s,
+acima dos 25–32 s de 14/11; medir de novo com o modelo aquecido antes de concluir.
