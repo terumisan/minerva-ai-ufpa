@@ -941,3 +941,21 @@ resumo redigido pelo modelo. Variações acrescentadas após o reteste: 0097 ("Q
 reprovar na mesma disciplina?", Art. 20) e 0218 ("Peguei covid…"). Monitoria segue pendente: a
 base só traz as horas de monitoria como atividade complementar; falta ingerir a norma de
 monitoria da UFPA.
+
+## 28. Rodadas de verificação — 17/11/2026 (Qwen3.5-4B, catálogo 1.6.0)
+
+**Varredura do catálogo no endereço público.** As 210 entradas ativas com contexto documental,
+pela pergunta principal: 210/210 com o documento e a página cadastrados no primeiro trecho,
+nenhuma resposta de fallback, tempo médio de 1,1 s (máximo de 3,2 s). Nove trechos ocupam mais
+de uma página ("páginas físicas 15–16"); todos incluem a página cadastrada.
+
+**Velocidade com o modelo aquecido** (8 perguntas fora do catálogo): as sete que passam pela
+seleção de trechos levaram 26–39 s, como em 14/11 (25–32 s); os 46–85 s de 15/11 foram efeito do
+modelo recém-reiniciado. "O que é o RADIP?" levou 58 s porque a rota de siglas consulta os portais
+antes do RAG. "Posso pedir revisão de nota de prova?" respondeu em 1,6 s pela rota prioritária.
+
+**Vigia de memória.** Conferido em 18/11/2026: o timer roda a cada 2 min e continuou ativo
+depois de três reinícios do computador. Desde 15/11 nenhum reinício do modelo foi necessário;
+uso medido de 3,6 GiB, abaixo do limite de 5,0 GiB.
+
+**Pendência:** a norma de monitoria ainda está fora da base.
