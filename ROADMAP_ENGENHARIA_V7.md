@@ -959,3 +959,38 @@ depois de três reinícios do computador. Desde 15/11 nenhum reinício do modelo
 uso medido de 3,6 GiB, abaixo do limite de 5,0 GiB.
 
 **Pendência:** a norma de monitoria ainda está fora da base.
+
+## 29. Teste exploratório em duas camadas e catálogo 1.7.0 — 18/11/2026
+
+**Camada 1 — páginas sem cobertura.** Das 237 páginas com texto dos 26 PDFs, 65 não tinham
+nenhuma entrada (o Calendário Acadêmico 2026 inteiro, 47 páginas do Regimento Geral, anexos da
+IN PROEG 02/2025 etc.). Foram criadas 21 entradas (`MINERVA_0219` a `0239`, lote `20261118`):
+7 do Calendário 2026 (períodos, início das aulas, matrícula e trancamento, TCC e estágio,
+atividades complementares, colação e diploma, tutoria; `temporal=true`), 12 do Regimento Geral
+sobre ensino de graduação e corpo discente (dois cursos simultâneos, turma mínima de 10, conceitos
+EXC/BOM/REG/INS, recurso de nota em 3 dias úteis, direitos, representação, DCE/DA/CA, assistência,
+regime disciplinar, bolsistas, ingresso, transferência), 1 dos anexos da prescrição e 1 das
+disposições transitórias do Regulamento. Páginas que seguem sem entrada: órgãos administrativos do
+Regimento Geral, pós-graduação e telas do manual da PROEX sem conteúdo próprio.
+
+**Camada 2 — linguagem do aluno.** Uma paráfrase coloquial para cada uma das 210 entradas
+ativas ("pode fazer tcc em dupla?", "esqueci de confirmar a matrícula, e agora?"), enviada ao
+endereço público:
+
+| Resultado | Qtde |
+|---|---|
+| Documento e página cadastrados no primeiro trecho | 76 |
+| Rota genérica com texto vago (página de estágio/TCC da FCT, lista de docentes, contato) | 56 |
+| Fallback ("Não localizei") | 31 |
+| Documento errado | 26 |
+| Documento certo, página errada | 21 |
+
+As 134 paráfrases que falharam viraram variações das próprias entradas. O achado principal é que
+as rotas genéricas de estágio e TCC capturam qualquer pergunta com essas palavras e respondem com
+um texto que só aponta a página da FCT; como o catálogo é consultado antes delas, as variações
+resolvem os casos testados, mas outras formulações continuam caindo nessas rotas. Os fallbacks de
+0,8 s mostram perguntas curtas descartadas antes da busca ("dá pra mudar de turno?", "como abro
+chamado no sagitta?").
+
+Catálogo 1.7.0: 239 entradas, 236 ativas, 234 vinculadas a documento. Planilha de revisão:
+`docs/revisao_catalogo_20261118.xlsx` (239 linhas, todas pendentes).

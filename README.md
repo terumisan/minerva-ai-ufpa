@@ -66,6 +66,9 @@ Em 15/11/2026: catálogo 1.6.0 (218 entradas), correção da rota de siglas que 
 "diretor" como sigla e vigia de memória do modelo (`scripts/instalar_vigia_memoria_llm.sh`);
 ver roadmap, seção 27.
 
+Em 18/11/2026: catálogo 1.7.0 (239 entradas; 21 novas do Calendário 2026 e do Regimento Geral e
+134 variações coloquiais vindas do teste exploratório); ver roadmap, seção 29.
+
 A próxima etapa proposta é revisar de 20 a 30 perguntas importantes, com
 formulações diferentes das usadas no desenvolvimento, antes de ampliar o
 catálogo ou trocar modelos. O [plano de avaliação controlada](docs/AVALIACAO_CONTROLADA_V7.md)
