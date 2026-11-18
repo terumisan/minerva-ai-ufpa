@@ -994,3 +994,7 @@ chamado no sagitta?").
 
 Catálogo 1.7.0: 239 entradas, 236 ativas, 234 vinculadas a documento. Planilha de revisão:
 `docs/revisao_catalogo_20261118.xlsx` (239 linhas, todas pendentes).
+
+**Reteste após publicar o catálogo 1.7.0** (18/11/2026, ~03h): as 134 paráfrases que haviam
+falhado e as 64 formas de pergunta das 21 entradas novas — 198/198 com o documento e a página
+cadastrados no primeiro trecho, nenhum fallback, 0,8 s em média.
