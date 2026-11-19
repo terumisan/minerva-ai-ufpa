@@ -1020,3 +1020,13 @@ cadastrados no primeiro trecho, nenhum fallback, 0,8 s em média.
 **Leitura.** O ajuste levou 27 perguntas a mais para o RAG sem piorar a taxa de acerto, e quando a Minerva responde quase sempre acerta (2 erradas em 61). O gargalo é a abstenção: em 20 das 40 abstenções o trecho-gabarito estava entre os recuperados, ou seja, o modelo poderia ter selecionado o trecho e não selecionou. Próximo passo: revisar o critério de seleção de trechos (desenho "só trechos") nesses 20 casos e alimentar o catálogo com o agente de ampliação (`scripts/agente_ampliacao.py`).
 
 **Ocorrências operacionais.** Rodadas de 12 min passaram a estourar o vigia de memória (reinícios em sequência na geração); `repetir_fase_b.sh` ganhou `RODADA_S` e `RETOMAR=1`. Arquivos gravados pelo container como root impediam a limpeza no host; `juiz_pendentes.sh` corrige a posse e completa os julgamentos pendentes.
+
+**Revisão das 40 abstenções (18/11, noite).** O juiz marca como abstenção a exibição de excertos ("só trechos", decisão de 15/11). Reclassificadas sem LLM por cobertura do gabarito nos excertos exibidos (`scripts/replicacao/reavaliar_excertos.py`, limiar 0,75):
+
+| Categoria | Casos |
+|---|---|
+| Excerto exibido contém o gabarito (o aluno vê a resposta) | 21 |
+| Excerto exibido sem o gabarito | 12 |
+| Abstenção real ("Não localizei…") | 7 |
+
+Resposta correta ou excerto com o gabarito: **75/101 (74%)**; na Fase B de 14/11, pela mesma régua, 59/78 (76%) — desempenho equivalente com 27 perguntas a mais no RAG. Dos 19 casos sem gabarito, 12 são perguntas sobre o próprio arquivo ("quem assinou este documento", "quais as assinaturas", "nome do diretor e revisor", "qual instituição esta resolução regulamenta"), geradas automaticamente no D115 e sem utilidade para o discente. Restam 7 falhas reais a investigar: reintegração após intercâmbio, faltas a reuniões de colegiado, plano de estágio (variante do Anexo), quem pode pedir matrícula em estágio (2), e dois trechos de manuais (vez da graduação no SIGAA; acesso ao Cadastro Único), estes no caminho de prosa, onde a resposta sem citação [T:ID] válida vira "Não localizei".
