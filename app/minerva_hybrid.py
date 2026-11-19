@@ -536,9 +536,14 @@ def validar_referencias(resposta, fontes):
     evidencias = _evidencias_rastreaveis(fontes)
     marcadores = re.findall(r"\[T:([1-9][0-9]*)\]", resposta)
     restante = re.sub(r"\[T:[1-9][0-9]*\]", "", resposta)
-    if (not marcadores or "[" in restante or "]" in restante
-            or re.search(r"https?://|www\.", resposta, re.IGNORECASE)):
+    if not marcadores or "[" in restante or "]" in restante:
         return None
+    # 19/11: endereço só é aceito se estiver literalmente em um trecho
+    # recuperado (ex.: link do SIGAA copiado do manual); URL inventada recusa.
+    textos = " ".join(str(f.get("trecho", "")) for f in fontes)
+    for url in re.findall(r"(?:https?://|www\.)[^\s)\]>,;]+", resposta, re.IGNORECASE):
+        if url.rstrip(".") not in textos:
+            return None
     ids = list(dict.fromkeys(int(chave) for chave in marcadores))
     if any(chave not in evidencias for chave in ids):
         return None
@@ -567,6 +572,46 @@ def _anexar_referencias(resposta, fontes, ids):
             detalhes += f" — origem: {fonte['source_url']}"
         linhas.append(f"- [T:{chave}] Documento: `{titulo}`{detalhes} — trecho: `{trecho}`")
     return "\n\n".join(linhas)
+
+
+_VAZIAS_SUSTENTACAO = set("""
+    como qual quais quando onde quem posso pode devo deve preciso fazer faco
+    sobre para pela pelo pelos pelas entre depois apos antes isso esse essa
+    este esta tenho temos meu minha meus minhas seus suas uma umas uns
+    consta constam documento documentos informacao informacoes ufpa fct
+    faculdade universidade curso aluno aluna alunos discente discentes
+""".split())
+
+
+def _termos_conteudo(texto):
+    t = unicodedata.normalize("NFKD", str(texto or "")).encode("ascii", "ignore").decode().lower()
+    return {p for p in re.findall(r"[a-z0-9]+", t) if len(p) >= 4 and p not in _VAZIAS_SUSTENTACAO}
+
+
+def sustentacao_lexical(pergunta, fontes, ids):
+    """Os trechos citados precisam compartilhar ao menos um termo de conteúdo
+    com a pergunta. Evita publicar prosa que cita um trecho real, mas de outro
+    assunto (ex.: questionário socioeconômico respondido com termo de
+    prescrição). Perguntas sem termos de conteúdo não são bloqueadas."""
+    termos = _termos_conteudo(pergunta)
+    if not termos:
+        return True
+    citados = " ".join(f["trecho"] for f in fontes if f["id"] in ids)
+    return bool(termos & _termos_conteudo(citados))
+
+
+_RECUSA = re.compile(
+    r"n[ãa]o (localizei|encontrei|h[áa] (informa|dados)|consta|foi poss[íi]vel|sei)|"
+    r"sem (informa|base)|insuficiente", re.IGNORECASE)
+
+
+def _prosa_sem_citacao(resposta):
+    """Resposta textual sem nenhum marcador de trecho, URL ou colchete e que
+    não é uma recusa do modelo."""
+    return (isinstance(resposta, str) and resposta.strip() != ""
+            and "[" not in resposta and "]" not in resposta
+            and not re.search(r"https?://|www\.", resposta, re.IGNORECASE)
+            and not _RECUSA.search(resposta))
 
 
 def resposta_extrativa(fontes):
@@ -810,6 +855,15 @@ Contexto institucional:
             resposta = llm_func(prompt)
             ids = validar_referencias(resposta, fontes)
             if ids is None:
+                # Prosa sem nenhum marcador [T:ID] e que não é recusa: a
+                # evidência já passou no limiar, então se exibem os trechos
+                # recuperados (texto documental, não a prosa gerada). IDs
+                # inventados, URLs ou marcadores malformados continuam
+                # levando à recusa, por indicarem geração não rastreável.
+                if _prosa_sem_citacao(resposta):
+                    return resposta_extrativa(fontes)
+                return fallback_sem_base()
+            if not sustentacao_lexical(pergunta, fontes, ids):
                 return fallback_sem_base()
             if sanitizar_resposta(resposta) != resposta:
                 return sanitizar_resposta(resposta)

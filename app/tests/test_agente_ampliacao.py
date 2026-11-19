@@ -40,3 +40,8 @@ def test_juiz_reprova_e_json_sujo():
 def test_auditoria_acha_escopo_copiado_da_0218_na_0239():
     _, entradas = ag.carregar_catalogo()
     assert "MINERVA_0239" in ag.escopos_suspeitos(entradas)
+
+
+def test_citacao_tolera_palavra_partida_do_pdf():
+    trecho = "a agregação será feita por convênio, desde que se dem onstre viável uma efetiva colaboração"
+    assert ag.citacao_no_trecho("desde que se demonstre viável uma efetiva colaboração", trecho)

@@ -1,5 +1,5 @@
 {
- "versao_dataset": "1.10.0",
+ "versao_dataset": "1.11.0",
  "respostas_especificas": [
   {
    "id": "MINERVA_0001",
@@ -18712,6 +18712,460 @@
     ]
    },
    "resposta_esperada": "Pelo Manual Discente de extensão da PROEX (2026), no Passo 10 você preenche todo o Questionário Socioeconômico (todos os itens são obrigatórios) e, no Passo 11, ao final do preenchimento, clica em OK para concluir a adesão ao Cadastro Único."
+  },
+  {
+   "id": "MINERVA_0255",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_requisitos_bolsista",
+   "pergunta": "Quais os requisitos para ser monitor bolsista na UFPA?",
+   "variacoes": [
+    "quem pode ser monitor com bolsa?",
+    "precisa de CR alto para ser monitor?",
+    "como funciona a bolsa monitoria vulnerabilidade?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "Pelo Edital PROEG nº 22/2025 (Monitoria 2026), há duas categorias de bolsa. Na Monitoria-Livre Concorrência, o(a) graduando(a) precisa ter bom rendimento (CRPL a partir de 7,0 no último semestre cursado) e destacado desempenho no componente curricular da monitoria. Na Monitoria-Vulnerabilidade, precisa atender às condições da Instrução Normativa SAEST/UFPA de Bolsa Acadêmica vigente e ter cursado com aproveitamento o componente. Em ambas, o(a) monitor(a) deve ser selecionado(a) pelo(a) coordenador(a) do projeto, estar regularmente matriculado(a) e não ter vínculo empregatício (itens 3.2, 3.3 e 8.1).",
+   "fonte_documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "Pelo Edital PROEG nº 22/2025 (Monitoria 2026), há duas categorias de bolsa. Na Monitoria-Livre Concorrência, o(a) graduando(a) precisa ter bom rendimento (CRPL a partir de 7,0 no último semestre cursado) e destacado desempenho no componente curricular da monitoria. Na Monitoria-Vulnerabilidade, precisa atender às condições da Instrução Normativa SAEST/UFPA de Bolsa Acadêmica vigente e ter cursado com aproveitamento o componente. Em ambas, o(a) monitor(a) deve ser selecionado(a) pelo(a) coordenador(a) do projeto, estar regularmente matriculado(a) e não ter vínculo empregatício (itens 3.2, 3.3 e 8.1).",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+    "paginas_fisicas": [
+     2,
+     7
+    ],
+    "dispositivo": "itens 3.2, 3.3 e 8.1",
+    "escopo": "Subprograma PGRAD-Monitoria (bolsa) da PROEG/UFPA, edição 2026 (Edital PROEG nº 22/2025); valores, vagas e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "33bde24978ae1e5f667c013581c9cad534f9a0e91a56e09a69c9b4dfb06c597f",
+    "evidencias": [
+     {
+      "pagina_fisica": 2,
+      "texto": "2 1.6. A Diretoria de Inovação e Qualid ade do Ensino, da Pró -Reitoria de Ensino de Graduação, receberá e processará as demandas contempladas, observando os prazos definidos no item 13. 2. OBJETIVOS 2.1. O PGRAD-Monitoria tem por objetivos: 2.1.1. Estimular a participação de estudantes de grad uação na promoção de ações de Monitoria que visem tanto seu desenvolvimento acadêmico-profissional quanto a qualificação das atividades curriculares do seu curso de graduação , pela proposição de estratégias pedagógicas inovadoras. 2.1.2. Promover a quali ficação do trabalho docente para o desenvolvimento de atividades curriculares teórico-práticas, de caráter criativo e inovador, com auxílio de monitores(as). 2.1.3. Planejar e realizar ações, diálogos e instruções que contemplem a atenção e o acompanhamento de discentes com dificuldades no curso, incluindo a colaboração com o Programa de Tutoria Discente, quando existente na Unidade. 2.1.4. Contribuir para a melhoria da qualidade do ensino, com a diminuição das taxas de evasão e retenção, e o aumento da taxa de sucesso nos cursos de graduação. 3. CONDIÇÕES DE CONCESSÃO DAS BOLSAS 3.1. Este edital prevê duas categorias de bolsas , a Monitoria-Livre Concorrência e a Monitoria-Vulnerabilidade, a serem distribuídas pela PROEG , de acordo com a disponibilidade orçamentária. 3.2. Para bolsa Monitoria-Livre Concorrência poderão ser contemplados (as) graduandos(as) que tenham bom rendimento acadêmico (Coeficiente de Rendimento Acadêmico por Período Letivo - CRPL a partir de 7,0 pontos no último semestre cursado) e destacado desempenho no componente curricular , ou equivalente, no qual será desenvolvida a atividade de Monitoria. 3.3. Para bolsa Monitoria-Vulnerabilidade poderão ser contemplados (as) graduandos(as) que atendam às condições de candidatura definid as na Instrução Normativa SAEST/UFPA/ Bolsa Acadêmica - vigente, tendo cursado com aproveitamento o componente curricular , ou equivalente, no qual será desenvolvida a atividade de Monitoria. 4. PÚBLICO ALVO 4.1. O PGRAD -Monitoria atenderá projetos de docentes e fetivos(as) da UFPA, em atividade regular no ensino de graduação , com o objetivo de contribuir para o desenvolvimento dos processos de ensino e de aprendizagem em componente(s) curricular(es) de curso s de graduação, vinculado(s) às diretrizes de qualificação da",
+      "texto_sha256": "4e7c0b26f7bbaad3a5a54a24867493ffd21e2bc7218cff0e1e8e3ce0a16c899e"
+     },
+     {
+      "pagina_fisica": 7,
+      "texto": "7 7.1.14. participar do Banco de Avaliadores(as) para editais patrocinados pela PROEG, com exceção daqueles em que estiverem em concorrência. 7.2. O não cumprimento dos compromissos suprac itados, assim como dos demais termos do E dital, ocasiona rá a exclusão do projeto deste p rograma, bem como a suspensão temporária do(a) Coordenador(a) para concorrer aos editais da PROEG. 7.3. Todos os documentos mencionados acima ficam disponíveis no SISPR OL para acesso dos(as) coordenadores(as). 8. COMPROMISSOS E PRERROGATIVAS DO(A) BOLSISTA 8.1. São compromissos e prerrogativas do(a) bolsista do projeto de Monitoria: 8.1.1. ser selecionado(a) pelo(a) coordenador(a) do projeto; 8.1.2. estar regularmente matriculado(a) nos períodos letivos referentes à execução do projeto; 8.1.3. comprovar desempenho acadêmico compatível com as exigências previstas no presente Edital; 8.1.4. ter cursado com desempenho satisfatório o componente curricular alvo do projeto de Monitoria, ou equivalente, conforme estabelecido pelo(a) Coordenador(a); 8.1.5. não ter vínculo empregatício; 8.1.6. cumprir carga horária semanal de 20h , com registro de atividades pelo (a) coordenador(a); 8.1.7. c umprir o cronog rama de execução, assim c omo o P lano de Trabalho previsto no projeto. 8.2. São atividades vedadas aos(às) monitores(as): 8.2.1. s ubstituir o(a) coordenador(a) em atividades docentes, tais como : ministrar aulas, lançar frequência de discentes, aplicar provas, avaliar aprendizagem de discentes, dentre outras. 8.2.2. e xercer atividades administrativas: coordenar equipes, reuniões, formalizar e acompanhar processos, administrar recursos, dentre outras. 9. ANÁLISE E CLASSIFICAÇÃO DOS PROJETOS 9.1. A Pró -Reitoria de Ensino de Graduação nomeará um corpo de A valiadores(as) de projetos para o Programa de Monitoria, constituído por representa ntes da PROEG e por docentes selecionados(as), desde que estes não integrem a equipe de execução de projetos submetidos a este Edital.",
+      "texto_sha256": "3949478838dfdabee37d58b8c7c3ced996c3e006b9712924a9a5555527b45dd4"
+     }
+    ]
+   }
+  },
+  {
+   "id": "MINERVA_0256",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_valor_bolsa",
+   "pergunta": "Qual o valor e a duração da bolsa de monitoria da PROEG?",
+   "variacoes": [
+    "quanto paga a bolsa de monitoria?",
+    "quantos meses dura a monitoria com bolsa?",
+    "quantas bolsas de monitoria a PROEG oferece?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "No Edital PROEG nº 22/2025 (Monitoria 2026) foram 100 vagas de bolsa, de R$ 700,00 mensais cada, por 10 meses (março a dezembro de 2026), com 1 bolsa por projeto classificado (itens 5.1 e 5.2). Valores e vagas mudam a cada edição.",
+   "fonte_documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "No Edital PROEG nº 22/2025 (Monitoria 2026) foram 100 vagas de bolsa, de R$ 700,00 mensais cada, por 10 meses (março a dezembro de 2026), com 1 bolsa por projeto classificado (itens 5.1 e 5.2). Valores e vagas mudam a cada edição.",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+    "paginas_fisicas": [
+     3
+    ],
+    "dispositivo": "itens 5.1 e 5.2",
+    "escopo": "Subprograma PGRAD-Monitoria (bolsa) da PROEG/UFPA, edição 2026 (Edital PROEG nº 22/2025); valores, vagas e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "33bde24978ae1e5f667c013581c9cad534f9a0e91a56e09a69c9b4dfb06c597f",
+    "evidencias": [
+     {
+      "pagina_fisica": 3,
+      "texto": "3 formação acadêmica do(a) discente-monitor(a) em conformidade com o respectivo Projeto Pedagógico do Curso. 4.1.1. O(A) monitor(a ) deve corroborar com o trabalho docente de um componente curricular, em exercício, no interior de a ções didático -pedagógicas inovadoras , compreendidas como experiências pedagógicas que alterem qualitativamente os processos e instrumentos de ensino e de aprendizagem, avaliativos e de acompanhamento pedagógico com potencial para favorecer a perma nência e a conclusão exitosa dos(as) graduandos(as) nos seus cursos. 4.1.2. A Monitoria deve primar pela integração entre diferentes campos de conhecimento, entre teoria e prática e entre saberes tradicionais, científicos e profissionais, por meio da organização de espaços de ensino, da proposição de percursos formati vos diferenciados e de outras iniciativas que oportunizem aos (às) discentes experiências que promovam a melhoria do seu aproveitamento acadêmico. 5. RECURSOS FINANCEIROS 5.1. Serão disponibilizadas 100 (cem) vagas de bolsas , no valor nominal mensal de R$700,00 (setecentos reais) cada, para atendimento d e projetos submetidos a este edital , no período de 10 (dez) meses, compreendendo março a dezembro de 2026. 5.2. Para cada projeto classificado será disponibilizada 1 (uma) cota de bolsa. 5.2.1. Os 50 (cinquenta) pro jetos que obtiverem maior pontuação terão a opção de escolher entre umas das categorias de bolsas descritas no item 3 (Monitoria -Livre Concorrência ou Monitoria-Vulnerabilidade). 5.2.2. Os demais projetos classificados serão atendidos com a categoria de bolsa Monitoria-Vulnerabilidade. 5.3. Parte dos valores para o cu steio das bolsas d este Edital é oriunda de repasse orçamentário efetivado pela Pró-Reitoria de Assistência e Acessibilidade Estu dantil (PROAES). 5.4. Caberá à Subunidade de origem do projeto , como contrapartida, garantir outras eventuais despesas de custeio pertinentes ao projeto. 6. INSCRIÇÕES 6.1. O projeto deverá ser submetido em formulário eletrônico do Sistema de Projetos On- line – SISPROL (www.sisprol.ufpa.br) – da PROEG. 6.2. As inscrições dos projetos serão realizadas no período de 16 de dezembro de 2025 a 15 de janeiro de 2026, sendo aceito apenas 01 (um) projeto por proponente. 6.3. Cada proponente poderá inscrever apenas 01 (um) projeto no âmbito deste Edital.",
+      "texto_sha256": "60aa3753476596d9d80a44d8e4242d76859f9850542707679684ccf81fa577e1"
+     }
+    ]
+   }
+  },
+  {
+   "id": "MINERVA_0257",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_carga_horaria",
+   "pergunta": "Quantas horas por semana o monitor precisa cumprir?",
+   "variacoes": [
+    "qual a carga horária da monitoria?",
+    "posso acumular bolsa de monitoria com outra bolsa?",
+    "monitor pode ter emprego?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "O(A) monitor(a) cumpre 20 horas semanais, com registro das atividades pelo(a) coordenador(a), sem prejuízo das atividades discentes regulares. Não pode ter vínculo empregatício, e o(a) bolsista não pode receber, ao mesmo tempo, outras Bolsas de Apoio Estudantil (Edital PROEG nº 22/2025, itens 1.3, 7.1.5 e 8.1).",
+   "fonte_documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "O(A) monitor(a) cumpre 20 horas semanais, com registro das atividades pelo(a) coordenador(a), sem prejuízo das atividades discentes regulares. Não pode ter vínculo empregatício, e o(a) bolsista não pode receber, ao mesmo tempo, outras Bolsas de Apoio Estudantil (Edital PROEG nº 22/2025, itens 1.3, 7.1.5 e 8.1).",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+    "paginas_fisicas": [
+     1,
+     6,
+     7
+    ],
+    "dispositivo": "itens 1.3, 7.1.5 b e 8.1.5–8.1.6",
+    "escopo": "Subprograma PGRAD-Monitoria (bolsa) da PROEG/UFPA, edição 2026 (Edital PROEG nº 22/2025); valores, vagas e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "33bde24978ae1e5f667c013581c9cad534f9a0e91a56e09a69c9b4dfb06c597f",
+    "evidencias": [
+     {
+      "pagina_fisica": 1,
+      "texto": "1 SERVIÇO PÚBLICO FEDERAL UNIVERSIDADE FEDERAL DO PARÁ PRÓ-REITORIA DE ENSINO DE GRADUAÇÃO PROGRAMA DE APOIO À QUALIFICAÇÃO DO ENSINO DE GRADUAÇÃO – PGRAD EDITAL Nº 22/2025 – PROEG, DE 9 DE DEZEMBRO DE 2025 MONITORIA EDIÇÃO 2026 A Pró-Reitoria de Ensino de Graduação (PROEG) , por meio da Diretoria de Inovação e Qualidade do Ensino (DIQUALE), com o apoio da Pró-Reitoria de Assistência e Aces sibilidade Estudantil (PROAES), torna pública a seleção de projetos no âmbito do Programa de Apoio à Qualificação do Ensino de Graduação (PGRAD), Subprograma PGRAD-Monitoria, com o objetivo de consolidar ações de qualificação do ensino de graduação a parti r do estímulo à participação de estudantes de graduação no desenvolvimento de atividades acadêmico-didático-pedagógicas regulares, sob orientação de docentes da Universidade Federal do Pará ( UFPA). Docentes efetivos(as) da UFPA estão aptos (as) a submeter p rojetos de M onitoria, observados os objetivos e requisitos do presente Edital, em conformidade com as Leis 4.320/64 e 8.666/93 , Instrução Normativa SAEST/UFPA/ Bolsa Acadêmica - vigente e Instrução Normativa nº 01/97 da Secretaria do Tesouro Nacional e do Ofício-Circular nº 3/2023 – PROPLAN/UFPA, com vistas à promoção de um ensino técnico-científico, social e ambientalmente qualificado. 1. DISPOSIÇÕES GERAIS 1.1. O apoio previsto neste Edital destina-se, exclusivamente, às Unidades e Subunidades acadêmicas que ofertam cursos de graduação da Universidade Federal do Pará. 1.2. A atividade de Monitoria deverá ser desenvolvida necessariamente sob a supervisão de um(a) Coordenador(a) – Docente do Componente Curricular alvo do projeto. 1.3. Os(As) discentes selecionados(as) no âmbito dos projetos aprovados a partir do processo seletivo decorrente d este Edital não poderão ser contemplados(as) , simultaneamente, com outras Bolsas de Apoio Estudantil. 1.4. A apresentação d o projeto deve observar rigorosamente as condi ções descritas no presente documento, ficando desclassificado o projeto que não atender quaisquer itens. 1.5. O processo de inscrição d o projeto implicará na aceitação das normas e dos critérios contidos neste Edital.",
+      "texto_sha256": "07910ad4c73f23e791fc991ad96fecf53242291c7b9fe0647d714fa09d330a30"
+     },
+     {
+      "pagina_fisica": 6,
+      "texto": "6 7.1.4. gerenciar a execução das bolsas , cadastrando ou substituindo o(a) discente de Monitoria-Livre Concorrência ou de Monitoria -Vulnerabilidade, conforme descrito n o Tutorial de Execução; 7.1.5. p reencher os documentos abaixo descritos, disponíveis no SISPROL, anexando -os nessa plataforma: a) Termo de Compromisso do(a) Coordenador(a) de projeto; b) Termo de Compromisso do (a) Discente, para a realização das atividades do projeto, destinando-lhes 20 (vinte) horas semanais, sem prejuízo de suas atividades discentes regulares; 7.1.6. planejar, orientar e coordenar, no conjunto das atividades de Monitoria, o envolvimento do(a) monitor(a) na operacionalização de ações, diálogos e instruções, que contemplem a atenção e o acompanhamento de discentes com dificuldades no curso ao qual a atividade de Monitoria esteja vinculada, bem como em colaboração ao Programa de Tutoria Discente de sua Unidade Acadêmica, caso existente; 7.1.7. realizar controle d iário de frequência dos(as) bolsista(s), conforme modelo de formulário disponível no SISPROL , o qual deverá constar como a nexo no momento da inserção do relatório final no sistema; 7.1.8. habilitar a frequência dos(as) bolsistas no SISPROL de 20 a 25 de cada mês, exceto no mês de dezembro, quando o SISPROL ficará disponível de 15 a 20, para gera r o pagamento da bolsa em tempo hábil; a) caso não seja lançada a frequência do mês, o(a) bolsista não receberá a bolsa do período. O(A) coordenador(a) poderá realizar o cadastro de forma retroativa, no espaço correspondente ao mês pendente. Será pago até o limite de 01 bolsa retroativa durante o período de execução do projeto, não se aplicando essa regra após o encerramento do projeto. 7.1.9. a valiar periodicamente se o exercício da M onitoria pelo (a) bolsista atende as exigências do presente edital; 7.1.10. justificar a substituição do(a) bolsista, em campo indicado no SISPROL , quando ocorrer; a) solicitar o preenchimento, pelos(as) bolsista(s), do Termo de Perda de Vínculo com o projeto, quando houver desistência da bolsa, e anexar o documento na plataforma; 7.1.11. submeter o relatório final indicando a contribuição do projeto para o alcance de um ou mais dos objetivos interconectados do desenvolvimento sustentável na Amazônia, no sentido da busca pelo atendimento da Agenda 2030 das Nações Unidas; 7.1.12. o rientar o trabalho do (a) bolsista para participação no Seminário de Projetos Educacionais (SEPEDUC) da PROEG; 7.1.13. c olaborar com os processos de acompanhamento dos impactos da M onitoria na formação discente e no exercício do componente curricular, a partir de orientações da Diretoria de Inovação e Qualidade do Ensino;",
+      "texto_sha256": "d7dbfb4e8d72e607644e1ac3c1dc3c4cb4d9e6d89f38250178adbc10d70e1614"
+     },
+     {
+      "pagina_fisica": 7,
+      "texto": "7 7.1.14. participar do Banco de Avaliadores(as) para editais patrocinados pela PROEG, com exceção daqueles em que estiverem em concorrência. 7.2. O não cumprimento dos compromissos suprac itados, assim como dos demais termos do E dital, ocasiona rá a exclusão do projeto deste p rograma, bem como a suspensão temporária do(a) Coordenador(a) para concorrer aos editais da PROEG. 7.3. Todos os documentos mencionados acima ficam disponíveis no SISPR OL para acesso dos(as) coordenadores(as). 8. COMPROMISSOS E PRERROGATIVAS DO(A) BOLSISTA 8.1. São compromissos e prerrogativas do(a) bolsista do projeto de Monitoria: 8.1.1. ser selecionado(a) pelo(a) coordenador(a) do projeto; 8.1.2. estar regularmente matriculado(a) nos períodos letivos referentes à execução do projeto; 8.1.3. comprovar desempenho acadêmico compatível com as exigências previstas no presente Edital; 8.1.4. ter cursado com desempenho satisfatório o componente curricular alvo do projeto de Monitoria, ou equivalente, conforme estabelecido pelo(a) Coordenador(a); 8.1.5. não ter vínculo empregatício; 8.1.6. cumprir carga horária semanal de 20h , com registro de atividades pelo (a) coordenador(a); 8.1.7. c umprir o cronog rama de execução, assim c omo o P lano de Trabalho previsto no projeto. 8.2. São atividades vedadas aos(às) monitores(as): 8.2.1. s ubstituir o(a) coordenador(a) em atividades docentes, tais como : ministrar aulas, lançar frequência de discentes, aplicar provas, avaliar aprendizagem de discentes, dentre outras. 8.2.2. e xercer atividades administrativas: coordenar equipes, reuniões, formalizar e acompanhar processos, administrar recursos, dentre outras. 9. ANÁLISE E CLASSIFICAÇÃO DOS PROJETOS 9.1. A Pró -Reitoria de Ensino de Graduação nomeará um corpo de A valiadores(as) de projetos para o Programa de Monitoria, constituído por representa ntes da PROEG e por docentes selecionados(as), desde que estes não integrem a equipe de execução de projetos submetidos a este Edital.",
+      "texto_sha256": "3949478838dfdabee37d58b8c7c3ced996c3e006b9712924a9a5555527b45dd4"
+     }
+    ]
+   }
+  },
+  {
+   "id": "MINERVA_0258",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_vedacoes",
+   "pergunta": "O que o monitor não pode fazer?",
+   "variacoes": [
+    "monitor pode dar aula no lugar do professor?",
+    "monitor pode aplicar prova ou lançar frequência?",
+    "quais atividades são proibidas para monitores?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "O(A) monitor(a) não pode substituir o(a) coordenador(a) em atividades docentes, como ministrar aulas, lançar frequência, aplicar provas ou avaliar a aprendizagem dos discentes, nem exercer atividades administrativas, como coordenar equipes e reuniões, formalizar e acompanhar processos ou administrar recursos (Edital PROEG nº 22/2025, item 8.2).",
+   "fonte_documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "O(A) monitor(a) não pode substituir o(a) coordenador(a) em atividades docentes, como ministrar aulas, lançar frequência, aplicar provas ou avaliar a aprendizagem dos discentes, nem exercer atividades administrativas, como coordenar equipes e reuniões, formalizar e acompanhar processos ou administrar recursos (Edital PROEG nº 22/2025, item 8.2).",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+    "paginas_fisicas": [
+     7
+    ],
+    "dispositivo": "item 8.2",
+    "escopo": "Subprograma PGRAD-Monitoria (bolsa) da PROEG/UFPA, edição 2026 (Edital PROEG nº 22/2025); valores, vagas e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "33bde24978ae1e5f667c013581c9cad534f9a0e91a56e09a69c9b4dfb06c597f",
+    "evidencias": [
+     {
+      "pagina_fisica": 7,
+      "texto": "7 7.1.14. participar do Banco de Avaliadores(as) para editais patrocinados pela PROEG, com exceção daqueles em que estiverem em concorrência. 7.2. O não cumprimento dos compromissos suprac itados, assim como dos demais termos do E dital, ocasiona rá a exclusão do projeto deste p rograma, bem como a suspensão temporária do(a) Coordenador(a) para concorrer aos editais da PROEG. 7.3. Todos os documentos mencionados acima ficam disponíveis no SISPR OL para acesso dos(as) coordenadores(as). 8. COMPROMISSOS E PRERROGATIVAS DO(A) BOLSISTA 8.1. São compromissos e prerrogativas do(a) bolsista do projeto de Monitoria: 8.1.1. ser selecionado(a) pelo(a) coordenador(a) do projeto; 8.1.2. estar regularmente matriculado(a) nos períodos letivos referentes à execução do projeto; 8.1.3. comprovar desempenho acadêmico compatível com as exigências previstas no presente Edital; 8.1.4. ter cursado com desempenho satisfatório o componente curricular alvo do projeto de Monitoria, ou equivalente, conforme estabelecido pelo(a) Coordenador(a); 8.1.5. não ter vínculo empregatício; 8.1.6. cumprir carga horária semanal de 20h , com registro de atividades pelo (a) coordenador(a); 8.1.7. c umprir o cronog rama de execução, assim c omo o P lano de Trabalho previsto no projeto. 8.2. São atividades vedadas aos(às) monitores(as): 8.2.1. s ubstituir o(a) coordenador(a) em atividades docentes, tais como : ministrar aulas, lançar frequência de discentes, aplicar provas, avaliar aprendizagem de discentes, dentre outras. 8.2.2. e xercer atividades administrativas: coordenar equipes, reuniões, formalizar e acompanhar processos, administrar recursos, dentre outras. 9. ANÁLISE E CLASSIFICAÇÃO DOS PROJETOS 9.1. A Pró -Reitoria de Ensino de Graduação nomeará um corpo de A valiadores(as) de projetos para o Programa de Monitoria, constituído por representa ntes da PROEG e por docentes selecionados(as), desde que estes não integrem a equipe de execução de projetos submetidos a este Edital.",
+      "texto_sha256": "3949478838dfdabee37d58b8c7c3ced996c3e006b9712924a9a5555527b45dd4"
+     }
+    ]
+   }
+  },
+  {
+   "id": "MINERVA_0259",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_como_ser_selecionado",
+   "pergunta": "Como faço para virar monitor de uma disciplina?",
+   "variacoes": [
+    "como é a seleção de monitores?",
+    "onde me inscrevo para monitoria?",
+    "quem escolhe o monitor?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "Quem submete o projeto de monitoria é o(a) docente, no SISPROL. Aprovado o projeto, o(a) coordenador(a) seleciona o(a) discente por edital próprio, seguindo os critérios do item 3; para a bolsa Monitoria-Vulnerabilidade a seleção considera a lista de discentes da PROAES, oriunda do CADGEST (Edital PROEG nº 22/2025, itens 6.1 e 7.1.3). Procure o(a) professor(a) da disciplina ou acompanhe os editais de seleção da sua Faculdade.",
+   "fonte_documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "Quem submete o projeto de monitoria é o(a) docente, no SISPROL. Aprovado o projeto, o(a) coordenador(a) seleciona o(a) discente por edital próprio, seguindo os critérios do item 3; para a bolsa Monitoria-Vulnerabilidade a seleção considera a lista de discentes da PROAES, oriunda do CADGEST (Edital PROEG nº 22/2025, itens 6.1 e 7.1.3). Procure o(a) professor(a) da disciplina ou acompanhe os editais de seleção da sua Faculdade.",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+    "paginas_fisicas": [
+     3,
+     5
+    ],
+    "dispositivo": "itens 6.1 e 7.1.3",
+    "escopo": "Subprograma PGRAD-Monitoria (bolsa) da PROEG/UFPA, edição 2026 (Edital PROEG nº 22/2025); valores, vagas e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "33bde24978ae1e5f667c013581c9cad534f9a0e91a56e09a69c9b4dfb06c597f",
+    "evidencias": [
+     {
+      "pagina_fisica": 3,
+      "texto": "3 formação acadêmica do(a) discente-monitor(a) em conformidade com o respectivo Projeto Pedagógico do Curso. 4.1.1. O(A) monitor(a ) deve corroborar com o trabalho docente de um componente curricular, em exercício, no interior de a ções didático -pedagógicas inovadoras , compreendidas como experiências pedagógicas que alterem qualitativamente os processos e instrumentos de ensino e de aprendizagem, avaliativos e de acompanhamento pedagógico com potencial para favorecer a perma nência e a conclusão exitosa dos(as) graduandos(as) nos seus cursos. 4.1.2. A Monitoria deve primar pela integração entre diferentes campos de conhecimento, entre teoria e prática e entre saberes tradicionais, científicos e profissionais, por meio da organização de espaços de ensino, da proposição de percursos formati vos diferenciados e de outras iniciativas que oportunizem aos (às) discentes experiências que promovam a melhoria do seu aproveitamento acadêmico. 5. RECURSOS FINANCEIROS 5.1. Serão disponibilizadas 100 (cem) vagas de bolsas , no valor nominal mensal de R$700,00 (setecentos reais) cada, para atendimento d e projetos submetidos a este edital , no período de 10 (dez) meses, compreendendo março a dezembro de 2026. 5.2. Para cada projeto classificado será disponibilizada 1 (uma) cota de bolsa. 5.2.1. Os 50 (cinquenta) pro jetos que obtiverem maior pontuação terão a opção de escolher entre umas das categorias de bolsas descritas no item 3 (Monitoria -Livre Concorrência ou Monitoria-Vulnerabilidade). 5.2.2. Os demais projetos classificados serão atendidos com a categoria de bolsa Monitoria-Vulnerabilidade. 5.3. Parte dos valores para o cu steio das bolsas d este Edital é oriunda de repasse orçamentário efetivado pela Pró-Reitoria de Assistência e Acessibilidade Estu dantil (PROAES). 5.4. Caberá à Subunidade de origem do projeto , como contrapartida, garantir outras eventuais despesas de custeio pertinentes ao projeto. 6. INSCRIÇÕES 6.1. O projeto deverá ser submetido em formulário eletrônico do Sistema de Projetos On- line – SISPROL (www.sisprol.ufpa.br) – da PROEG. 6.2. As inscrições dos projetos serão realizadas no período de 16 de dezembro de 2025 a 15 de janeiro de 2026, sendo aceito apenas 01 (um) projeto por proponente. 6.3. Cada proponente poderá inscrever apenas 01 (um) projeto no âmbito deste Edital.",
+      "texto_sha256": "60aa3753476596d9d80a44d8e4242d76859f9850542707679684ccf81fa577e1"
+     },
+     {
+      "pagina_fisica": 5,
+      "texto": "5 d) Caso o projeto seja classificado no Resultado Final, o(a) coordenador(a) deverá encaminhar a cópia da Ata para substituição , por meio de abertura de chamada via Sagitta. 6.6.13. A resolução e qualidade do arquivo anexado (formato PDF) são de inteira responsabilidade do (a) proponente e, caso esteja ilegível ou com resolução insuficiente para impressão, será desconsiderado na Análise Técnica, podendo levar à desclassificação do projeto. 6.7. No ato da inscrição do projeto será emitido PROTOCOLO DE ENTREGA, gerado automaticamente pelo sistema. A submissão só será finalizada quando selecionado o comando “Enviar”, momento em que será emitido protocolo, comprovando a submissão. 6.8. Documentos encaminhados sem as assinaturas n ecessárias serão rejeitados na Análise Técnica e o projeto será desclassificado. 6.9. A PROEG não se responsabiliza por pro jetos não recebid os em decorrência de eventuais problemas técnicos ou falhas na transmissão de dados. 6.10. Projetos incompletos (não finalizad os ou não enviad os corretamente no sistema) serão automaticamente desclassificad os. A opção de salvar (no sistema) não garante o envio do projeto. 6.11. Alterações e substituições de documentos no sistema serão permitidas somente antes do envio final d o projeto , ou seja , antes que o mesmo seja finalizad o, sendo tal tarefa de inteira responsabilidade do(a) docente responsável pelo projeto. 6.12. Após fin alizado e enviad o o projeto , o arquivo incluído será considerado como versão final e seguirá para análise, não sendo mais possível alterá-lo. 6.13. É indispensável que a inscrição seja realizada pelo (a) proponente/coordenador(a) do projeto. 7. COMPROMISSOS E PRERROGATIVAS DOS(AS) COORDENADORES(AS) 7.1. São compromissos e prerrogativas do(a) coordenador(a) do projeto de Monitoria: 7.1.1. s er professor(a) efetivo(a) da UFPA e estar em atividade regular no ensino de graduação; 7.1.2. comprovar vínculo docente no componente curricular alvo do projeto, no período de sua vigência; 7.1.3. realizar a seleção, por meio de edital, do(a) discente que fará parte da execução do projeto, de acordo com os critérios estabelecidos no item 3 deste edital; a) a seleção para as bolsas de Monitoria -Vulnerabilidade deverá ser efetivada considerando-se a Lista de Discentes disponibilizadas pela Pró-Reitoria de Assistência e Acessibilidade Estudantil (PROAES), oriunda do CADGEST;",
+      "texto_sha256": "f21e3c6e97afe5c7b243cae490fcac6ac67a8f3955d6283199c1c5dd4a64ecb1"
+     }
+    ]
+   }
+  },
+  {
+   "id": "MINERVA_0260",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_frequencia_pagamento",
+   "pergunta": "Por que minha bolsa de monitoria não foi paga?",
+   "variacoes": [
+    "como é lançada a frequência do monitor?",
+    "quando o coordenador lança a frequência da monitoria?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "O pagamento depende de o(a) coordenador(a) habilitar a frequência do(a) bolsista no SISPROL de 20 a 25 de cada mês (em dezembro, de 15 a 20). Se a frequência do mês não for lançada, a bolsa daquele período não é paga; o(a) coordenador(a) pode lançá-la de forma retroativa, com limite de 1 bolsa retroativa durante a execução do projeto (Edital PROEG nº 22/2025, item 7.1.8).",
+   "fonte_documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "O pagamento depende de o(a) coordenador(a) habilitar a frequência do(a) bolsista no SISPROL de 20 a 25 de cada mês (em dezembro, de 15 a 20). Se a frequência do mês não for lançada, a bolsa daquele período não é paga; o(a) coordenador(a) pode lançá-la de forma retroativa, com limite de 1 bolsa retroativa durante a execução do projeto (Edital PROEG nº 22/2025, item 7.1.8).",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+    "paginas_fisicas": [
+     6
+    ],
+    "dispositivo": "item 7.1.8",
+    "escopo": "Subprograma PGRAD-Monitoria (bolsa) da PROEG/UFPA, edição 2026 (Edital PROEG nº 22/2025); valores, vagas e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "33bde24978ae1e5f667c013581c9cad534f9a0e91a56e09a69c9b4dfb06c597f",
+    "evidencias": [
+     {
+      "pagina_fisica": 6,
+      "texto": "6 7.1.4. gerenciar a execução das bolsas , cadastrando ou substituindo o(a) discente de Monitoria-Livre Concorrência ou de Monitoria -Vulnerabilidade, conforme descrito n o Tutorial de Execução; 7.1.5. p reencher os documentos abaixo descritos, disponíveis no SISPROL, anexando -os nessa plataforma: a) Termo de Compromisso do(a) Coordenador(a) de projeto; b) Termo de Compromisso do (a) Discente, para a realização das atividades do projeto, destinando-lhes 20 (vinte) horas semanais, sem prejuízo de suas atividades discentes regulares; 7.1.6. planejar, orientar e coordenar, no conjunto das atividades de Monitoria, o envolvimento do(a) monitor(a) na operacionalização de ações, diálogos e instruções, que contemplem a atenção e o acompanhamento de discentes com dificuldades no curso ao qual a atividade de Monitoria esteja vinculada, bem como em colaboração ao Programa de Tutoria Discente de sua Unidade Acadêmica, caso existente; 7.1.7. realizar controle d iário de frequência dos(as) bolsista(s), conforme modelo de formulário disponível no SISPROL , o qual deverá constar como a nexo no momento da inserção do relatório final no sistema; 7.1.8. habilitar a frequência dos(as) bolsistas no SISPROL de 20 a 25 de cada mês, exceto no mês de dezembro, quando o SISPROL ficará disponível de 15 a 20, para gera r o pagamento da bolsa em tempo hábil; a) caso não seja lançada a frequência do mês, o(a) bolsista não receberá a bolsa do período. O(A) coordenador(a) poderá realizar o cadastro de forma retroativa, no espaço correspondente ao mês pendente. Será pago até o limite de 01 bolsa retroativa durante o período de execução do projeto, não se aplicando essa regra após o encerramento do projeto. 7.1.9. a valiar periodicamente se o exercício da M onitoria pelo (a) bolsista atende as exigências do presente edital; 7.1.10. justificar a substituição do(a) bolsista, em campo indicado no SISPROL , quando ocorrer; a) solicitar o preenchimento, pelos(as) bolsista(s), do Termo de Perda de Vínculo com o projeto, quando houver desistência da bolsa, e anexar o documento na plataforma; 7.1.11. submeter o relatório final indicando a contribuição do projeto para o alcance de um ou mais dos objetivos interconectados do desenvolvimento sustentável na Amazônia, no sentido da busca pelo atendimento da Agenda 2030 das Nações Unidas; 7.1.12. o rientar o trabalho do (a) bolsista para participação no Seminário de Projetos Educacionais (SEPEDUC) da PROEG; 7.1.13. c olaborar com os processos de acompanhamento dos impactos da M onitoria na formação discente e no exercício do componente curricular, a partir de orientações da Diretoria de Inovação e Qualidade do Ensino;",
+      "texto_sha256": "d7dbfb4e8d72e607644e1ac3c1dc3c4cb4d9e6d89f38250178adbc10d70e1614"
+     }
+    ]
+   }
+  },
+  {
+   "id": "MINERVA_0261",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_vinculo_declaracao",
+   "pergunta": "Bolsa de monitoria gera vínculo empregatício? Recebo declaração?",
+   "variacoes": [
+    "monitoria é bolsa trabalho?",
+    "onde tiro a declaração de monitoria?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "Não gera vínculo: a bolsa de monitoria é de cunho acadêmico, não é bolsa trabalho (Lei 11.788/2008) nem regida pela CLT. Ao final da execução, aprovado o relatório pela PROEG, o(a) monitor(a) tem direito à declaração de participação, disponível no SISPROL (Edital PROEG nº 22/2025, itens 15.3 e 15.6).",
+   "fonte_documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "Não gera vínculo: a bolsa de monitoria é de cunho acadêmico, não é bolsa trabalho (Lei 11.788/2008) nem regida pela CLT. Ao final da execução, aprovado o relatório pela PROEG, o(a) monitor(a) tem direito à declaração de participação, disponível no SISPROL (Edital PROEG nº 22/2025, itens 15.3 e 15.6).",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_Monitoria_PROEG_22_2025.pdf",
+    "paginas_fisicas": [
+     10
+    ],
+    "dispositivo": "itens 15.3 e 15.6",
+    "escopo": "Subprograma PGRAD-Monitoria (bolsa) da PROEG/UFPA, edição 2026 (Edital PROEG nº 22/2025); valores, vagas e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/Editais/EditalMonitoria2026.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "33bde24978ae1e5f667c013581c9cad534f9a0e91a56e09a69c9b4dfb06c597f",
+    "evidencias": [
+     {
+      "pagina_fisica": 10,
+      "texto": "10 15. DISPOSIÇÕES FINAIS 15.1. Após a divulgação do Resultado Final, os(as) coordenadores(as) contemplados (as), deverão participar de reunião com a equipe DIQUALE/PROEG para as orientações sobre a execução do apoio aprovado. 15.2. Os(as) proponentes deste E dital que tiverem seus projetos aprovados e não classificados dent ro do número de vagas terão seu processo de inscrição facilitado no Edital Monitoria Voluntária 202 6, bem como os que tiverem seus projet os classificados e optarem em participar também da seleção de Monitoria Voluntária. 15.3. A bolsa de Monitoria é uma bolsa de cunho acadêmico, não se trata de bolsa trabalho (Lei 11.788/2008) e não é regida pela Consolidação das Leis Trabalhistas (CLT), po rtanto não caracteriza vínculo empregatício com a UFPA. 15.4. As atividades a que se obriga o (a) monitor(a) são as de natureza acadêmica desc ritas no seu Plano de Atividades. 15.5. Quando ocorrer o afastamento do(a) coordenador(a) do projeto, o(a) mesmo(a) deve solicitar à Direção da Unidade ou Subunidade de origem da proposta a indicação de outro(a) professor(a) para assumir a função de coordenador(a). 15.5.1. A substituição deve ser solicitada pela Unidade ou Subunidade, a partir de abertura de chamada via SAGITTA à PROEG/SISPROL, anexando ofício de autorização do(a) dirigente da Unidade ou Subunidade, com os dados do(a) novo(a) coordenador(a): nome completo, CPF, e -mail e telefone para contato, acompanhado da ata do colegiado da Unidade ou Subunidade, aprovando a substituição e documento do(a) coordenador(a) do projeto que solicitou a substituição. 15.6. Ao final do prazo de execução e referendada a aprovação do relatório de execução do projeto pela PROEG, o(a) monitor(a) fará jus à respectiva declaração de participação no Subprograma, disponível no SISPROL: http://www.sisprol.ufpa.br/view/inicio/ 15.7. Quaisquer atendimentos relativos ao SISPROL de verão ser realizados por meio de chamada SAGITTA/UFPA. 15.8. Será de inteira responsabilidade do(a) propone nte, com apoio de sua Unidade/Subunidade, acompanhar na página oficial da PROEG, bem como através do e - mail cadastrado, a publicação de todos os atos, editais e comunicados referentes a este Edital. 15.9. Os casos omissos neste Edital serão resolvidos pela PROEG. Profa. Dra. Maria Lucilena Gonzaga Costa Pró-Reitora de Ensino de Graduação Profa. Dra. Fátima Cristina da Costa Pessoa Diretora de Inovação e Qualidade do Ensino – PROEG",
+      "texto_sha256": "eed2af2c198f124d963dc8852b97d133c6bf6e5615dba77a2cd040b81ca0665a"
+     }
+    ]
+   }
+  },
+  {
+   "id": "MINERVA_0262",
+   "macroarea": "Monitoria (PROEG)",
+   "intent": "monitoria_voluntaria",
+   "pergunta": "Como funciona a monitoria voluntária na UFPA?",
+   "variacoes": [
+    "posso ser monitor sem bolsa?",
+    "quais os requisitos para monitor voluntário?",
+    "quantos monitores voluntários cada projeto pode ter?"
+   ],
+   "entidades": [],
+   "palavras_chave": [],
+   "fonte_esperada": "Edital_MonitoriaVoluntaria_PROEG_03_2026.pdf",
+   "url_oficial": "https://proeg.ufpa.br/images/Artigos/MonitoriaVoluntaria2026-1.pdf",
+   "estrategia_recuperacao": "RESPOSTA_LITERAL",
+   "resposta_literal": "Pelo Edital PROEG nº 03/2026 (Monitoria Voluntária 2026), os projetos são de docentes efetivos(as) ou substitutos(as), com até 2 monitores(as) voluntários(as) por projeto, executados de abril a dezembro de 2026. O(A) monitor(a) voluntário(a) deve ser selecionado(a) pelo(a) coordenador(a), estar regularmente matriculado(a), ter cursado com desempenho satisfatório o componente curricular (ou equivalente) e cumprir 20 horas semanais. Ao final, aprovado o relatório, recebe declaração de participação no SISPROL (itens 3.1, 4.5.10, 6.1, 9 e 12.5).",
+   "fonte_documento": "Edital_MonitoriaVoluntaria_PROEG_03_2026.pdf",
+   "temporal": true,
+   "prioridade": "Alta",
+   "tipo_resposta": "informativa",
+   "resposta_esperada": "Pelo Edital PROEG nº 03/2026 (Monitoria Voluntária 2026), os projetos são de docentes efetivos(as) ou substitutos(as), com até 2 monitores(as) voluntários(as) por projeto, executados de abril a dezembro de 2026. O(A) monitor(a) voluntário(a) deve ser selecionado(a) pelo(a) coordenador(a), estar regularmente matriculado(a), ter cursado com desempenho satisfatório o componente curricular (ou equivalente) e cumprir 20 horas semanais. Ao final, aprovado o relatório, recebe declaração de participação no SISPROL (itens 3.1, 4.5.10, 6.1, 9 e 12.5).",
+   "ativo": true,
+   "versao_dataset": "1.11.0",
+   "origem_entrada": {
+    "tipo": "ampliacao_documental",
+    "lote": "20261119_monitoria",
+    "data": "2026-11-19",
+    "base": "editais PROEG 22/2025 e 03/2026 baixados do site oficial (SHA-256 conferido)"
+   },
+   "status_curadoria": "contextualizada_sem_aprovacao_institucional",
+   "autorizacao_literal": "pendente",
+   "contexto_documental": {
+    "status": "localizado_na_copia_local",
+    "documento": "Edital_MonitoriaVoluntaria_PROEG_03_2026.pdf",
+    "paginas_fisicas": [
+     2,
+     3,
+     6,
+     7,
+     8
+    ],
+    "dispositivo": "itens 3.1, 4.5.10, 6.1, 8.1 e 12.5",
+    "escopo": "Subprograma PGRAD-Monitoria Voluntária da PROEG/UFPA, edição 2026 (Edital PROEG nº 03/2026); regras e prazos mudam a cada edição — confirmar o edital vigente.",
+    "fonte_publicacao": "https://proeg.ufpa.br/images/Artigos/MonitoriaVoluntaria2026-1.pdf",
+    "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional",
+    "documento_sha256": "cb391c9d3fb1870522b799f192d4b29d8ff1afaf44631fcdac802b7a2abdce5a",
+    "evidencias": [
+     {
+      "pagina_fisica": 2,
+      "texto": "2 2.1.1 estimular a participação de estudantes de graduação na promoção de ações de Monitoria Voluntária que visem tanto seu desenvolvimento acadêmico-profissional quanto a qualificação das atividades curriculares do seu curso de graduação , pela proposição de estratégias pedagógicas inovadoras; 2.1.2 promover a qualificação do trabalho docente, para o desenvolvimento de atividades curriculares teóric o-práticas, de caráter criativo e inovador, com auxílio de m onitores(as) voluntários(as) pertencentes à comunidade acadêmica da faculdade contemplada; 2.1.3 p lanejar e realizar ações, diálogos e instruções que contemplem a atenção e o acompanhamento de discentes co m dificuldades no curso, incluindo a colaboração com o Programa de Tutoria Discente, quando existente na Unidade; 2.1.4 contribuir para a melhoria da qualidade do ensino, com a diminuição das taxas de evasão, de retenção e o aumento da taxa de sucesso nos cursos de graduação. 3. PÚBLICO ALVO 3.1 O PGRAD -Monitoria Voluntária atenderá projetos de docentes efetivos (as) e substitutos(as) da UFPA, em atividade regular no ensino de graduação, com o objetivo de contribuir para o desenv olvimento dos processos de ensino e de aprendizagem em componente(s) curricular(es) de curso s de graduação, vinculado(s) às diretrizes de qualificação da formação acadêmica do(a) monitor(a) voluntário(a), em conformidade com o respectivo Projeto Pedagógico do Curso. 3.1.1 O(A) m onitor(a) voluntário(a) deve corroborar com o trabalho docente, de um componente curricular em exercício, no interior de a ções didático-pedagógicas inovadoras, compreendidas como experiências pedagógicas que alterem qualitativamente os processos e instrumentos de ensino e de aprendizagem, avaliativos e de acompanhamento pedagógico , com potencial para favorecer a perma nência e a conclusão exitosa de graduandos(as), nos seus cursos. 3.1.2 A M onitoria Voluntária deve promover a integração entre diferentes campos de conhecimento, entre teoria e prática e entre saberes tradicionais, científicos e profissionais, por meio da organização de espaços de ensino, da proposição de percursos formati vos diferenciados e , de outras iniciativas, que oportunizem aos discentes experiências que promovam a melhoria do seu aproveitamento acadêmico. 4. INSCRIÇÕES 4.1 O projeto deverá ser submetido em formulário eletrônico do Sistema de Projetos On-line – SISPROL (www.sisprol.ufpa.br) – da PROEG. 4.2 As inscrições dos projetos serão realizadas no período de 3 de março a 17 de março de 2026, sendo aceito apenas um (01) projeto por proponente.",
+      "texto_sha256": "1dffba79270fb3b3c9a442d49468aa8d192281c43fe0e4ea0c0c05684fc13ffd"
+     },
+     {
+      "pagina_fisica": 3,
+      "texto": "3 4.2.1 Os(as) proponentes que realizaram inscrição n o Edital PROEG nº 22/2025 e não foram classificados(as) terão s eu processo de inscrição simplificado neste edital de Monitoria Voluntária. 4.3 Os(As) docentes que já possuem acesso ao sistema SISPROL no Perfil de Coordenador(a)/Avaliador(a) não precisarão solicitar nova liberação de acesso. 4.4 Os(As) docentes que não possuem acesso ao sistema SISPROL no Perfil de Coordenador(a)/Avaliador(a) deverão clicar o link de “Liberação de Acesso” para realizar o seu cadastro, obtendo, assim, login e senha para acesso aos editais disponíveis. 4.5 O formulário eletrônico é constituído dos seguintes itens: 4.5.1 Título do projeto; 4.5.2 Justificativa: apresentação objetiva e sucinta dos motivos do projeto; 4.5.3 Objetivos do projeto de Monitoria Voluntária; 4.5.4 Contribuição do projeto para o alcance de um ou mais dos objetivos interconectados do desenvolvimento sustentável na Amazônia, no sentido da busca pelo atendimento da Agenda 2030 das Nações Unidas (ONU). Para maiores informações acessar o link https://odsbrasil.gov.br/home/agenda; 4.5.5 Identificação da(s) atividade(s) curricular(es), programa (s) ou módulo(s)/disciplina(s) a que se vinculam as atividades da Monitoria; 4.5.6 Especificação dos fundamentos teórico -práticos, dos métodos, mecanismos e instrumentos, objeto do projeto de Monitoria Voluntária; 4.5.7 Especificação do número de turmas do(a) Coordenador(a) por período letivo, número de alunos(as) por turma, número de professores (as) que ministram a mesma atividade curricular/disciplina; 4.5.8 Descrição do plano de atividades do s(as) monitores(as) voluntário(as), incluindo o planejamento de ações que contemplem a atenção e o acompanhamento de discentes com dificuldades no curso, bem como a colaboração com o Programa de Tutoria Discente, quando existente na Unidade; 4.5.9 Cronograma de execução das atividades do projeto; 4.5.10 Número de monitores(as) voluntários(as), até o limite de dois (02) discentes; 4.5.11 Especificação dos resultados esperados; 4.5.12 Apresentação da cópia da Ata da Reunião de aprovação do projeto, com as devidas assinaturas, pelo Conselho da(s) Subunidade(s) ou Congregação da Unidade(s) Acadêmica(s) envolvida(s).",
+      "texto_sha256": "fca3719a98b57bcfde8be90a0f32a3d9630fd6e50ca410a57c09ed519cba5276"
+     },
+     {
+      "pagina_fisica": 6,
+      "texto": "6 5.1.15 participar do Banco de Avaliadores(as) para editais p ublicados pela PROEG, com exceção daqueles em que estiverem em concorrência. 5.2 O não cumprimento dos compromissos supracitados, assim como dos demais termos do edital, ocasionará a exclusão do projeto deste programa, bem como a suspensão temporária do(a) coordenador(a) para concorrer aos editais da PROEG. 5.3 Todos os documentos mencionados acima ficam disponíveis no SISPROL para acesso dos(as) coordenadores(as). 6. COMPROMISSOS E PRERROGATIVAS DO(A) MONITOR(A) VOLUNTÁRIO(A) 6.1 São compromissos e prerrogativas do(a) monitor(a) voluntário(a): 6.1.2 ser selecionado(a) pelo(a) coordenador(a) do projeto; 6.1.3 estar regularmente matriculado(a) nos períodos letivos referentes à execução do projeto; 6.1.4 ter cursado com desempenho satisfatório o componente curricular alvo do projeto de Monitoria Voluntária, ou equivalente, conforme estabelecido pelo(a) coordenador(a); 6.1.5 cumprir carga horária semanal de 20h , com registro de atividades pelo (a) coordenador(a); 6.1.6 cumprir o cronograma de execução, assim como o Plano de Trabalho previsto no projeto. 6.2 São atividades vedadas ao(à) monitor(a) voluntário(a): 6.2.1 substituir o(a) coordenador(a) em atividades docentes, tais como: ministrar aulas, lançar frequência de discentes, aplicar provas, avaliar aprendizagem de discentes, dentre outras; 6.2.2 pesquisa, coleta de dados, realização de experimentos , e quaisquer outras atividades , que não guardem relação com as atividades previstas no plano de ensino da disciplina, objeto da Monitoria Voluntária, salvo se estiverem alinhadas com o trabalho de Monitoria Voluntária, por exemplo, para estruturar relato de experiência sobre as atividades desenvolvidas; 6.2.3 exercer atividades administrativas: coordenar equipes, reuniões, formalizar e acompanhar processos, administrar recursos, dentre outras. 7. ANÁLISE E CLASSIFICAÇÃO DOS PROJETOS 7.1 A análise de enquadramento do projeto no SISPROL, com a verificação do atendimento aos requisitos deste edital, será realizada pela equipe da DIQUALE.",
+      "texto_sha256": "748ab1efeb00a66545382c6de738d0bcc5737943e9fd7ade5340d5cf256ed6d7"
+     },
+     {
+      "pagina_fisica": 7,
+      "texto": "7 8. RESULTADOS 10.1 A divulgação do resultado final dos projetos classificados será disponibilizada no site da PROEG www.proeg.ufpa.br, a partir de 31 de março de 2026. 9. PERÍODO DE DURAÇÃO 8.1 Os projetos serão executados durante nove (9) meses, no período de abril a dezembro de 2026 e demais prazos indicados no Cronograma de Atividades. 10. ACOMPANHAMENTO DA EXECUÇÃO DO PROJETO 9.1 O acompanhamento da execução do projeto dar -se-á por Comissão especialmente designada pela PROEG, e da qual fará parte a Diretoria de Inovação e Qualidade do Ensino , que adotará os procedimentos adequados e a periodicidade da avaliação. 11. CRONOGRAMA DO EDITAL DISCRIMINAÇÃO PERÍODOS Lançamento do edital 24 de fevereiro de 2026 Inscrição de projetos no SISPROL 3 a 17 de março de 2026 Análise dos projetos 18 a 20 de março de 2026 Homologação dos projetos A partir de 24 de março de 2026 Solicitação de recursos (enviar para o endereço diqueleproeg@ufpa.br) Até 48h a partir da homologação dos projetos Resultado final A partir 31 de março de 2026 Reunião de orientação de execução 7 de abril de 2026 Período de cadastro do(a) monitor(a) e lançamento de frequência no SISPROL 20 a 25 de abril de 2026 Execução acadêmica do projeto Abril a dezembro de 2026 Relatório final, via SISPROL 4 a 29 de janeiro de 2027 12. DISPOSIÇÕES FINAIS 12.1 Após a divulgação do resultado f inal, os(as) Coordenadores(as) contemplados (as) deverão participar de reunião com a equipe DIQUALE/PROEG para as orientações sobre a execução do projeto aprovado.",
+      "texto_sha256": "cc0359060135580413f48a5785cb2179445c1801e02add26446bf82bcc1537ed"
+     },
+     {
+      "pagina_fisica": 8,
+      "texto": "8 12.4 As a tividades a que se obriga o (a) Monitor(a) Voluntário(a) são as de natureza acadêmica, descritas no seu Plano de Trabalho. 12.2 Quando ocorrer o afastamento do(a) Coordenador(a) do projeto, o(a) mesmo(a) deve solicitar à Direção da Unidade ou Subunidade de origem da proposta a indicação de outro(a) professor(a) para assumir a função de Coordenador(a). 12.2.1 A substituição deve ser solicitada pela Unidade ou Subunidade, a partir de abertura de chamada via SAGITTA à PROEG/SISPROL, anexando ofício de autorização do(a) dirigente da Unidade ou Subunidade, com os dados do(a) novo(a) Coordenador(a): nome completo, CPF, e- mail e telefone para contato, acompanhado da ata do colegiado da Unidade ou Subunidade, aprovando a substituição e documento do(a) Coordenador(a) do projeto que solicitou a substituição. 12.5 Ao final do prazo de execução e referendada a aprovação do relatório final de execução do projeto pela PROEG, o(a) discente fará jus à respectiva declaração de participação no programa, disponível no SISPROL: http://www.sisprol.ufpa.br/view/inicio/ 12.6 Quaisquer atendimentos relativos ao SISPROL de verão ser realizados por meio de chamada SAGITTA/UFPA. 12.7 Será de inteira responsabilidade do(a) proponente, com apoio de sua Unidade/Subunidade, acompanhar na págin a oficial da PROEG, bem como através do e-mail cadastrado, a publicação de todos os atos, editais e comunicados referentes a este Edital. 12.8 Os casos omissos neste edital serão resolvidos pela PROEG. Profa. Dra. Maria Lucilena Gonzaga Costa Pró-Reitora de Ensino de Graduação Profa. Dra. Fátima Cristina da Costa Pessoa Diretora de Inovação e Qualidade do Ensino – DIQUALE/PROEG",
+      "texto_sha256": "e4cdd5a44195f427fd6eb10feba3f0c6bf0dfcd1f419ca688a1ddf8c704f1996"
+     }
+    ]
+   }
   }
  ],
  "curadoria_contextual": {

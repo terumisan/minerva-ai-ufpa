@@ -1,0 +1,194 @@
+[
+ {
+  "id": "MINERVA_0009",
+  "pergunta": "Quem aparece como diretor e revisor nos créditos do Manual Discente de extensão da PROEX de 2026?",
+  "documento": "ManualDiscenteDrive.pdf",
+  "paginas": [
+   2
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0011 e fala de: bolsas, cadastro, confundir, editado, federal, procedimentos"
+  ]
+ },
+ {
+  "id": "MINERVA_0010",
+  "pergunta": "Como acessar o Portal do Discente pelo menu Módulos do SIGAA da UFPA?",
+  "documento": "ManualDiscenteDrive.pdf",
+  "paginas": [
+   4
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0007 e fala de: 04, bolsas, cadastro, confundir, editado, extensao"
+  ]
+ },
+ {
+  "id": "MINERVA_0013",
+  "pergunta": "Quem assina no campo Orientador/Supervisor da Proposta de Estágio Supervisionado da FCT?",
+  "documento": "Matricula_Estagio_Anexo.pdf",
+  "paginas": [
+   2
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0012 e fala de: formulario, pre, requisitos, substitui, vistos"
+  ]
+ },
+ {
+  "id": "MINERVA_0014",
+  "pergunta": "Quais assinaturas e vistos constam no requerimento de matrícula em Estágio Supervisionado da FCT?",
+  "documento": "Matricula_Estagio_Anexo.pdf",
+  "paginas": [
+   1
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0012 e fala de: campos, formulario, pre, requisitos, substitui"
+  ]
+ },
+ {
+  "id": "MINERVA_0015",
+  "pergunta": "Quais assinaturas e vistos constam na Proposta de Estágio Supervisionado da FCT?",
+  "documento": "Matricula_Estagio_Anexo.pdf",
+  "paginas": [
+   2
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0012 e fala de: campos, formulario, pre, requisitos, substitui"
+  ]
+ },
+ {
+  "id": "MINERVA_0017",
+  "pergunta": "Onde preencher o endereço do aluno na Proposta de Estágio Supervisionado da FCT?",
+  "documento": "Matricula_Estagio.pdf",
+  "paginas": [
+   2
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0012 e fala de: campos, formulario, pre, requisitos, substitui, vistos"
+  ]
+ },
+ {
+  "id": "MINERVA_0045",
+  "pergunta": "Quanto dura o mandato dos componentes e suplentes das câmaras do CONSAD no art. 35, § 4º?",
+  "documento": "RegimentoGeral.pdf",
+  "paginas": [
+   17
+  ],
+  "problemas": [
+   "números fora das páginas: 18"
+  ]
+ },
+ {
+  "id": "MINERVA_0065",
+  "pergunta": "Qual atribuição sobre afastamento de servidores cabe aos colegiados de primeira instância no art. 69, VI?",
+  "documento": "RegimentoGeral.pdf",
+  "paginas": [
+   26,
+   27
+  ],
+  "problemas": [
+   "números fora das páginas: 102"
+  ]
+ },
+ {
+  "id": "MINERVA_0119",
+  "pergunta": "Quantos períodos letivos por ano prevê o Regulamento da Graduação da UFPA?",
+  "documento": "Regulamento_Graduacao.pdf",
+  "paginas": [
+   3
+  ],
+  "problemas": [
+   "números fora das páginas: 100,200"
+  ]
+ },
+ {
+  "id": "MINERVA_0168",
+  "pergunta": "Quais doenças raras e crônicas dão direito ao exercício domiciliar pelo RADIP-EG?",
+  "documento": "Resolucao_RADIP_5799_2024.pdf",
+  "paginas": [
+   5,
+   6
+  ],
+  "problemas": [
+   "números fora das páginas: 40"
+  ]
+ },
+ {
+  "id": "MINERVA_0182",
+  "pergunta": "O que a Resolução 5.824/2024 mudou no RADIP-EG?",
+  "documento": "Resolucao_5824_2024_Altera_RADIP.pdf",
+  "paginas": [
+   1
+  ],
+  "problemas": [
+   "números fora das páginas: 24/10/2024"
+  ]
+ },
+ {
+  "id": "MINERVA_0187",
+  "pergunta": "A quem não se aplica a Instrução Normativa de prescrição 02/2025 da PROEG?",
+  "documento": "IN_02_2025_PROEG_Prescricao.pdf",
+  "paginas": [
+   4
+  ],
+  "problemas": [
+   "números fora das páginas: 7"
+  ]
+ },
+ {
+  "id": "MINERVA_0214",
+  "pergunta": "Como corrigir pendência de bolsa de extensão no SIGAA?",
+  "documento": "ManualDiscenteDrive.pdf",
+  "paginas": [
+   13
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0011 e fala de: 04, bolsas, cadastro, confundir, editado, federal"
+  ]
+ },
+ {
+  "id": "MINERVA_0215",
+  "pergunta": "Como emitir certificado de bolsista de extensão no SIGAA?",
+  "documento": "ManualDiscenteDrive.pdf",
+  "paginas": [
+   14
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0007 e fala de: 04, bolsas, cadastro, confundir, editado, federal"
+  ]
+ },
+ {
+  "id": "MINERVA_0216",
+  "pergunta": "Como preencher o relatório final de extensão no SIGAA?",
+  "documento": "ManualDiscenteDrive.pdf",
+  "paginas": [
+   15
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0011 e fala de: 04, bolsas, confundir, editado, federal, procedimentos"
+  ]
+ },
+ {
+  "id": "MINERVA_0217",
+  "pergunta": "Qual o e-mail da PROEX para dúvidas sobre extensão?",
+  "documento": "ManualDiscenteDrive.pdf",
+  "paginas": [
+   16
+  ],
+  "problemas": [
+   "escopo igual ao de MINERVA_0007 e fala de: 04, bolsas, cadastro, confundir, editado, federal"
+  ]
+ },
+ {
+  "id": "MINERVA_0238",
+  "pergunta": "Quais formulários uso para me defender no processo de prescrição (jubilamento) da UFPA?",
+  "documento": "IN_02_2025_PROEG_Prescricao.pdf",
+  "paginas": [
+   5,
+   6,
+   7,
+   8
+  ],
+  "problemas": [
+   "números fora das páginas: 24/10/2025"
+  ]
+ }
+]

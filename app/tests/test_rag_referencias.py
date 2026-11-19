@@ -38,7 +38,7 @@ def test_referencia_valida_lista_apenas_trecho_citado(monkeypatch, fontes):
 
 @pytest.mark.parametrize("texto", [
     "Afirmação [T:999].", "Afirmação [T:17] e [T:999].",
-    "Afirmação sem referência.", "", None,
+    "", None,
     "Afirmação [T:abc].", "Afirmação [T:17] e [99].",
     "Afirmação [T:17", "Afirmação [T:017].",
     "Afirmação [T:17]. https://ufpa.br/inventado",
@@ -143,3 +143,39 @@ def test_fluxo_da_ui_nao_exibe_referencia_invalida_antes_de_validar(monkeypatch,
     assert answer == rag.fallback_sem_base()
     assert route == "rag_generico"
     assert pool.returned
+
+
+def test_prosa_sem_citacao_exibe_trechos_recuperados(monkeypatch, fontes):
+    # 19/11: prosa sem nenhum [T:ID] não vira "Não localizei"; exibem-se os
+    # trechos recuperados (texto documental), nunca a prosa gerada.
+    monkeypatch.setattr(rag, "buscar_em_documentos_postgres", lambda *a: fontes)
+    monkeypatch.setattr(rag, "evidencia_suficiente_para_abandono", lambda *a: True)
+    monkeypatch.setattr(rag, "consulta_normativa", lambda *a: False)
+    resposta = rag.responder_minerva("Pergunta?", llm_func=lambda p: "Afirmação sem referência.")
+    assert resposta != rag.fallback_sem_base()
+    assert "Afirmação sem referência" not in resposta
+    assert "Com base nas fontes institucionais" in resposta
+
+
+@pytest.mark.parametrize("texto", ["Não localizei essa informação no contexto.",
+                                   "As informações são insuficientes para responder."])
+def test_recusa_do_modelo_continua_recusa(monkeypatch, fontes, texto):
+    monkeypatch.setattr(rag, "buscar_em_documentos_postgres", lambda *a: fontes)
+    monkeypatch.setattr(rag, "evidencia_suficiente_para_abandono", lambda *a: True)
+    monkeypatch.setattr(rag, "consulta_normativa", lambda *a: False)
+    assert rag.responder_minerva("Pergunta?", llm_func=lambda p: texto) == rag.fallback_sem_base()
+
+
+def test_url_copiada_de_trecho_recuperado_e_aceita():
+    fontes = [{"id": 442, "titulo": "Manual.pdf", "trecho": "PASSO 1) Acesse o site : https://sigaa.ufpa.br/sigaa/verTelaLogin.do e insira seu login"}]
+    texto = "Acesse https://sigaa.ufpa.br/sigaa/verTelaLogin.do e entre com seu login [T:442]."
+    assert rag.validar_referencias(texto, fontes) == [442]
+    assert rag.validar_referencias("Veja https://sigaa.ufpa.br/outra [T:442].", fontes) is None
+
+
+def test_trecho_citado_de_outro_assunto_nao_sustenta():
+    fontes = [{"id": 533, "titulo": "IN_02_2025.pdf", "trecho": "ANEXO V TERMO DE COMPROMISSO prescrição jubilamento períodos letivos"},
+              {"id": 7, "titulo": "Manual.pdf", "trecho": "PASSO 10) preencha todo o QUESTIONÁRIO SÓCIO ECONÔMICO"}]
+    pergunta = "O que devo fazer após preencher o Questionário Sócio Econômico?"
+    assert not rag.sustentacao_lexical(pergunta, fontes, [533])
+    assert rag.sustentacao_lexical(pergunta, fontes, [7])
