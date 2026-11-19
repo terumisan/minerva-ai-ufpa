@@ -80,8 +80,9 @@ def numeros(texto):
 
 
 def citacao_no_trecho(citacao, trecho):
-    c = norm(citacao)
-    return len(c) >= 20 and c in norm(trecho)
+    # Compara sem espaços: o texto extraído do PDF parte palavras ("dem onstre").
+    c = norm(citacao).replace(" ", "")
+    return len(c) >= 20 and c in norm(trecho).replace(" ", "")
 
 
 def numeros_sustentados(resposta, trecho):
@@ -175,7 +176,33 @@ CITAÇÃO: \"\"\"{citacao}\"\"\"
 Responda SOMENTE com JSON: {{"sustentada": true|false, "responde": true|false, "motivo": "..."}}"""
 
 
-def llm(prompt, max_tokens=900):
+def _aguardar_modelo(limite=180):
+    import requests
+    from config import LLM_API_URL
+    base = LLM_API_URL.split("/v1/")[0]
+    fim = time.monotonic() + limite
+    while time.monotonic() < fim:
+        try:
+            if requests.get(base + "/health", timeout=5).ok:
+                return True
+        except Exception:
+            pass
+        time.sleep(5)
+    return False
+
+
+def llm(prompt, max_tokens=900, tentativas=3):
+    import requests
+    for t in range(tentativas):
+        try:
+            return _llm(prompt, max_tokens)
+        except (requests.ConnectionError, requests.Timeout):
+            if t == tentativas - 1 or not _aguardar_modelo():
+                raise
+            print("\n  modelo reiniciou; retomando…")
+
+
+def _llm(prompt, max_tokens):
     import requests
     from config import LLM_API_URL
     r = requests.post(LLM_API_URL, timeout=(5, 400), json={
@@ -257,7 +284,12 @@ def trechos_sem_cobertura(conn, cob, limite):
     livres = [t for t in linhas
               if not (set(range(t["pi"], (t["pf"] or t["pi"]) + 1)) & cob.get(t["doc"], set()))]
     random.shuffle(livres)
+    # Regimento Geral e documentos de gestão ficam por último: o banco é para o discente.
+    livres.sort(key=lambda t: t["doc"] in _DOCS_DE_GESTAO)
     return livres[:limite], len(livres), len(linhas)
+
+
+_DOCS_DE_GESTAO = {"RegimentoGeral.pdf", "Regimento_FCT.pdf"}
 
 
 def modo_gerar(args):
@@ -370,7 +402,9 @@ def modo_auditar(args):
             if not texto:
                 prob.append("páginas citadas não existem no índice")
             else:
-                faltam = numeros_sustentados(e["resposta_literal"], texto)
+                ident = json.dumps(ctx, ensure_ascii=False) + " " + str(e.get("fonte_documento", ""))
+                faltam = [x for x in numeros_sustentados(e["resposta_literal"], texto)
+                          if x not in numeros(ident) and not re.fullmatch(r"\d{1,4}/\d{4}", x)]
                 if faltam:
                     prob.append("números fora das páginas: " + ",".join(faltam))
             if e["id"] in suspeitos:
@@ -387,6 +421,41 @@ def modo_auditar(args):
     destino = SAIDA / f"auditoria_{date.today():%Y%m%d}.json"
     destino.write_text(json.dumps(achados, ensure_ascii=False, indent=1))
     print(f"{len(achados)} entradas com indício de incoerência -> {destino}")
+
+
+def completar_contextos(entradas, pasta=Path("/documentos")):
+    """Preenche SHA-256, escopo, dispositivo e evidências (texto integral da
+    página, como em validar_pdfs) de qualquer entrada com contexto_documental
+    ainda sem evidências (criadas pelo agente ou por curadoria manual)."""
+    from pypdf import PdfReader
+    cache, feitos = {}, 0
+    for e in entradas:
+        c = e.get("contexto_documental") or {}
+        if not c or c.get("evidencias"):
+            continue
+        doc = c["documento"]
+        if doc not in cache:
+            caminho = pasta / doc
+            cache[doc] = (hashlib.sha256(caminho.read_bytes()).hexdigest(),
+                          [" ".join((pg.extract_text() or "").split()) for pg in PdfReader(caminho).pages])
+        sha, paginas = cache[doc]
+        c["documento_sha256"] = sha
+        c["dispositivo"] = c.get("dispositivo") or f"trecho das páginas {', '.join(map(str, c['paginas_fisicas']))}"
+        c.setdefault("escopo", f"Graduação da UFPA/FCT, conforme {doc} ({c['dispositivo']}); "
+                               "não estender a outros níveis de ensino sem previsão expressa.")
+        c["evidencias"] = [{"pagina_fisica": n, "texto": paginas[n - 1],
+                            "texto_sha256": hashlib.sha256(paginas[n - 1].encode()).hexdigest()}
+                           for n in c["paginas_fisicas"]]
+        e["fonte_documento"] = doc
+        feitos += 1
+    return feitos
+
+
+def modo_completar(args):
+    dados, entradas = carregar_catalogo()
+    n = completar_contextos(entradas)
+    DATASET.write_text(json.dumps(dados, ensure_ascii=False, indent=1) + "\n")
+    print(f"{n} entradas completadas com SHA-256 e evidências.")
 
 
 def modo_aplicar(args):
@@ -427,6 +496,7 @@ def modo_aplicar(args):
                                     "revisao": "conferencia_tecnica_documental; nao_e_aprovacao_institucional"}})
         prox += 1
         novas += 1
+    completar_contextos(entradas)
     dados["versao_dataset"] = versao
     copia = DATASET.with_suffix(f".antes_{versao}.json")
     copia.write_text(DATASET.read_text())
@@ -445,10 +515,12 @@ def main():
     a.add_argument("--juiz", action="store_true", help="também pede parecer do modelo (mais lento)")
     ap = s.add_parser("aplicar")
     ap.add_argument("--csv", required=True)
+    s.add_parser("completar")
     args = p.parse_args()
     if getattr(args, "semente", None) is not None:
         random.seed(args.semente)
-    {"gerar": modo_gerar, "auditar": modo_auditar, "aplicar": modo_aplicar}[args.modo](args)
+    {"gerar": modo_gerar, "auditar": modo_auditar, "aplicar": modo_aplicar,
+     "completar": modo_completar}[args.modo](args)
 
 
 if __name__ == "__main__":
