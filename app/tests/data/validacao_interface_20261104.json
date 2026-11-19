@@ -1,0 +1,119 @@
+{
+  "mode": "final",
+  "results": [
+    {
+      "name": "inicial",
+      "text": "keyboard_double_arrow_left\nMinerva AI\nFCT/UFPA\n\n＋ Nova conversa\n\n📝 Avaliar a Minerva\n\nM.I.N.E.R.V.A. – Módulo Inteligente de Navegação e Ensino de Recursos Virtuais Acadêmicos. Assistente acadêmica baseada em documentos institucionais da FCT/UFPA.\n\nHistórico disponível durante esta sessão. Recarregar a página inicia uma nova sessão anônima; exporte antes de sair.\n\nDeploy\nMinerva AI\n\nOrientação acadêmica da FCT/UFPA\n\n🖥️\n🌞\n🌙\nOlá, sou a Minerva.\n\nConsulte informações acadêmicas da FCT/UFPA ou o cardápio publicado pela PROAES.\n\nAcessos rápidos\n\nCalendário\n\nEstágio\n\nTCC\n\nCardápio RU\n\nGraduação\n\nNormas FCT/UFPA\n\nGuias e Manuais\n\nCalendário\nDatas, prazos, matrícula e período letivo.\nPerguntas sugeridas\n\nMe mostre o calendário acadêmico de 2026\n\nQuando começa e termina o período letivo?\n\nQuais são os principais prazos do calendário acadêmico?\n\nQuais datas de matrícula constam no calendário?\n\nCada pergunta é consultada separadamente. Para continuar um assunto, inclua o contexto ou use as perguntas relacionadas."
+    },
+    {
+      "name": "Passei em TCC I: o que preciso entregar para me matricular no TCC II?",
+      "seconds": 1.806,
+      "spinner": true,
+      "elapsed": true,
+      "text": "🏫\n\nTrechos encontrados nos documentos:\n\nExcertos documentais para consulta, com o escopo, as condições e as exceções presentes nos trechos preservados. Não constituem uma conclusão sobre um caso individual nem uma lista completa da norma. Incluem ressalvas recuperadas do mesmo documento, que devem ser lidas no seu próprio dispositivo. Artigos podem continuar em trechos não recuperados.\n\nResolucao_TCC.pdf · página física 2 · [T:369]\n\nArt. 7º - Por ocasião da matrícula, no período previsto no “Artigo 6º”, o aluno deve encaminhar à secretaria da Faculdade formulário específico, o qual será usado para deferimento ou não de sua matrícula. Para matrícula em TCC I, o discente deve apresentar o Anexo I da presente resolução, contendo o anteprojeto, devidamente assinado pelo professor orientador. Para matrícula em TCC II, o discente deve apresentar o Anexo II, com a avaliação do TCC I. PARÁGRAFO ÚNICO – A sequência prevista como ideal é o discente cursar TCC I e II em semestres consecutivos, com o mesmo orientador e tema. Caso haja qualquer alteração, tais como: intervalo entras as mesmas, mudança de orientador ou tema, etc., o discente, aprovado em TCC I, deve encaminhar à secretaria da Faculdade o Anexo I (ao invés do II) por ocasião de sua matrícula em TCC II.\n\nAbrir fonte oficial\n\nkeyboard_arrow_right\n\nDetalhes da fonte [T:369]\n\nResolucao_TCC.pdf · página física 1 · [T:367]\n\nArt. 4º - Somente será integralizado o currículo do discente que for aprovado no TCC. TÍTULO II – DA MATRÍCULA EM TCC Art. 5º - A matrícula em TCC I está condicionada ao discente já ter sido aprovado no sexto bloco do currículo vigente. O discente não pode ser matriculado em TCC I caso tenha mais do que duas dependências em disciplinas de blocos anteriores ao sétimo. O discente só poderá ser matriculado em TCC II após ser aprovado em TCC I. Art. 6º - O período de matrícula em TCC I e TCC II deverá obedecer ao calendário oficial da UFPA, dentro do período ordinário de matrícula para os cursos de graduação. Esta matrícula deve ser feita pelo discente da mesma forma como procede para as demais disciplinas do curso. A matrícula em TCC I e TCC II será então julgada pela Câmara de Ensino de Graduação em prazo\n\nAbrir fonte oficial\n\nkeyboard_arrow_right\n\nDetalhes da fonte [T:367]\n\n🤍\n\n🖤\n\n🔄\n\nkeyboard_arrow_right\n\nPerguntas relacionadas",
+      "links": [
+        {
+          "text": "Abrir fonte oficial",
+          "url": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf#page=2"
+        },
+        {
+          "text": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf",
+          "url": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf"
+        },
+        {
+          "text": "Abrir fonte oficial",
+          "url": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf#page=1"
+        },
+        {
+          "text": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf",
+          "url": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf"
+        }
+      ],
+      "expanders": [
+        "keyboard_arrow_rightDetalhes da fonte [T:369]",
+        "keyboard_arrow_rightDetalhes da fonte [T:367]",
+        "keyboard_arrow_rightPerguntas relacionadas"
+      ],
+      "related": [
+        "🤍",
+        "🖤",
+        "🔄"
+      ]
+    },
+    {
+      "name": "fontes",
+      "passed": true,
+      "href": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf#page=2"
+    },
+    {
+      "name": "mobile_resposta",
+      "passed": true,
+      "horizontalOverflow": false,
+      "actionsInOneRow": true
+    },
+    {
+      "name": "Qual anexo apresentar em TCC II quando há mudança de orientador ou tema ou intervalo entre semestres na Resolução FCT 01/2012?",
+      "seconds": 21.201,
+      "spinner": true,
+      "elapsed": true,
+      "text": "🏫\n\nTrechos encontrados nos documentos:\n\nExcertos documentais para consulta, com o escopo, as condições e as exceções presentes nos trechos preservados. Não constituem uma conclusão sobre um caso individual nem uma lista completa da norma. Incluem ressalvas recuperadas do mesmo documento, que devem ser lidas no seu próprio dispositivo. Artigos podem continuar em trechos não recuperados.\n\nResolucao_TCC.pdf · página física 2 · [T:369]\n\nArt. 7º - Por ocasião da matrícula, no período previsto no “Artigo 6º”, o aluno deve encaminhar à secretaria da Faculdade formulário específico, o qual será usado para deferimento ou não de sua matrícula. Para matrícula em TCC I, o discente deve apresentar o Anexo I da presente resolução, contendo o anteprojeto, devidamente assinado pelo professor orientador. Para matrícula em TCC II, o discente deve apresentar o Anexo II, com a avaliação do TCC I. PARÁGRAFO ÚNICO – A sequência prevista como ideal é o discente cursar TCC I e II em semestres consecutivos, com o mesmo orientador e tema. Caso haja qualquer alteração, tais como: intervalo entras as mesmas, mudança de orientador ou tema, etc., o discente, aprovado em TCC I, deve encaminhar à secretaria da Faculdade o Anexo I (ao invés do II) por ocasião de sua matrícula em TCC II.\n\nAbrir fonte oficial\n\nkeyboard_arrow_right\n\nDetalhes da fonte [T:369]\n\n🤍\n\n🖤\n\n🔄\n\nkeyboard_arrow_right\n\nPerguntas relacionadas",
+      "links": [
+        {
+          "text": "Abrir fonte oficial",
+          "url": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf#page=2"
+        },
+        {
+          "text": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf",
+          "url": "https://www.fct.ufpa.br/images/stories/Engcomp_Resolucao_TCC_2012.pdf"
+        }
+      ],
+      "expanders": [
+        "keyboard_arrow_rightDetalhes da fonte [T:369]",
+        "keyboard_arrow_rightPerguntas relacionadas"
+      ],
+      "related": [
+        "🤍",
+        "🖤",
+        "🔄"
+      ]
+    },
+    {
+      "name": "relacionada",
+      "passed": true
+    },
+    {
+      "name": "Qual é o código secreto da sala subterrânea de Marte?",
+      "seconds": 0.722,
+      "spinner": false,
+      "elapsed": false,
+      "text": "🏫\n\nNão localizei informação institucional suficiente na base disponível da FCT/UFPA para responder com segurança.\n\nTente informar o curso, o assunto e a norma ou documento, se souber. Cada pergunta é consultada separadamente.\n\n🤍\n\n🖤\n\n🔄",
+      "links": [],
+      "expanders": [],
+      "related": [
+        "🤍",
+        "🖤",
+        "🔄"
+      ]
+    },
+    {
+      "name": "restaurar_conversa",
+      "preserved": true,
+      "passed": true
+    },
+    {
+      "name": "outra_sessao",
+      "passed": true
+    },
+    {
+      "name": "reload",
+      "passed": true,
+      "messages": 0,
+      "text": "Minerva AI\nFCT/UFPA\n\n＋ Nova conversa\n\n📝 Avaliar a Minerva\n\nM.I.N.E.R.V.A. – Módulo Inteligente de Navegação e Ensino de Recursos Virtuais Acadêmicos. Assistente acadêmica baseada em documentos institucionais da FCT/UFPA.\n\nHistórico disponível durante esta sessão. Recarregar a página inicia uma nova sessão anônima; exporte antes de sair.\n\nDeploy\nMinerva AI\n\nOrientação acadêmica da FCT/UFPA\n\n🖥️\n🌞\n🌙\nOlá, sou a Minerva.\n\nConsulte informações acadêmicas da FCT/UFPA ou o cardápio publicado pela PROAES.\n\nAcessos rápidos\n\nCalendário\n\nEstágio\n\nTCC\n\nCardápio RU\n\nGraduação\n\nNormas FCT/UFPA\n\nGuias e Manuais\n\nCalendário\nDatas, prazos, matrícula e período letivo.\nPerguntas sugeridas\n\nMe mostre o calendário acadêmico de 2026\n\nQuando começa e termina o período letivo?\n\nQuais são os principais prazos do calendário acadêmico?\n\nQuais datas de matrícula constam no calendário?\n\nCada pergunta é consultada separadamente. Para continuar um assunto, inclua o contexto ou use as perguntas relacionadas."
+    },
+    {
+      "name": "mobile",
+      "horizontalOverflow": false
+    }
+  ],
+  "errors": []
+}
