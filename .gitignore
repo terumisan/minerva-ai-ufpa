@@ -49,3 +49,4 @@ models/
 app/tests/data/*_INVALIDO_*.jsonl
 app/tests/data/*_antes_*.jsonl
 app/minerva_dataset.antes_*.json
+!app/tests/data/roteamento_novas_antes_20261104.jsonl
