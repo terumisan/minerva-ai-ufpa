@@ -10,6 +10,11 @@ from collections import Counter
 
 VAZIAS = set("a o e de da do das dos em que para os as no na nos nas um uma se ser por com ao".split())
 LIMIAR = 0.75
+# Perguntas do D115 sobre o próprio arquivo (geradas automaticamente, sem uso
+# para o discente). Não se altera o eval_minerva_qa.json, para preservar a
+# amostra estratificada da dissertação; elas só são separadas na contagem.
+META = re.compile(r"\b(d?[eo]ste|d?[en]esta|neste|nesta) (documento|resolucao|formulario|trecho)\b|assinatur|"
+                  r"autores do documento|diretor e revisor|assinou o documento|mencionad[ao] no trecho")
 
 
 def n(t):
@@ -26,8 +31,12 @@ def main(e2e, fid):
     E = {(d["chunk_id"], d["pergunta"]): d for d in map(json.loads, open(e2e))}
     F = {(d["chunk_id"], d["pergunta"]): d for d in map(json.loads, open(fid)) if not d.get("julgamento_falhou")}
     cls = Counter(); casos = []
+    meta = Counter()
     for k, f in F.items():
         e = E[k]
+        if META.search(n(e["pergunta"])):
+            meta["sim" if (not f["abstencao"] and f["correta_vs_gabarito"] == "sim") else "nao"] += 1
+            continue
         if not f["abstencao"]:
             cls["respondeu_" + f["correta_vs_gabarito"]] += 1
             continue
@@ -46,6 +55,7 @@ def main(e2e, fid):
     print(f"Julgadas: {total}")
     for k, v in sorted(cls.items()):
         print(f"  {k:26s} {v}")
+    print(f"Perguntas sobre o próprio arquivo, fora da conta: {sum(meta.values())} {dict(meta)}")
     print(f"Resposta correta OU excerto com o gabarito: {uteis}/{total} ({100*uteis/total:.0f}%)")
     print("\nCasos não respondidos:")
     for c in sorted(casos):

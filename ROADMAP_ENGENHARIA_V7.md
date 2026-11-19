@@ -1030,3 +1030,21 @@ cadastrados no primeiro trecho, nenhum fallback, 0,8 s em média.
 | Abstenção real ("Não localizei…") | 7 |
 
 Resposta correta ou excerto com o gabarito: **75/101 (74%)**; na Fase B de 14/11, pela mesma régua, 59/78 (76%) — desempenho equivalente com 27 perguntas a mais no RAG. Dos 19 casos sem gabarito, 12 são perguntas sobre o próprio arquivo ("quem assinou este documento", "quais as assinaturas", "nome do diretor e revisor", "qual instituição esta resolução regulamenta"), geradas automaticamente no D115 e sem utilidade para o discente. Restam 7 falhas reais a investigar: reintegração após intercâmbio, faltas a reuniões de colegiado, plano de estágio (variante do Anexo), quem pode pedir matrícula em estágio (2), e dois trechos de manuais (vez da graduação no SIGAA; acesso ao Cadastro Único), estes no caminho de prosa, onde a resposta sem citação [T:ID] válida vira "Não localizei".
+
+## 31. Fase B após as mudanças de 19/11/2026
+
+**Mudanças avaliadas.** Catálogo 1.11.0 (262 entradas: agente de ampliação, falhas reais da Fase B de 18/11 e editais de monitoria PROEG 22/2025 e 03/2026 indexados); prosa sem marcador [T:ID] passa a exibir os trechos recuperados; URL aceita só se estiver literalmente em um trecho recuperado; exigência de sustentação lexical do trecho citado (`sustentacao_lexical`).
+
+**Execução (TAG `qwen35_20261119`).** Duas instâncias de `repetir_fase_b.sh` rodaram em paralelo no início e uma descartava a rodada da outra; corrigido rodando uma só. A amostra tem 115 linhas e 93 perguntas distintas, e o critério de parada por número de linhas nunca era atingido (`RODADAS_DEMAIS`); `repetir_fase_b.sh` agora encerra a etapa quando o gerador informa "pendentes: 0". Sete respostas do Regimento Geral saíram como "Não localizei" em 0,4 s logo após o reinício do modelo (`ConnectionError`, sem chamada ao LLM); `diagnosticar_pergunta.py` confirmou que as mesmas perguntas são respondidas normalmente, e elas foram excluídas da comparação (a regeneração em `refazer_falhas_infra.sh` não gravou as linhas e fica pendente).
+
+**Comparação nas 88 perguntas julgadas nas duas rodadas** (sem perguntas sobre o próprio arquivo; útil = resposta correta ou excerto com o gabarito):
+
+| | 18/11 | 19/11 |
+|---|---|---|
+| Úteis | 69/88 (78%) | 69/88 (78%) |
+| Corretas em prosa / incorretas | 49 / 2 | 49 / 3 |
+| Abstenções reais | 5 | 4 |
+| Fidelidade média | 0,971 | 0,941 |
+| Tempo médio | 40,4 s | 34,3 s |
+
+**Leitura.** Desempenho equivalente e 15% mais rápido. Ganhos: Cadastro Único (link do manual agora aceito) e plano de estágio (variações novas). Perdas: "um dos princípios da UFPA" (abstenção) e "quem avalia as atividades do aluno" (resposta incorreta). A queda de fidelidade (0,971 → 0,941) ainda não foi investigada e deve ser acompanhada na próxima rodada. A trava de sustentação lexical não bloqueou nenhuma resposta correta da amostra.

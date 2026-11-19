@@ -6,6 +6,7 @@ TAG=${TAG:-qwen35_20261118}
 D=~/minerva-ai-ufpa/app/tests/data
 E2E=resultado_e2e_v7_$TAG.jsonl; FID=resultado_fidelidade_v7_$TAG.jsonl
 cd ~/minerva-ai-ufpa
+touch "$D/$FID"  # 19/11: na primeira execução o arquivo do juiz ainda não existe
 dono() { docker exec ufpa_rag_ui chown "$(id -u):$(id -g)" "/app/tests/data/$FID" "/app/tests/data/$E2E"; }
 dono
 cp "$D/$FID" "$D/${FID%.jsonl}_antes_pendentes.jsonl"

@@ -65,7 +65,7 @@ etapa() {
     [ "$antes" -ge "$total" ] && break
     r=$((r+1)); echo ">> Rodada $r: $antes/$total feitas — reiniciando o modelo"
     reiniciar_e_esperar
-    "${DC[@]}" exec -T ufpa_rag_ui python - <<PY
+    "${DC[@]}" exec -T ufpa_rag_ui python - <<PY | tee /tmp/fase_b_rodada.txt
 import signal, sys; from pathlib import Path
 signal.signal(signal.SIGALRM, lambda *a: sys.exit(0)); signal.alarm($RODADA_S)
 sys.path.insert(0, "scripts")
@@ -77,6 +77,9 @@ PY
       echo "!! Modelo reiniciou na rodada $r — descartando as linhas novas e refazendo"
       head -n "$antes" "$arq" > "$arq.tmp" && mv "$arq.tmp" "$arq"
     fi
+    # 19/11: a amostra tem perguntas repetidas; o gerador avisa "pendentes: 0"
+    # antes de o arquivo atingir 115 linhas. Nesse caso a etapa terminou.
+    grep -q "pendentes: 0" /tmp/fase_b_rodada.txt && break
     [ "$r" -ge 40 ] && { echo "RODADAS_DEMAIS"; exit 1; }
   done
 }
