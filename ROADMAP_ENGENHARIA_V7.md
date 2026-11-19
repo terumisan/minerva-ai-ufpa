@@ -998,3 +998,25 @@ Catálogo 1.7.0: 239 entradas, 236 ativas, 234 vinculadas a documento. Planilha 
 **Reteste após publicar o catálogo 1.7.0** (18/11/2026, ~03h): as 134 paráfrases que haviam
 falhado e as 64 formas de pergunta das 21 entradas novas — 198/198 com o documento e a página
 cadastrados no primeiro trecho, nenhum fallback, 0,8 s em média.
+
+## 30. Teste de ponta a ponta com rotas genéricas ajustadas — 18/11/2026
+
+**Mudança no código.** `minerva_priority_router.priority_answer` deixa de responder com rotas genéricas (portal de TCC, estágio, matrícula, regimentos, lista de docentes, contato, direção) quando a pergunta é específica; nesses casos a pergunta segue para o catálogo e para o RAG (`_rota_generica_nao_responde`). Testes novos em `test_exploratorio_20261115.py` (5 específicas × 7 genéricas).
+
+**Varredura do catálogo 1.7.0 no site** (864 formulações ativas): 864/864 com a entrada e o documento/página esperados, nenhuma reserva; mediana 0,8 s, máximo 13,7 s.
+
+**D115 no V7 + Qwen3.5-4B + juiz** (TAG `qwen35_20261118`, rodadas de 6 min com reinício do modelo):
+
+| | 14/11 (antes do ajuste) | 18/11 (com o ajuste) |
+|---|---|---|
+| Perguntas no RAG / no roteador | 79 / 36 | 106 / 9 |
+| Julgadas pelo juiz | 77 | 101 (5 sem julgamento após 12 rodadas) |
+| Corretas | 41 (53%) | 55 (54%) + 5 parciais |
+| Abstenções | 30 | 40 |
+| Corretas entre as respondidas | 41/47 | **54/61** (+5 parciais, 2 erradas) |
+| Fidelidade média | 0,942 | **0,971** |
+| Tempo médio no RAG | 44 s | 41 s |
+
+**Leitura.** O ajuste levou 27 perguntas a mais para o RAG sem piorar a taxa de acerto, e quando a Minerva responde quase sempre acerta (2 erradas em 61). O gargalo é a abstenção: em 20 das 40 abstenções o trecho-gabarito estava entre os recuperados, ou seja, o modelo poderia ter selecionado o trecho e não selecionou. Próximo passo: revisar o critério de seleção de trechos (desenho "só trechos") nesses 20 casos e alimentar o catálogo com o agente de ampliação (`scripts/agente_ampliacao.py`).
+
+**Ocorrências operacionais.** Rodadas de 12 min passaram a estourar o vigia de memória (reinícios em sequência na geração); `repetir_fase_b.sh` ganhou `RODADA_S` e `RETOMAR=1`. Arquivos gravados pelo container como root impediam a limpeza no host; `juiz_pendentes.sh` corrige a posse e completa os julgamentos pendentes.

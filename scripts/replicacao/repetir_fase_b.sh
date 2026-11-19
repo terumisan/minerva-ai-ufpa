@@ -15,15 +15,20 @@ mkdir -p "$SAIDA"
 DADOS="$REPO/app/tests/data"
 E2E=resultado_e2e_v7_${TAG}.jsonl
 FID=resultado_fidelidade_v7_${TAG}.jsonl
-RODADA_S=720
+RODADA_S="${RODADA_S:-720}"  # 18/11: rodadas de 12 min passaram a estourar o vigia; use RODADA_S=360
 DC=(docker compose -f "$REPO/docker-compose.yml")
 exec > >(tee -a "$LOG") 2>&1
 echo "=== Início Fase B (rodadas) $(date -Is) ==="
+linhas() { [ -f "$1" ] && wc -l < "$1" || echo 0; }
 
-for f in "$E2E" "$FID"; do
-  [ -f "$DADOS/$f" ] && mv "$DADOS/$f" "$DADOS/${f%.jsonl}_INVALIDO_$(date +%H%M%S).jsonl"
-done
-rm -f "$SAIDA/$E2E" "$SAIDA/$FID" "$SAIDA/resumo_juiz_v7.txt"
+if [ "${RETOMAR:-0}" = 1 ]; then
+  echo ">> RETOMAR=1: mantendo $(linhas "$DADOS/$E2E" 2>/dev/null) linhas já gravadas"
+else
+  for f in "$E2E" "$FID"; do
+    [ -f "$DADOS/$f" ] && mv "$DADOS/$f" "$DADOS/${f%.jsonl}_INVALIDO_$(date +%H%M%S).jsonl"
+  done
+  rm -f "$SAIDA/$E2E" "$SAIDA/$FID" "$SAIDA/resumo_juiz_v7.txt"
+fi
 
 reiniciar_e_esperar() {
   docker restart ufpa_rag_llm >/dev/null

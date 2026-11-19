@@ -2158,9 +2158,64 @@ def priority_answer(question: str):
     )
 
     if resultado_router is not None:
+        if _rota_generica_nao_responde(question):
+            return None
         return resultado_router
 
     return None
+
+
+# ----------------------------------------------------------------------
+# Rotas de "portal" só para perguntas genéricas (18/11/2026)
+# ----------------------------------------------------------------------
+# No teste exploratório de 18/11/2026, 56 de 210 paráfrases de perguntas do
+# catálogo receberam um texto de rota temática que só aponta a página da FCT
+# ("A FCT possui uma página oficial específica para estágio…", "Para TCC, a FCT
+# mantém instruções…") ou uma resposta de outro assunto (lista de docentes
+# para "quem avalia a progressão dos professores?", contato da FCT para
+# "qual o email da proex?"). Essas rotas passam a responder só a perguntas
+# genéricas sobre o tema; perguntas específicas seguem para o catálogo e a
+# busca nos documentos.
+_ROTAS_PORTAL = {
+    "tcc", "internship", "enrollment", "atividades_complementares",
+    "graduation_regulation", "fct_regiment", "ufpa_regiment", "fct_rules",
+    "student_rules", "documentation", "discipline_plans", "proeg_manuais",
+}
+_PERGUNTA_GENERICA = re.compile(
+    r"^(me fale|fale|fala|informac\w*|quais (sao )?as (regras|normas)|(o que (e|sao|significa)|como funciona)( o| a| os| as)? "
+    r"(tcc|estagio|trabalho de curso|atividades? complementar\w*|regimento\w*|"
+    r"regulamento\w*|matricula|planos? d\w+ disciplinas?)\b|onde (encontro|vejo|acho|tem)|"
+    r"(qual|tem) (o |a )?(pagina|site|link))"
+)
+_PALAVRAS_VAZIAS_PORTAL = {
+    "a", "o", "as", "os", "de", "da", "do", "das", "dos", "e", "em", "na", "no",
+    "sobre", "fct", "ufpa", "pra", "para", "info", "informacao", "informacoes",
+}
+_PEDE_LISTA_DOCENTES = re.compile(
+    r"\b(quais|quem sao|lista\w*|relacao)\b.*\b(professor\w*|docente\w*)\b|"
+    r"\bcorpo docente\b"
+)
+_ORGAO_FORA_DA_FCT = re.compile(
+    r"\b(proex|proeg|propesp|ciac|saest|prointer|reitoria|ctic|consepe|consun|consad|"
+    r"sigaa|sagitta|dce)\b"
+)
+
+
+def _rota_generica_nao_responde(question: str) -> bool:
+    if not isinstance(question, str):
+        return False
+    route = _classify_question_base(question)
+    q = _norm(question).strip(" ?!.")
+    if route in _ROTAS_PORTAL:
+        conteudo = [w for w in re.findall(r"\w+", q) if w not in _PALAVRAS_VAZIAS_PORTAL]
+        return not (_PERGUNTA_GENERICA.search(q) or len(conteudo) <= 2)
+    if route == "faculty":
+        return _PEDE_LISTA_DOCENTES.search(q) is None
+    if route == "contact":
+        return _ORGAO_FORA_DA_FCT.search(q) is not None
+    if route == "leadership":
+        return re.search(r"\bquem\b", q) is None
+    return False
 
 
 try:

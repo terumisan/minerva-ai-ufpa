@@ -209,13 +209,13 @@ def test_novas_rotas_nao_regridem_enrollment_nem_internship():
 
 def test_dataset_sem_aprovacao_preserva_rota_generica_de_estagio(monkeypatch):
     monkeypatch.delenv("MINERVA_V7_STATIC_SNAPSHOT_DIR", raising=False)
-    resposta = priority_answer(
-        "Quem pode solicitar a matrícula em Estágio Supervisionado?"
-    )
-    assert resposta is not None
-    assert resposta_dataset("Quem pode solicitar a matrícula em Estágio Supervisionado?") is None
-    assert "regularmente matriculado" not in resposta
-    assert "Fonte oficial FCT" in resposta
+    # Desde 18/11/2026 a rota de "portal" de estágio só responde a perguntas
+    # genéricas; uma pergunta específica sem resposta aprovada segue para a
+    # busca nos documentos (priority_answer devolve None) em vez de receber o
+    # texto que só aponta a página da FCT.
+    pergunta = "Quem pode solicitar a matrícula em Estágio Supervisionado?"
+    assert resposta_dataset(pergunta) is None
+    assert priority_answer(pergunta) is None
 
 
 def test_rota_generica_de_estagio_permanece_para_pergunta_ampla():
