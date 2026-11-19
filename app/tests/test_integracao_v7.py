@@ -113,7 +113,6 @@ def test_dataset_sem_snapshot_retorna_para_rag(aprovado, monkeypatch):
     entrada, _, _ = aprovado
     monkeypatch.delenv("MINERVA_V7_STATIC_SNAPSHOT_DIR")
     monkeypatch.setattr(dataset, "_carregar_entradas", lambda: [entrada])
-    monkeypatch.setattr(dataset, "_resposta_conhecida", lambda e: pytest.fail("atalho indevido"))
     monkeypatch.setattr(dataset, "_resposta_via_fetch", lambda e: pytest.fail("fetch indevido"))
     assert dataset.resposta_dataset("Pergunta?") is None
 

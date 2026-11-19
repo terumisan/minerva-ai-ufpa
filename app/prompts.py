@@ -21,10 +21,6 @@ except (ImportError, ValueError):
 # antes/depois da geração e chamada ao modelo local (llama.cpp).
 # ======================================================================
 
-NOME_UFPA = "Universidade Federal do Pará"
-SIGLA_UFPA = "UFPA"
-NOME_FCT = "Faculdade de Computação e Telecomunicações"
-SIGLA_FCT = "FCT"
 
 PROMPT_INSTITUCIONAL_UFPA = """
 Você é a Minerva, assistente virtual acadêmica da

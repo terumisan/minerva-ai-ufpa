@@ -44,3 +44,8 @@ models/
 
 # Fontes e aprovações locais mantidas pelo curador
 /static_snapshots/
+
+# Intermediários da replicação e backups do catálogo
+app/tests/data/*_INVALIDO_*.jsonl
+app/tests/data/*_antes_*.jsonl
+app/minerva_dataset.antes_*.json

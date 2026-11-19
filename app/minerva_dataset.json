@@ -17932,7 +17932,8 @@
    "intent": "agente_ampliacao",
    "pergunta": "Quais são as pró-reitorias da UFPA?",
    "variacoes": [
-    "Quais os cargos de pró-reitor existentes?"
+    "Quais os cargos de pró-reitor existentes?",
+    "quantas pró-reitorias tem a UFPA?"
    ],
    "entidades": [],
    "palavras_chave": [],
@@ -18407,7 +18408,10 @@
    "macroarea": "Ampliação pelo agente",
    "intent": "agente_ampliacao",
    "pergunta": "Como posso solicitar a dilatação de tempo para as minhas atividades acadêmicas?",
-   "variacoes": [],
+   "variacoes": [
+    "estudante com deficiência pode ter mais tempo para fazer as atividades?",
+    "como pedir dilatação de tempo pelo RADIP-EG?"
+   ],
    "entidades": [],
    "palavras_chave": [],
    "fonte_esperada": "Resolucao_RADIP_5799_2024.pdf",

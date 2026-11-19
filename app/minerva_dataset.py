@@ -12,12 +12,12 @@ except (ImportError, ValueError):
     from minerva_static import snapshot_verificado
 
 # Reaproveita o que já existe em minerva_basic_facts.py em vez de duplicar
-# fetch/parsing: BASIC_FACTS para respostas já conhecidas, _fetch/
-# _official_ufpa_url para a busca controlada em domínios *.ufpa.br.
+# fetch/parsing: _fetch/_official_ufpa_url para a busca controlada em
+# domínios *.ufpa.br.
 try:
-    from .minerva_basic_facts import BASIC_FACTS, _fetch, _official_ufpa_url
+    from .minerva_basic_facts import _fetch, _official_ufpa_url
 except (ImportError, ValueError):
-    from minerva_basic_facts import BASIC_FACTS, _fetch, _official_ufpa_url
+    from minerva_basic_facts import _fetch, _official_ufpa_url
 
 
 # ======================================================================
@@ -131,34 +131,6 @@ def _pergunta_bate(pergunta_norm: str, entrada: dict) -> bool:
         )
 
     return bool(palavras_chave) and all(contem_termo(p) for p in palavras_chave)
-
-
-def _resposta_conhecida(entrada: dict) -> Optional[str]:
-    """Reaproveita BASIC_FACTS quando a entidade já é conhecida."""
-    for entidade in entrada.get("entidades", []):
-        fato = BASIC_FACTS.get(str(entidade).upper())
-
-        if not fato:
-            continue
-
-        nome = str(fato.get("name", "")).strip()
-        descricao = str(fato.get("description", "")).strip()
-        fontes = [str(s) for s in fato.get("sources", [])]
-
-        if not nome:
-            continue
-
-        resposta = f"{entidade.upper()} significa {nome}."
-
-        if descricao:
-            resposta += f" No contexto da UFPA, trata-se de {descricao}."
-
-        if fontes:
-            resposta += " Fonte oficial: " + " | ".join(fontes[:2])
-
-        return resposta
-
-    return None
 
 
 def entrada_contextual(pergunta: str) -> Optional[dict]:

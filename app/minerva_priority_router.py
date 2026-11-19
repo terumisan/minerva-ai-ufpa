@@ -159,10 +159,6 @@ _LABORATORIOS_PESQUISA_REGEX = re.compile(
     r"\b(" + "|".join(LABORATORIOS_PESQUISA.keys()).lower() + r")\b"
 )
 
-FCT_HISTORICO = (
-    "https://fct.ufpa.br/index.php/historico"
-)
-
 FCT_PLANOS = (
     "https://fct.ufpa.br/index.php/plano-da-disciplina"
 )

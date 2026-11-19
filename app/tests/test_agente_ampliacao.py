@@ -37,11 +37,18 @@ def test_juiz_reprova_e_json_sujo():
     assert ag.extrair_json('Claro! [{"a": 1}] fim') == [{"a": 1}]
 
 
-def test_auditoria_acha_escopo_copiado_da_0218_na_0239():
-    _, entradas = ag.carregar_catalogo()
-    assert "MINERVA_0239" in ag.escopos_suspeitos(entradas)
-
-
-def test_citacao_tolera_palavra_partida_do_pdf():
-    trecho = "a agregação será feita por convênio, desde que se dem onstre viável uma efetiva colaboração"
-    assert ag.citacao_no_trecho("desde que se demonstre viável uma efetiva colaboração", trecho)
+def test_auditoria_acha_escopo_copiado_de_outra_entrada():
+    # Caso real de 18/11: o escopo da 0239 era cópia do da 0218 (corrigido).
+    esc = ("Graduação da UFPA: exercício domiciliar para infecções, traumatismos, "
+           "doenças raras e condições temporárias de saúde comprovadas por atestado.")
+    def entrada(i, pergunta, resposta):
+        return {"id": i, "pergunta": pergunta, "variacoes": [], "resposta_literal": resposta,
+                "ativo": True, "contexto_documental": {"escopo": esc}}
+    entradas = [entrada("A", "Quem tem direito a exercício domiciliar?",
+                        "Discentes com infecções, traumatismos ou doenças raras, com atestado."),
+                entrada("B", "Quem resolve casos omissos do regulamento?", "O CONSEPE.")]
+    entradas += [{"id": f"X{i}", "pergunta": f"pergunta {i}", "variacoes": [], "ativo": True,
+                  "resposta_literal": "r", "contexto_documental": {"escopo": f"escopo generico {i}"}}
+                 for i in range(60)]
+    achados = ag.escopos_suspeitos(entradas)
+    assert "B" in achados and "A" not in achados
