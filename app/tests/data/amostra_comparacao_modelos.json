@@ -1,0 +1,98 @@
+[
+  {
+    "chunk_id": 3722,
+    "arquivo_fonte": "ManualAlunoSIGAA.pdf",
+    "trecho_fonte": "Matrícula Uma das maiores diferenças do SIGAA é a matrícula: ela será online, ou seja, você mesmo fará suas solicitações de matrícula! Para usar a funcionalidade de matrícula, basta acessar o menu Ensino >> Matrícula on- line >> Realizar Matrícula (Figura 6). Atenção: alunos ingressantes não fazem matrícula online! Se você é calouro, sua matrícula será feita pela coordenação do seu curso. A partir do período seguinte a matrícula online será liberada para você. Figura 6. Tela de matricula online. Figura 7. Seleção de turmas. Você só vai visualizar as turmas de componentes curriculares (disciplinas ou módulos) que você estiver apto a cursar, seguindo as regras do regime acadêmico do seu curso (seriado ou por atividades). A tela seguinte exibe uma série de instruções. Após lê-las, clique em “Iniciar Seleção de Turmas” e o sistema",
+    "pergunta": "Quem faz a matrícula online?",
+    "resposta_esperada": "Alunos ingressantes não fazem matrícula online! Se você é calouro, sua matrícula será feita pela coordenação do seu curso.",
+    "id": "EVAL_0011"
+  },
+  {
+    "chunk_id": 3881,
+    "arquivo_fonte": "ManualDiscenteDrive.pdf",
+    "trecho_fonte": "REITOR GILMAR PEREIRA DA SILVA VICE-REITOR LOIANE PRADO VERBICARO PRÓ-REITOR DE EXTENSÃO NELSON JOSÉ DE SOUZA JÚNIOR DIRETOR E REVISOR CARLOS ALBERTO BATISTA MACIEL AUTORES JAQUELINE DO NASCIMENTO BRITO WANZELER ERIC DA COSTA ALFAIA MORAES COLABORADORES ANA MARIA BARBOSA SENA GISELE SANTOS DE CARVALHO JÂNIO MACIEL DA SILVA KAYLLANE VICTORIA LOPES MELO OLINDA RODRIGUES DA SILVA RAPHAEL CARMESIM GOMES EQUIPE TÉCNICA ADELBERT RODRIGUES DE SANTANA CARNEIRO ADOLFO DA COSTA OLIVEIRA NETO ALINE CAROLINE PENHA NASCIMENTO ANDERSON LUIZ TEIXEIRA PEREIRA CÉLIA MARIA FURTADO PEREIRA DARLENE CECÍLIA NOVOA DE SOUZA DERCIANE DE SOUZA FIGUEIREDO FELIPE PINHEIRO DE OLIVEIRA FLÁVIA CRISTINA SILVEIRA LEMOS LUANA MODESTO DIAS NELSON JOSÉ DE SOUZA JÚNIOR SILVANA NASCIMENTO DA SILVA TAIZA NAIANA DA SILVA FERREIRA VÂNIA HELENA DA SILVA NOGUEIRA Belém-PA 2026",
+    "pergunta": "Qual é o nome do diretor e revisor?",
+    "resposta_esperada": "O nome do diretor e revisor é Carlos Alberto Batista Maciel.",
+    "id": "EVAL_0016"
+  },
+  {
+    "chunk_id": 3865,
+    "arquivo_fonte": "Matricula_Estagio.pdf",
+    "trecho_fonte": "SERVIÇO PÚBLICO FEDERAL UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO E TELECOMUNICAÇÕES MATRÍCULA EM ESTÁGIO SUPERVISIONADO Eu, _____________________________________________, matrícula nº _______________, aluno (a) regularmente matriculado (a) no Curso de Engenharia __________________________ , com conclusão de curso prevista para o _______ semestre de ___________, venho solicitar a V.Sa., matrícula em Estágio Supervisionado a ser realizado no(a) ______________________________sob a responsabilidade do Orientador/Supervisor____________________________________________.",
+    "pergunta": "Quem pode solicitar a matrícula em Estágio Supervisionado?",
+    "resposta_esperada": "Aluno (a) regularmente matriculado (a) no Curso de Engenharia.",
+    "id": "EVAL_0034"
+  },
+  {
+    "chunk_id": 3725,
+    "arquivo_fonte": "Matricula_Estagio_Anexo.pdf",
+    "trecho_fonte": "no(a) ______________________________sob a responsabilidade do Orientador/Supervisor____________________________________________. Atenciosamente, Belém, ______/______/______ _________________________________ Aluno VISTO: _____________________________________________ Supervisor de Estágio do Curso de Engenharia da Computação E ACORDO: ________________________________________ Coordenador do Curso de Engenharia da Computação",
+    "pergunta": "Quais são as assinaturas presentes neste documento?",
+    "resposta_esperada": "Orientador/Supervisor, Aluno, Supervisor de Estágio do Curso de Engenharia da Computação e Coordenador do Curso de Engenharia da Computação.",
+    "id": "EVAL_0031"
+  },
+  {
+    "chunk_id": 3715,
+    "arquivo_fonte": "Matricula_TCC.pdf",
+    "trecho_fonte": "UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO E TELECOMUNICAÇÕES ANEXO 1 Formulário de Ante-Projeto de Trabalho de Conclusão de Curso Título do Projeto de Pesquisa Aluno(a) Orientador (e co-orientador) Linha de Pesquisa Resumo Objetivos Justificativa UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO E TELECOMUNICAÇÕES Relevância do Estudo Problema da Pesquisa a ser Investigado Metas Metodologia Cronograma de Execução ATIVIDADES MESES DE EXECUÇÃO TCC I 01 02 03 04 05 06 ATIVIDADES MESES DE EXECUÇÃO TCC II 01 02 03 04 05 06 UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO E TELECOMUNICAÇÕES 8 – Bibliografia Orientador: Co-Orientador: Aluno(a): Belém, / /",
+    "pergunta": "O que é necessário preencher no formulário de Ante-Projeto de Trabalho de Conclusão de Curso?",
+    "resposta_esperada": "Título do Projeto de Pesquisa, Aluno(a), Orientador (e co-orientador), Linha de Pesquisa, Resumo, Objetivos, Justificativa, Relevância do Estudo, Problema da Pesquisa a ser Investigado, Metas, Metodologia, Cronograma de Execução.",
+    "id": "EVAL_0039"
+  },
+  {
+    "chunk_id": 3370,
+    "arquivo_fonte": "RegimentoGeral.pdf",
+    "trecho_fonte": "Art. 61. Anunciado o resultad o da votação, qualquer Conselheiro poderá fazer declaração de voto, que deverá ser de caráter breve e conciso. Art. 62. As decisões administrativas dos Conselhos superiores que constituírem situação jurídica nova tomarão a forma de Resoluções, a serem baixadas pelo respectivo presidente. Parágrafo único. De acordo com a sua natureza, as decisões dos Conselhos superiores poderão traduzir-se também em aprovações, autorizações, homologações e outros atos. Art. 63. O Reitor poderá vetar as decisões dos Conselhos superiores, inclusive as de suas Câmaras, até o prazo de quinze (15) dias úteis da decisão.",
+    "pergunta": "Quais são as formas das decisões administrativas dos Conselhos superiores?",
+    "resposta_esperada": "As decisões administrativas dos Conselhos superiores que constituírem situação jurídica nova tomarão a forma de Resoluções, a serem baixadas pelo respectivo presidente.",
+    "id": "EVAL_0203"
+  },
+  {
+    "chunk_id": 3831,
+    "arquivo_fonte": "Regimento_FCT.pdf",
+    "trecho_fonte": "Art. 6º. Compete ao Conselho da Faculdade: I.elaborar, avaliar e atualizar o projeto pedagógico da Faculdade; II. planejar, definir e supervisionar a execução das atividades de ensino, pesquisa e extensão e avaliar os Planos Individuais de Trabalho dos docentes vinculados à Faculdade; III. estabelecer os programas das atividades acadêmicas curriculares da Faculdade; IV. criar, agregar ou extinguir comissões permanentes ou especiais sob sua responsabilidade; V. propor a admissão e a dispensa de servidores, bem como modificações do regime de trabalho; VI. opinar sobre pedidos de afastamento de servidores para fins de aperfeiçoamento ou cooperação técnica, estabelecendo o acompanhamento e a avaliação dessas atividades; VII. solicitar à direção da Unidade Acadêmica e à Congregação concurso público para provimento de vaga às carreiras docente e técnico-administrativa e",
+    "pergunta": "O Conselho pode criar comissões permanentes ou especiais?",
+    "resposta_esperada": "Sim, pode criar, agregar ou extinguir comissões permanentes ou especiais sob sua responsabilidade.",
+    "id": "EVAL_0049"
+  },
+  {
+    "chunk_id": 3740,
+    "arquivo_fonte": "Regulamento_Graduacao.pdf",
+    "trecho_fonte": "§ 2º Será permitido ao discente cursar Atividade Curricular em outro Campus/Polo, desde que em período letivo diferente do funcionamento de seu Curso, exceto nos casos previstos nos art. 29 e 30 deste Regulamento. § 3º As Atividades Curriculares a que se referem o caput e o parágrafo 1º deste artigo não deverão ultrapassar 10% (dez por cento) da carga horária total do Curso de origem. SUB SEÇÃO I DO REGIME ACADÊMICO SERIADO Art. 17. O discente aprovado em todas as Atividades Curriculares cursadas no período letivo terá assegurada a sua matrícula no bloco ou módulo subsequente de Atividades Curriculares previsto no Projeto Pedagógico do Curso. 7 Resolução n. 4.399 CONSEPE, de 14.5.2013 – Anexo Art. 18. O discente reprovado em qualquer Atividade Curricular do bloco ou módulo será considerado em situação de dependência.",
+    "pergunta": "O discente pode cursar Atividade Curricular em outro campus?",
+    "resposta_esperada": "Sim, mas em período letivo diferente do seu curso, exceto nos casos previstos nos art. 29 e 30 deste Regulamento.",
+    "id": "EVAL_0483"
+  },
+  {
+    "chunk_id": 3878,
+    "arquivo_fonte": "Resolucao_Ativ_Complementares.pdf",
+    "trecho_fonte": "avaliação de desempenho (desde que o aluno seja aprovado). Serão contabilizados no máximo seis eventos; 13. Estágio na área de computação ou de telecomunicações, na UFPA ou em empresas públicas ou particulares, quando este estágio não é considerado para efeito de integralização da disciplina Estágio Supervisionado (que faz parte do Currículo do Curso), sendo atribuídas 5 horas (comprovadas) por mês de estágio, dependendo da avaliação do relatório de estágio. Será contabilizado no máximo um ano de atividades; PARÁGRAFO ÚNICO – As atividades não previstas nos itens acima, mas possivelmente relevantes para a formação do aluno, deverão ser submetidas ao Colegiado da FCT para apreciação e possível determinação de número de horas atribuídas, nos termos desta Resolução. IV - DA AVALIAÇÃO DA AC",
+    "pergunta": "Quantas horas são atribuídas por mês de estágio?",
+    "resposta_esperada": "Serão atribuídas 5 horas (comprovadas) por mês de estágio, dependendo da avaliação do relatório de estágio.",
+    "id": "EVAL_0622"
+  },
+  {
+    "chunk_id": 3513,
+    "arquivo_fonte": "Resolucao_Estagio.pdf",
+    "trecho_fonte": "UNIVERSIDADE FEDERAL DO PARÁ CENTRO TECNOLÓGICO DEPARTAMENTO DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO COLEGIADO DO CURSO DE ENGENHARIA DA COMPUTAÇÃO ANEXO 1 MODELO DO PLANO DE ESTÁGIO SUPERVISIONADO 1. FOLHA DE ROSTO UNIVERSIDADE FEDERAL DO PARÁ CENTRO TECNOLÓGICO DEPARTAMENTO DE ENGENHARIA ELÉTRICA E DE COMPUTAÇÃO CURSO DE ENGENHARIA DA COMPUTAÇÃO ALUNO: _____________________________________________ MAT.__________ DATA: ____/____ (mês/ano). PLANO DE ESTÁGIO SUPERVISIONADO 2. APRESENTAÇÃO DESCRIÇÃO E OBJETIVOS DO TRABALHO A SER REALIZADO CARGA HORÁRIA PREVISTA DISCIPLINA A MATRICULAR (Estágio Supervisionado A, B, ..., ou G?) LOCAL DE REALIZAÇÃO DO ESTÁGIO PERÍODO DE REALIZAÇÃO DO ESTÁGIO 3. PLANEJAMENTO ATIVIDADES A SEREM DESENVOLVIDAS, COM CRO NOGRAMA DE EXECUÇÃO E DESCRIÇÃO DAS TÉCNICAS A SEREM APLICADAS. 4. CONCLUSÕES",
+    "pergunta": "Qual é a ordem das seções no modelo do Plano de Estágio Supervisionado?",
+    "resposta_esperada": "FOLHA DE ROSTO, APRESENTAÇÃO, PLANEJAMENTO, CONCLUSÕES.",
+    "id": "EVAL_0648"
+  },
+  {
+    "chunk_id": 3803,
+    "arquivo_fonte": "Resolucao_Intercambios.pdf",
+    "trecho_fonte": "UNIVERSIDADE FEDERAL DO PARÁ INSTITUTO DE TECNOLOGIA FACULDADE DE ENGENHARIA DA COMPUTAÇÃO RESOLUÇÃO EngComp 01 / 2009 - DE 30 de Junho de 2009 EMENTA: Define as diretrizes para a reintegração no percurso acadêmico do Curso de Engenharia da Computação da Universidade Federal do Pará de discentes que participaram de intercâmbios de estudo. TÍTULO I – DA MOTIVAÇÃO Art. 1º – A Universidade Federal do Pará (UFPA) vem investindo em programas de intercâmbio acadêmico, em especial no exterior. As diretrizes de tais programas incluem a reintegração dos discentes que participaram dos intercâmbios, sem que haja prejuízo aos mesmos em termos de seus percursos acadêmicos. TÍTULO II - DA REINTEGRAÇÃO DOS DISCENTES",
+    "pergunta": "O que esta resolução define?",
+    "resposta_esperada": "Define as diretrizes para a reintegração no percurso acadêmico do Curso de Engenharia da Computação da Universidade Federal do Pará de discentes que participaram de intercâmbios de estudo.",
+    "id": "EVAL_0656"
+  },
+  {
+    "chunk_id": 3862,
+    "arquivo_fonte": "Resolucao_PraticasEnsino.pdf",
+    "trecho_fonte": "§ 1º – Caso o docente queira ser substituído temporariamente por um aluno de pós-graduação ou outro profissional que não seja docente ou estagiário de docência da UFPA, deve encaminhar com antecedência de uma semana, uma comunicação à secretaria da faculdade. § 2º – O afastamento por um período maior do que uma semana ou duas aulas consecutivas deverá ser solicitado com antecedência de duas semanas à Câmara de Ensino de Graduação. Art. 7º - Ao supervisor de estágio de docência caberá: a) orientar o estagiário acerca do plano de aula, incluindo dentre outros aspectos, o conteúdo da disciplina e os critérios de avaliação; b) acompanhar e orientar o estagiário durante todo o desenrolar da disciplina;",
+    "pergunta": "Quando é necessário encaminhar a solicitação para a Câmara de Ensino de Graduação?",
+    "resposta_esperada": "Para afastamentos por mais de uma semana ou duas aulas consecutivas, deve ser solicitado com antecedência de duas semanas.",
+    "id": "EVAL_0673"
+  }
+]

@@ -1,0 +1,137 @@
+{
+  "results": [
+    {
+      "name": "home_320",
+      "width": 320,
+      "height": 740,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "home_390",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "home_600",
+      "width": 600,
+      "height": 960,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "home_768",
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "home_820",
+      "width": 820,
+      "height": 1180,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "home_1024",
+      "width": 1024,
+      "height": 768,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "home_1180",
+      "width": 1180,
+      "height": 820,
+      "overflow": false,
+      "textareaFont": "14px"
+    },
+    {
+      "name": "home_1440",
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "textareaFont": "14px"
+    },
+    {
+      "name": "tema_escuro",
+      "background": "#0F172A"
+    },
+    {
+      "name": "resposta_documental",
+      "text": "🏫\n\nTrechos encontrados nos documentos:\n\nExcertos documentais para consulta, com o escopo, as condições e as exceções presentes nos trechos preservados. Não constituem uma conclusão sobre um caso individual nem uma lista completa da norma. Incluem ressalvas recuperadas do mesmo documento, que devem ser lidas no seu próprio dispositivo. Artigos podem continuar em trechos não recuperados.\n\nResolucao_TCC.pdf · página física 2 · [T:369]\n\nArt. 7º - Por ocasião da matrícula, no período previsto no “Artigo 6º”, o aluno deve encaminhar à secretaria da Faculdade formulário específico, o qual será usado para deferimento ou não de sua matrícula. Para matrícula em TCC I, o discente deve apresentar o Anexo I da presente resolução, contendo o anteprojeto, devidamente assinado pelo professor orientador. Para matrícula em TCC II, o discente deve apresentar o Anexo II, com a avaliação do TCC I. PARÁGRAFO ÚNICO – A sequência prevista como ideal é o discente cursar TCC I e II em semestres consecutivos, com o mesmo orientador e tema. Caso haja qualquer alteração, tais como: intervalo entras as mesmas, mudança de orientador ou tema, etc., o discente, aprovado em TCC I, deve encaminhar à secretaria da Faculdade o Anexo I (ao invés do II) por ocasião de sua matrícula em TCC II.\n\nAbrir fonte oficial\n\nkeyboard_arrow_right\n\nDetalhes da fonte [T:369]\n\nResolucao_TCC.pdf · página física 1 · [T:367]\n\nArt. 4º - Somente será integralizado o currículo do discente que for aprovado no TCC. TÍTULO II – DA MATRÍCULA EM TCC Art. 5º - A matrícula em TCC I está condicionada ao discente já ter sido aprovado no sexto bloco do currículo vigente. O discente não pode ser matriculado em TCC I caso tenha mais do que duas dependências em disciplinas de blocos anteriores ao sétimo. O discente só poderá ser matriculado em TCC II após ser aprovado em TCC I. Art. 6º - O período de matrícula em TCC I e TCC II deverá obedecer ao calendário oficial da UFPA, dentro do período ordinário de matrícula para os cursos de graduação. Esta matrícula deve ser feita pelo discente da mesma forma como procede para as demais disciplinas do curso. A matrícula em TCC I e TCC II será então julgada pela Câmara de Ensino de Graduação em prazo\n\nAbrir fonte oficial\n\nkeyboard_arrow_right\n\nDetalhes da fonte [T:367]\n\n🤍\n\n🖤\n\n🔄\n\nkeyboard_arrow_right\n\nPerguntas relacionadas"
+    },
+    {
+      "name": "chat_320",
+      "width": 320,
+      "height": 740,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "chat_390",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "chat_600",
+      "width": 600,
+      "height": 960,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "chat_768",
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "chat_820",
+      "width": 820,
+      "height": 1180,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "chat_1024",
+      "width": 1024,
+      "height": 768,
+      "overflow": false,
+      "textareaFont": "16px"
+    },
+    {
+      "name": "chat_1180",
+      "width": 1180,
+      "height": 820,
+      "overflow": false,
+      "textareaFont": "14px"
+    },
+    {
+      "name": "chat_1440",
+      "width": 1440,
+      "height": 1000,
+      "overflow": false,
+      "textareaFont": "14px"
+    },
+    {
+      "name": "sidebar_390",
+      "width": 304,
+      "openedAndClosed": true,
+      "passed": true
+    },
+    {
+      "name": "sidebar_820",
+      "width": 304,
+      "openedAndClosed": true,
+      "passed": true
+    }
+  ],
+  "errors": []
+}
