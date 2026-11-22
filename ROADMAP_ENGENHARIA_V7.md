@@ -1048,3 +1048,21 @@ Resposta correta ou excerto com o gabarito: **75/101 (74%)**; na Fase B de 14/11
 | Tempo médio | 40,4 s | 34,3 s |
 
 **Leitura.** Desempenho equivalente e 15% mais rápido. Ganhos: Cadastro Único (link do manual agora aceito) e plano de estágio (variações novas). Perdas: "um dos princípios da UFPA" (abstenção) e "quem avalia as atividades do aluno" (resposta incorreta). A queda de fidelidade (0,971 → 0,941) ainda não foi investigada e deve ser acompanhada na próxima rodada. A trava de sustentação lexical não bloqueou nenhuma resposta correta da amostra.
+
+## 32. Fase B de confirmação (20/11/2026): retirada da Cartilha de Monitoria 2021
+
+**Causa da queda de fidelidade de 19/11.** Só 3 perguntas mudaram de fidelidade entre 18/11 e 19/11; em 2 delas o trecho da Cartilha de Monitoria PROEG 2021, indexada em 19/11, entrou em respostas de outros temas ("quem avalia as atividades do aluno" passou a resposta incorreta, deslocando a Resolução de Atividades Complementares p. 4). A Cartilha foi retirada de `fontes_documentais.json`, da pasta `documentos/` e do banco (14 trechos). As entradas de monitoria usam os editais PROEG 22/2025 e 03/2026, que permanecem.
+
+**Otimização avaliada e descartada.** `scripts/medir_tempos.py` mostrou que ~90% do tempo de resposta é leitura do prompt (~1.350 tokens a ~42 tok/s; geração ~2,5 s; busca ~0,4 s). Reordenar o prompt de seleção para ampliar o cache de prefixo não teve efeito (cache fixo em 596 tokens, provavelmente pela arquitetura híbrida do Qwen3.5) e foi revertido.
+
+**Resultado (TAG `qwen35_20261120`, 103/103 julgadas, nenhuma falha de infraestrutura).** Nas 85 perguntas julgadas nas três rodadas (sem perguntas sobre o próprio arquivo):
+
+| | 18/11 | 19/11 | 20/11 |
+|---|---|---|---|
+| Úteis | 68 (80%) | 68 (80%) | **70 (82%)** |
+| Corretas em prosa / incorretas | 48 / 2 | 48 / 3 | **50 / 2** |
+| Abstenções reais | 4 | 4 | 3 |
+| Fidelidade média | 0,971 | 0,940 | **0,968** |
+| Tempo médio | 40,3 s | 33,9 s | 43,1 s |
+
+A fidelidade voltou ao nível de 18/11 e as três perguntas afetadas em 19/11 ("quem avalia as atividades", "oportunidades de bolsa", "princípios da UFPA") voltaram a ser corretas, com fidelidade 1,0; nenhuma resposta cita a Cartilha. O tempo médio varia entre rodadas (34–43 s) com o mesmo código, refletindo a carga da máquina; a medição isolada de 19/11 deu 34–36 s.
