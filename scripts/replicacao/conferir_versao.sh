@@ -9,6 +9,6 @@ if ! sha256sum -c "$MANIFESTO" --quiet; then
   echo "FALHOU: os arquivos acima diferem da v1.0-dissertacao (ou estão faltando)"; exit 1
 fi
 echo "OK: os $(wc -l < "$MANIFESTO") arquivos conferem com a v1.0-dissertacao"
-extras=$(comm -13 <(awk '{print $2}' "$MANIFESTO" | grep '^documentos/' | sort) <(ls documentos/*.pdf | sort))
+extras=$(LC_ALL=C comm -13 <(awk '{print $2}' "$MANIFESTO" | grep "^documentos/" | LC_ALL=C sort) <(ls documentos/*.pdf | LC_ALL=C sort))
 [ -n "$extras" ] && { echo "ATENÇÃO: PDFs a mais em documentos/ (seriam indexados e mudam os resultados):"; echo "$extras"; exit 1; }
 exit 0
